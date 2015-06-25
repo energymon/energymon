@@ -22,7 +22,7 @@ int em_finish_odroid(void);
 
 char* em_get_source_odroid(void);
 
-em_impl* em_impl_alloc_odroid(void);
+int em_impl_get_odroid(em_impl* impl);
 
 #ifdef __cplusplus
 }

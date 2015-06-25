@@ -30,7 +30,7 @@ int em_finish_msr(void);
 
 char* em_get_source_msr(void);
 
-em_impl* em_impl_alloc_msr(void);
+int em_impl_get_msr(em_impl* impl);
 
 #ifdef __cplusplus
 }

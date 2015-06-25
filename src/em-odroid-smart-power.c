@@ -73,8 +73,8 @@ char* em_get_source(void) {
   return em_get_source_osp();
 }
 
-em_impl* em_impl_alloc(void) {
-  return em_impl_alloc_osp();
+int em_impl_get(em_impl* impl) {
+  return em_impl_get_osp(impl);
 }
 #endif
 
@@ -302,11 +302,13 @@ char* em_get_source_osp(void) {
 #endif
 }
 
-em_impl* em_impl_alloc_osp(void) {
-  em_impl* hei = (em_impl*) malloc(sizeof(em_impl));
-  hei->finit = &em_init_osp;
-  hei->fread = &em_read_total_osp;
-  hei->ffinish = &em_finish_osp;
-  hei->fsource = &em_get_source_osp;
-  return hei;
+int em_impl_get_osp(em_impl* impl) {
+  if (impl != NULL) {
+      impl->finit = &em_init_osp;
+      impl->fread = &em_read_total_osp;
+      impl->ffinish = &em_finish_osp;
+      impl->fsource = &em_get_source_osp;
+      return 0;
+  }
+  return 1;
 }

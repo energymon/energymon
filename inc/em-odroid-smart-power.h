@@ -21,7 +21,7 @@ int em_finish_osp(void);
 
 char* em_get_source_osp(void);
 
-em_impl* em_impl_alloc_osp(void);
+int em_impl_get_osp(em_impl* impl);
 
 #ifdef __cplusplus
 }

@@ -82,8 +82,8 @@ char* em_get_source(void) {
   return em_get_source_msr();
 }
 
-em_impl* em_impl_alloc(void) {
-  return em_impl_alloc_msr();
+int em_impl_get(em_impl* impl) {
+  return em_impl_get_msr(impl);
 }
 #endif
 
@@ -219,11 +219,13 @@ char* em_get_source_msr(void) {
   return "X86 MSR";
 }
 
-em_impl* em_impl_alloc_msr(void) {
-  em_impl* hei = (em_impl*) malloc(sizeof(em_impl));
-  hei->finit = &em_init_msr;
-  hei->fread = &em_read_total_msr;
-  hei->ffinish = &em_finish_msr;
-  hei->fsource = &em_get_source_msr;
-  return hei;
+int em_impl_get_msr(em_impl* impl) {
+  if (impl != NULL) {
+      impl->finit = &em_init_msr;
+      impl->fread = &em_read_total_msr;
+      impl->ffinish = &em_finish_msr;
+      impl->fsource = &em_get_source_msr;
+      return 0;
+  }
+  return 1;
 }

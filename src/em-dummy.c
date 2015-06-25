@@ -27,8 +27,8 @@ char* em_get_source(void) {
   return em_get_source_dummy();
 }
 
-em_impl* em_impl_alloc(void) {
-  return em_impl_alloc_dummy();
+int em_impl_get(em_impl* impl) {
+  return em_impl_get_dummy(impl);
 }
 #endif
 
@@ -48,11 +48,13 @@ char* em_get_source_dummy(void) {
   return "Dummy Source";
 }
 
-em_impl* em_impl_alloc_dummy(void) {
-  em_impl* hei = (em_impl*) malloc(sizeof(em_impl));
-  hei->finit = &em_init_dummy;
-  hei->fread = &em_read_total_dummy;
-  hei->ffinish = &em_finish_dummy;
-  hei->fsource = &em_get_source_dummy;
-  return hei;
+int em_impl_get_dummy(em_impl* impl) {
+  if (impl != NULL) {
+      impl->finit = &em_init_dummy;
+      impl->fread = &em_read_total_dummy;
+      impl->ffinish = &em_finish_dummy;
+      impl->fsource = &em_get_source_dummy;
+      return 0;
+  }
+  return 1;
 }

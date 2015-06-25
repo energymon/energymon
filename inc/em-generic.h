@@ -66,9 +66,9 @@ int em_finish(void);
 char* em_get_source(void);
 
 /**
- * Factory function to alloc a em_impl specific to this implementation.
+ * Get functions specific to this implementation.
  */
-em_impl* em_impl_alloc(void);
+int em_impl_get(em_impl* impl);
 #endif
 
 /**

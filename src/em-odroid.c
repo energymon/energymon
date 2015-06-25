@@ -57,8 +57,8 @@ char* em_get_source(void) {
   return em_get_source_odroid();
 }
 
-em_impl* em_impl_alloc(void) {
-  return em_impl_alloc_odroid();
+int em_impl_get(em_impl* impl) {
+  return em_impl_get_odroid(impl);
 }
 #endif
 
@@ -355,11 +355,13 @@ char* em_get_source_odroid(void) {
   return "ODROID INA231 Power Sensors";
 }
 
-em_impl* em_impl_alloc_odroid(void) {
-  em_impl* hei = (em_impl*) malloc(sizeof(em_impl));
-  hei->finit = &em_init_odroid;
-  hei->fread = &em_read_total_odroid;
-  hei->ffinish = &em_finish_odroid;
-  hei->fsource = &em_get_source_odroid;
-  return hei;
+int em_impl_get_odroid(em_impl* impl) {
+  if (impl != NULL) {
+      impl->finit = &em_init_odroid;
+      impl->fread = &em_read_total_odroid;
+      impl->ffinish = &em_finish_odroid;
+      impl->fsource = &em_get_source_odroid;
+      return 0;
+  }
+  return 1;
 }

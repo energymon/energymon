@@ -22,7 +22,7 @@ int em_finish_dummy(void);
 
 char* em_get_source_dummy(void);
 
-em_impl* em_impl_alloc_dummy(void);
+int em_impl_get_dummy(em_impl* impl);
 
 #ifdef __cplusplus
 }
