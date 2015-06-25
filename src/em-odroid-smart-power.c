@@ -69,8 +69,8 @@ int em_finish(void) {
   return em_finish_osp();
 }
 
-char* em_get_source(void) {
-  return em_get_source_osp();
+char* em_get_source(char* buffer) {
+  return em_get_source_osp(buffer);
 }
 
 int em_impl_get(em_impl* impl) {
@@ -294,11 +294,11 @@ int em_finish_osp(void) {
   return 0;
 }
 
-char* em_get_source_osp(void) {
+char* em_get_source_osp(char* buffer) {
 #ifdef EM_ODROID_SMART_POWER_USE_POLLING
   return "ODROID Smart Power with Polling";
 #else
-  return "ODROID Smart Power";
+  return strcpy(buffer, "ODROID Smart Power");
 #endif
 }
 

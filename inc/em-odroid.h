@@ -20,7 +20,7 @@ double em_read_total_odroid(int64_t last_time, int64_t curr_time);
 
 int em_finish_odroid(void);
 
-char* em_get_source_odroid(void);
+char* em_get_source_odroid(char* buffer);
 
 int em_impl_get_odroid(em_impl* impl);
 

@@ -19,7 +19,7 @@ double em_read_total_osp(int64_t last_time, int64_t curr_time);
 
 int em_finish_osp(void);
 
-char* em_get_source_osp(void);
+char* em_get_source_osp(char* buffer);
 
 int em_impl_get_osp(em_impl* impl);
 

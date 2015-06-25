@@ -8,6 +8,7 @@
 #include "em-generic.h"
 #include "em-dummy.h"
 #include <stdlib.h>
+#include <string.h>
 #include <inttypes.h>
 
 #ifdef EM_GENERIC
@@ -23,8 +24,8 @@ int em_finish(void) {
   return em_finish_dummy();
 }
 
-char* em_get_source(void) {
-  return em_get_source_dummy();
+char* em_get_source(char* buffer) {
+  return em_get_source_dummy(buffer);
 }
 
 int em_impl_get(em_impl* impl) {
@@ -44,8 +45,8 @@ int em_finish_dummy(void) {
   return 0;
 }
 
-char* em_get_source_dummy(void) {
-  return "Dummy Source";
+char* em_get_source_dummy(char* buffer) {
+  return strcpy(buffer, "Dummy Source");
 }
 
 int em_impl_get_dummy(em_impl* impl) {

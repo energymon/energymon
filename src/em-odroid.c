@@ -9,6 +9,7 @@
 #include "em-odroid.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <fcntl.h>
 #include <inttypes.h>
 #include <unistd.h>
@@ -53,8 +54,8 @@ int em_finish(void) {
   return em_finish_odroid();
 }
 
-char* em_get_source(void) {
-  return em_get_source_odroid();
+char* em_get_source(char* buffer) {
+  return em_get_source_odroid(buffer);
 }
 
 int em_impl_get(em_impl* impl) {
@@ -351,8 +352,8 @@ double em_read_total_odroid(int64_t last_time, int64_t curr_time) {
   return result;
 }
 
-char* em_get_source_odroid(void) {
-  return "ODROID INA231 Power Sensors";
+char* em_get_source_odroid(char* buffer) {
+  return strcpy(buffer, "ODROID INA231 Power Sensors");
 }
 
 int em_impl_get_odroid(em_impl* impl) {

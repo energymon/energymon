@@ -38,7 +38,7 @@ typedef int (*em_finish_func) (void);
 /**
  * Get a human-readable description of the energy calculation source.
  */
-typedef char* (*em_get_source_func) (void);
+typedef char* (*em_get_source_func) (char* buffer);
 
 /**
  * A structure to encapsulate a complete implementation. Each field is a
@@ -63,7 +63,7 @@ double em_read_total(int64_t last_time, int64_t curr_time);
 
 int em_finish(void);
 
-char* em_get_source(void);
+char* em_get_source(char* buffer);
 
 /**
  * Get functions specific to this implementation.

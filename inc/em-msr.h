@@ -28,7 +28,7 @@ double em_read_total_msr(int64_t last_time, int64_t curr_time);
 
 int em_finish_msr(void);
 
-char* em_get_source_msr(void);
+char* em_get_source_msr(char* buffer);
 
 int em_impl_get_msr(em_impl* impl);
 

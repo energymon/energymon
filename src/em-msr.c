@@ -78,8 +78,8 @@ int em_finish(void) {
   return em_finish_msr();
 }
 
-char* em_get_source(void) {
-  return em_get_source_msr();
+char* em_get_source(char* buffer) {
+  return em_get_source_msr(buffer);
 }
 
 int em_impl_get(em_impl* impl) {
@@ -215,8 +215,8 @@ int em_finish_msr(void) {
   return ret;
 }
 
-char* em_get_source_msr(void) {
-  return "X86 MSR";
+char* em_get_source_msr(char* buffer) {
+  return strcpy(buffer, "X86 MSR");
 }
 
 int em_impl_get_msr(em_impl* impl) {
