@@ -46,9 +46,9 @@ static int64_t osp_start_time;
 static double osp_total_energy;
 
 // thread variables
-static double osp_hb_pwr_avg;
-static double osp_hb_pwr_avg_last;
-static int osp_hb_pwr_avg_count;
+static double osp_pwr_avg;
+static double osp_pwr_avg_last;
+static int osp_pwr_avg_count;
 static pthread_mutex_t osp_polling_mutex;
 static pthread_t osp_polling_thread;
 static int osp_do_polling;
@@ -61,8 +61,8 @@ int em_init(void) {
   return em_init_osp();
 }
 
-double em_read_total(int64_t last_hb_time, int64_t curr_hb_time) {
-  return em_read_total_osp(last_hb_time, curr_hb_time);
+double em_read_total(int64_t last_time, int64_t curr_time) {
+  return em_read_total_osp(last_time, curr_time);
 }
 
 int em_finish(void) {
@@ -139,9 +139,9 @@ static void* osp_poll_device(void* args) {
       watts = atof(w);
       // keep running average between heartbeats
       pthread_mutex_lock(&osp_polling_mutex);
-      osp_hb_pwr_avg = (watts + osp_hb_pwr_avg_count * osp_hb_pwr_avg) / (osp_hb_pwr_avg_count + 1);
-      // printf("osp_poll_device: %f %f\n", watts, osp_hb_pwr_avg);
-      osp_hb_pwr_avg_count++;
+      osp_pwr_avg = (watts + osp_pwr_avg_count * osp_pwr_avg) / (osp_pwr_avg_count + 1);
+      // printf("osp_poll_device: %f %f\n", watts, osp_pwr_avg);
+      osp_pwr_avg_count++;
       pthread_mutex_unlock(&osp_polling_mutex);
     } else {
       fprintf(stderr, "osp_poll_device: Did not get data\n");
@@ -203,9 +203,9 @@ int em_init_osp(void) {
   // start device polling thread
   osp_total_energy = 0;
   osp_do_polling = 1;
-  osp_hb_pwr_avg = 0;
-  osp_hb_pwr_avg_last = 0;
-  osp_hb_pwr_avg_count = 0;
+  osp_pwr_avg = 0;
+  osp_pwr_avg_last = 0;
+  osp_pwr_avg_count = 0;
   if(pthread_mutex_init(&osp_polling_mutex, NULL)) {
     fprintf(stderr, "Failed to create ODROID Smart Power mutex.\n");
     em_finish_osp();
@@ -221,7 +221,7 @@ int em_init_osp(void) {
   return 0;
 }
 
-double em_read_total_osp(int64_t last_hb_time, int64_t curr_hb_time) {
+double em_read_total_osp(int64_t last_time, int64_t curr_time) {
   double joules = 0;
 
   if (device == NULL) {
@@ -230,18 +230,18 @@ double em_read_total_osp(int64_t last_hb_time, int64_t curr_hb_time) {
   }
 
 #ifdef EM_ODROID_SMART_POWER_USE_POLLING
-  last_hb_time = last_hb_time < 0 ? osp_start_time : last_hb_time;
-  // it's also assumed that curr_hb_time >= last_hb_time
+  last_time = last_time < 0 ? osp_start_time : last_time;
+  // it's also assumed that curr_time >= last_time
 
   pthread_mutex_lock(&osp_polling_mutex);
   // convert from power to energy using timestamps
-  osp_hb_pwr_avg_last = osp_hb_pwr_avg > 0 ? osp_hb_pwr_avg : osp_hb_pwr_avg_last;
-  osp_total_energy += osp_hb_pwr_avg_last * diff_sec(last_hb_time, curr_hb_time);
-  // printf("foo: %f %f\n", osp_total_energy, diff_sec(last_hb_time, curr_hb_time));
+  osp_pwr_avg_last = osp_pwr_avg > 0 ? osp_pwr_avg : osp_pwr_avg_last;
+  osp_total_energy += osp_pwr_avg_last * diff_sec(last_time, curr_time);
+  // printf("foo: %f %f\n", osp_total_energy, diff_sec(last_time, curr_time));
   joules = osp_total_energy;
   // reset running power average
-  osp_hb_pwr_avg = 0;
-  osp_hb_pwr_avg_count = 0;
+  osp_pwr_avg = 0;
+  osp_pwr_avg_count = 0;
   pthread_mutex_unlock(&osp_polling_mutex);
 #else
   char wh[7] = {'\0'};

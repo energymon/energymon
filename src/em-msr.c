@@ -70,8 +70,8 @@ int em_init(void) {
   return em_init_msr();
 }
 
-double em_read_total(int64_t last_hb_time, int64_t curr_hb_time) {
-  return em_read_total_msr(last_hb_time, curr_hb_time);
+double em_read_total(int64_t last_time, int64_t curr_time) {
+  return em_read_total_msr(last_time, curr_time);
 }
 
 int em_finish(void) {
@@ -182,7 +182,7 @@ int em_init_msr(void) {
   return 0;
 }
 
-double em_read_total_msr(int64_t last_hb_time, int64_t curr_hb_time) {
+double em_read_total_msr(int64_t last_time, int64_t curr_time) {
   int i;
   double msr_val;
   double total = 0.0;

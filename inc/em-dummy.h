@@ -1,5 +1,5 @@
 /**
- * Dummy hb-energy implementation - doesn't read from any source.
+ * Dummy implementation - doesn't read from any source.
  *
  * @author Connor Imes
  * @date 2014-07-30
@@ -16,7 +16,7 @@ extern "C" {
 
 int em_init_dummy(void);
 
-double em_read_total_dummy(int64_t last_hb_time, int64_t curr_hb_time);
+double em_read_total_dummy(int64_t last_time, int64_t curr_time);
 
 int em_finish_dummy(void);
 

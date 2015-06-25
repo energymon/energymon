@@ -5,10 +5,8 @@ DEFINES ?=
 LDFLAGS = -shared -lpthread -lrt -lm
 
 DOCDIR = doc
-BINDIR = bin
 LIBDIR = lib
 INCDIR = ./inc
-OUTPUT = ./output
 SRCDIR = ./src
 
 all: $(LIBDIR) energy
@@ -23,16 +21,16 @@ $(LIBDIR)/libem.so: $(SRCDIR)/em-dummy.c $(SRCDIR)/em-msr.c $(SRCDIR)/em-odroid.
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
 
 $(LIBDIR)/libem-dummy.so: $(SRCDIR)/em-dummy.c
-	$(CXX) $(CXXFLAGS) -DHB_ENERGY_IMPL $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
+	$(CXX) $(CXXFLAGS) -DEM_GENERIC $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
 
 $(LIBDIR)/libem-msr.so: $(SRCDIR)/em-msr.c
-	$(CXX) $(CXXFLAGS) -DHB_ENERGY_IMPL $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
+	$(CXX) $(CXXFLAGS) -DEM_GENERIC $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
 
 $(LIBDIR)/libem-odroid.so: $(SRCDIR)/em-odroid.c
-	$(CXX) $(CXXFLAGS) -DHB_ENERGY_IMPL $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
+	$(CXX) $(CXXFLAGS) -DEM_GENERIC $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
 
 $(LIBDIR)/libem-odroid-smart-power.so: $(SRCDIR)/em-odroid-smart-power.c
-	$(CXX) $(CXXFLAGS) -DHB_ENERGY_IMPL $(LDFLAGS) -lhidapi-libusb -Wl,-soname,$(@F) -o $@ $^
+	$(CXX) $(CXXFLAGS) -DEM_GENERIC $(LDFLAGS) -lhidapi-libusb -Wl,-soname,$(@F) -o $@ $^
 
 # Installation
 install: all

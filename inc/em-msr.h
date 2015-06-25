@@ -24,7 +24,7 @@ extern "C" {
 
 int em_init_msr(void);
 
-double em_read_total_msr(int64_t last_hb_time, int64_t curr_hb_time);
+double em_read_total_msr(int64_t last_time, int64_t curr_time);
 
 int em_finish_msr(void);
 

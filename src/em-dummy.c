@@ -15,8 +15,8 @@ int em_init(void) {
   return em_init_dummy();
 }
 
-double em_read_total(int64_t last_hb_time, int64_t curr_hb_time) {
-  return em_read_total_dummy(last_hb_time, curr_hb_time);
+double em_read_total(int64_t last_time, int64_t curr_time) {
+  return em_read_total_dummy(last_time, curr_time);
 }
 
 int em_finish(void) {
@@ -36,7 +36,7 @@ int em_init_dummy(void) {
   return 0;
 }
 
-double em_read_total_dummy(int64_t last_hb_time, int64_t curr_hb_time) {
+double em_read_total_dummy(int64_t last_time, int64_t curr_time) {
   return 0.0;
 }
 

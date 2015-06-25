@@ -33,9 +33,9 @@ static int64_t odroid_start_time;
 static double odroid_total_energy;
 
 // thread variables
-static double odroid_hb_pwr_avg;
-static double odroid_hb_pwr_avg_last;
-static int odroid_hb_pwr_avg_count;
+static double odroid_pwr_avg;
+static double odroid_pwr_avg_last;
+static int odroid_pwr_avg_count;
 static pthread_mutex_t odroid_sensor_mutex;
 static pthread_t odroid_sensor_thread;
 static int odroid_read_sensors;
@@ -45,8 +45,8 @@ int em_init(void) {
   return em_init_odroid();
 }
 
-double em_read_total(int64_t last_hb_time, int64_t curr_hb_time) {
-  return em_read_total_odroid(last_hb_time, curr_hb_time);
+double em_read_total(int64_t last_time, int64_t curr_time) {
+  return em_read_total_odroid(last_time, curr_time);
 }
 
 int em_finish(void) {
@@ -242,8 +242,8 @@ void* odroid_poll_sensors(void* args) {
     if (bad_reading == 0) {
       // keep running average between heartbeats
       pthread_mutex_lock(&odroid_sensor_mutex);
-      odroid_hb_pwr_avg = (sum + odroid_hb_pwr_avg_count * odroid_hb_pwr_avg) / (odroid_hb_pwr_avg_count + 1);
-      odroid_hb_pwr_avg_count++;
+      odroid_pwr_avg = (sum + odroid_pwr_avg_count * odroid_pwr_avg) / (odroid_pwr_avg_count + 1);
+      odroid_pwr_avg_count++;
       pthread_mutex_unlock(&odroid_sensor_mutex);
     }
     // sleep for the update interval of the sensors
@@ -311,9 +311,9 @@ int em_init_odroid(void) {
 
   // start sensors polling thread
   odroid_read_sensors = 1;
-  odroid_hb_pwr_avg = 0;
-  odroid_hb_pwr_avg_last = 0;
-  odroid_hb_pwr_avg_count = 0;
+  odroid_pwr_avg = 0;
+  odroid_pwr_avg_last = 0;
+  odroid_pwr_avg_count = 0;
   ret = pthread_mutex_init(&odroid_sensor_mutex, NULL);
   if(ret) {
     fprintf(stderr, "Failed to create ODROID sensors mutex.\n");
@@ -333,19 +333,19 @@ int em_init_odroid(void) {
 /**
  * Estimate energy from the average power since last heartbeat.
  */
-double em_read_total_odroid(int64_t last_hb_time, int64_t curr_hb_time) {
+double em_read_total_odroid(int64_t last_time, int64_t curr_time) {
   double result;
-  last_hb_time = last_hb_time < 0 ? odroid_start_time : last_hb_time;
-  // it's also assumed that curr_hb_time >= last_hb_time
+  last_time = last_time < 0 ? odroid_start_time : last_time;
+  // it's also assumed that curr_time >= last_time
 
   pthread_mutex_lock(&odroid_sensor_mutex);
   // convert from power to energy using timestamps
-  odroid_hb_pwr_avg_last = odroid_hb_pwr_avg > 0 ? odroid_hb_pwr_avg : odroid_hb_pwr_avg_last;
-  odroid_total_energy += odroid_hb_pwr_avg_last * diff_sec(last_hb_time, curr_hb_time);
+  odroid_pwr_avg_last = odroid_pwr_avg > 0 ? odroid_pwr_avg : odroid_pwr_avg_last;
+  odroid_total_energy += odroid_pwr_avg_last * diff_sec(last_time, curr_time);
   result = odroid_total_energy;
   // reset running power average
-  odroid_hb_pwr_avg = 0;
-  odroid_hb_pwr_avg_count = 0;
+  odroid_pwr_avg = 0;
+  odroid_pwr_avg_count = 0;
   pthread_mutex_unlock(&odroid_sensor_mutex);
 
   return result;
