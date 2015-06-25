@@ -15,7 +15,7 @@ $(LIBDIR):
 	-mkdir -p $(LIBDIR)
 
 # Power/energy monitors
-energy: $(LIBDIR)/libem.so $(LIBDIR)/libem-dummy.so $(LIBDIR)/libem-msr.so $(LIBDIR)/libem-odroid.so $(LIBDIR)/libem-odroid-smart-power.so
+energy: $(LIBDIR)/libem.so $(LIBDIR)/libem-dummy.so $(LIBDIR)/libem-msr.so $(LIBDIR)/libem-odroid.so $(LIBDIR)/libem-osp.so $(LIBDIR)/libem-osp-polling.so
 
 $(LIBDIR)/libem.so: $(SRCDIR)/em-dummy.c $(SRCDIR)/em-msr.c $(SRCDIR)/em-odroid.c $(SRCDIR)/em-odroid-smart-power.c
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
@@ -29,8 +29,11 @@ $(LIBDIR)/libem-msr.so: $(SRCDIR)/em-msr.c
 $(LIBDIR)/libem-odroid.so: $(SRCDIR)/em-odroid.c
 	$(CXX) $(CXXFLAGS) -DEM_GENERIC $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
 
-$(LIBDIR)/libem-odroid-smart-power.so: $(SRCDIR)/em-odroid-smart-power.c
+$(LIBDIR)/libem-osp.so: $(SRCDIR)/em-odroid-smart-power.c
 	$(CXX) $(CXXFLAGS) -DEM_GENERIC $(LDFLAGS) -lhidapi-libusb -Wl,-soname,$(@F) -o $@ $^
+
+$(LIBDIR)/libem-osp-polling.so: $(SRCDIR)/em-odroid-smart-power.c
+	$(CXX) $(CXXFLAGS) -DEM_GENERIC $(LDFLAGS) -DEM_ODROID_SMART_POWER_USE_POLLING -lhidapi-libusb -Wl,-soname,$(@F) -o $@ $^
 
 # Installation
 install: all

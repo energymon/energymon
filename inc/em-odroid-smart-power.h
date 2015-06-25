@@ -15,7 +15,7 @@ extern "C" {
 
 int em_init_osp(void);
 
-double em_read_total_osp(int64_t last_time, int64_t curr_time);
+double em_read_total_osp(void);
 
 int em_finish_osp(void);
 

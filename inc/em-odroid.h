@@ -16,7 +16,7 @@ extern "C" {
 
 int em_init_odroid(void);
 
-double em_read_total_odroid(int64_t last_time, int64_t curr_time);
+double em_read_total_odroid(void);
 
 int em_finish_odroid(void);
 

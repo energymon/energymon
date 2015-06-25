@@ -15,7 +15,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <inttypes.h>
 #include <unistd.h>
 #include <pthread.h>
 
@@ -42,14 +41,9 @@ static unsigned char buf[OSP_MAX_STR];
   #define EM_ODROID_SMART_POWER_POLL_DELAY_US 200000
 #endif
 
-static int64_t osp_start_time;
 static double osp_total_energy;
 
 // thread variables
-static double osp_pwr_avg;
-static double osp_pwr_avg_last;
-static int osp_pwr_avg_count;
-static pthread_mutex_t osp_polling_mutex;
 static pthread_t osp_polling_thread;
 static int osp_do_polling;
 #else
@@ -61,8 +55,8 @@ int em_init(void) {
   return em_init_osp();
 }
 
-double em_read_total(int64_t last_time, int64_t curr_time) {
-  return em_read_total_osp(last_time, curr_time);
+double em_read_total(void) {
+  return em_read_total_osp();
 }
 
 int em_finish(void) {
@@ -125,8 +119,7 @@ static inline int em_osp_request_data() {
 
 #ifdef EM_ODROID_SMART_POWER_USE_POLLING
 /**
- * pthread function to poll the device at regular intervals and
- * keep a running average of power between heartbeats.
+ * pthread function to poll the device at regular intervals
  */
 static void* osp_poll_device(void* args) {
   double watts;
@@ -137,12 +130,7 @@ static void* osp_poll_device(void* args) {
     } else if(buf[0] == OSP_REQUEST_DATA) {
       strncpy(w, (char*) &buf[17], 6);
       watts = atof(w);
-      // keep running average between heartbeats
-      pthread_mutex_lock(&osp_polling_mutex);
-      osp_pwr_avg = (watts + osp_pwr_avg_count * osp_pwr_avg) / (osp_pwr_avg_count + 1);
-      // printf("osp_poll_device: %f %f\n", watts, osp_pwr_avg);
-      osp_pwr_avg_count++;
-      pthread_mutex_unlock(&osp_polling_mutex);
+      osp_total_energy += watts * EM_ODROID_SMART_POWER_POLL_DELAY_US / 1000000.0;
     } else {
       fprintf(stderr, "osp_poll_device: Did not get data\n");
     }
@@ -195,22 +183,9 @@ int em_init_osp(void) {
   }
 
 #ifdef EM_ODROID_SMART_POWER_USE_POLLING
-  // track start time
-  struct timespec now;
-  clock_gettime(CLOCK_REALTIME, &now);
-  osp_start_time = to_nanosec(&now);
-
   // start device polling thread
   osp_total_energy = 0;
   osp_do_polling = 1;
-  osp_pwr_avg = 0;
-  osp_pwr_avg_last = 0;
-  osp_pwr_avg_count = 0;
-  if(pthread_mutex_init(&osp_polling_mutex, NULL)) {
-    fprintf(stderr, "Failed to create ODROID Smart Power mutex.\n");
-    em_finish_osp();
-    return -1;
-  }
   if (pthread_create(&osp_polling_thread, NULL, osp_poll_device, NULL)) {
     fprintf(stderr, "Failed to start ODROID Smart Power thread.\n");
     em_finish_osp();
@@ -221,7 +196,7 @@ int em_init_osp(void) {
   return 0;
 }
 
-double em_read_total_osp(int64_t last_time, int64_t curr_time) {
+double em_read_total_osp(void) {
   double joules = 0;
 
   if (device == NULL) {
@@ -230,26 +205,14 @@ double em_read_total_osp(int64_t last_time, int64_t curr_time) {
   }
 
 #ifdef EM_ODROID_SMART_POWER_USE_POLLING
-  last_time = last_time < 0 ? osp_start_time : last_time;
-  // it's also assumed that curr_time >= last_time
-
-  pthread_mutex_lock(&osp_polling_mutex);
-  // convert from power to energy using timestamps
-  osp_pwr_avg_last = osp_pwr_avg > 0 ? osp_pwr_avg : osp_pwr_avg_last;
-  osp_total_energy += osp_pwr_avg_last * diff_sec(last_time, curr_time);
-  // printf("foo: %f %f\n", osp_total_energy, diff_sec(last_time, curr_time));
   joules = osp_total_energy;
-  // reset running power average
-  osp_pwr_avg = 0;
-  osp_pwr_avg_count = 0;
-  pthread_mutex_unlock(&osp_polling_mutex);
 #else
   char wh[7] = {'\0'};
 
   if(em_osp_request_data()) {
     fprintf(stderr, "em_read_total_osp: Data request failed\n");
   } else if(buf[0] == OSP_REQUEST_DATA) {
-		strncpy(wh, (char*) &buf[26], 5);
+    strncpy(wh, (char*) &buf[26], 5);
     joules = atof(wh) * JOULES_PER_WATTHOUR;
     // printf("em_read_total_osp: %s Watt-Hours = %f Joules\n", wh, joules);
   } else {
@@ -272,9 +235,6 @@ int em_finish_osp(void) {
   if(pthread_join(osp_polling_thread, NULL)) {
     fprintf(stderr, "Error joining ODROID Smart Power polling thread.\n");
   }
-  if(pthread_mutex_destroy(&osp_polling_mutex)) {
-    fprintf(stderr,"Error destroying pthread mutex for ODROID Smart Power polling thread.\n");
-  }
 #endif
 
   buf[0] = 0x00;
@@ -296,7 +256,7 @@ int em_finish_osp(void) {
 
 char* em_get_source_osp(char* buffer) {
 #ifdef EM_ODROID_SMART_POWER_USE_POLLING
-  return "ODROID Smart Power with Polling";
+  return strcpy(buffer, "ODROID Smart Power with Polling");
 #else
   return strcpy(buffer, "ODROID Smart Power");
 #endif

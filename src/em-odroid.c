@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
-#include <inttypes.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <dirent.h>
@@ -30,14 +29,9 @@ static int odroid_read_delay_us;
 static int* odroid_pwr_ids = NULL;
 static unsigned int odroid_pwr_id_count;
 
-static int64_t odroid_start_time;
 static double odroid_total_energy;
 
 // thread variables
-static double odroid_pwr_avg;
-static double odroid_pwr_avg_last;
-static int odroid_pwr_avg_count;
-static pthread_mutex_t odroid_sensor_mutex;
 static pthread_t odroid_sensor_thread;
 static int odroid_read_sensors;
 
@@ -46,8 +40,8 @@ int em_init(void) {
   return em_init_odroid();
 }
 
-double em_read_total(int64_t last_time, int64_t curr_time) {
-  return em_read_total_odroid(last_time, curr_time);
+double em_read_total(void) {
+  return em_read_total_odroid();
 }
 
 int em_finish(void) {
@@ -152,10 +146,6 @@ int em_finish_odroid(void) {
     fprintf(stderr, "Error joining ODROID sensor polling thread.\n");
     ret -= 1;
   }
-  if(pthread_mutex_destroy(&odroid_sensor_mutex)) {
-    fprintf(stderr, "Error destroying pthread mutex for ODROID sensor polling thread.\n");
-    ret -= 1;
-  }
 
   if (odroid_pwr_ids != NULL) {
     // close individual sensor files
@@ -214,8 +204,7 @@ static inline char** odroid_get_sensor_directories(unsigned int* count) {
 }
 
 /**
- * pthread function to poll the sensors at regular intervals and
- * keep a running average of power between heartbeats.
+ * pthread function to poll the sensors at regular intervals.
  */
 void* odroid_poll_sensors(void* args) {
   double sum;
@@ -241,11 +230,7 @@ void* odroid_poll_sensors(void* args) {
       }
     }
     if (bad_reading == 0) {
-      // keep running average between heartbeats
-      pthread_mutex_lock(&odroid_sensor_mutex);
-      odroid_pwr_avg = (sum + odroid_pwr_avg_count * odroid_pwr_avg) / (odroid_pwr_avg_count + 1);
-      odroid_pwr_avg_count++;
-      pthread_mutex_unlock(&odroid_sensor_mutex);
+      odroid_total_energy += sum * to_nanosec(&ts_interval) / 1000000000.0;
     }
     // sleep for the update interval of the sensors
     // TODO: Should use a conditional here so thread can be woken up to end immediately
@@ -305,22 +290,8 @@ int em_init_odroid(void) {
   // we're finished with this variable
   free(sensor_dirs);
 
-  // track start time
-  struct timespec now;
-  clock_gettime( CLOCK_REALTIME, &now );
-  odroid_start_time = to_nanosec(&now);
-
   // start sensors polling thread
   odroid_read_sensors = 1;
-  odroid_pwr_avg = 0;
-  odroid_pwr_avg_last = 0;
-  odroid_pwr_avg_count = 0;
-  ret = pthread_mutex_init(&odroid_sensor_mutex, NULL);
-  if(ret) {
-    fprintf(stderr, "Failed to create ODROID sensors mutex.\n");
-    em_finish_odroid();
-    return ret;
-  }
   ret = pthread_create(&odroid_sensor_thread, NULL, odroid_poll_sensors, NULL);
   if (ret) {
     fprintf(stderr, "Failed to start ODROID sensors thread.\n");
@@ -331,25 +302,8 @@ int em_init_odroid(void) {
   return ret;
 }
 
-/**
- * Estimate energy from the average power since last heartbeat.
- */
-double em_read_total_odroid(int64_t last_time, int64_t curr_time) {
-  double result;
-  last_time = last_time < 0 ? odroid_start_time : last_time;
-  // it's also assumed that curr_time >= last_time
-
-  pthread_mutex_lock(&odroid_sensor_mutex);
-  // convert from power to energy using timestamps
-  odroid_pwr_avg_last = odroid_pwr_avg > 0 ? odroid_pwr_avg : odroid_pwr_avg_last;
-  odroid_total_energy += odroid_pwr_avg_last * diff_sec(last_time, curr_time);
-  result = odroid_total_energy;
-  // reset running power average
-  odroid_pwr_avg = 0;
-  odroid_pwr_avg_count = 0;
-  pthread_mutex_unlock(&odroid_sensor_mutex);
-
-  return result;
+double em_read_total_odroid(void) {
+  return odroid_total_energy;
 }
 
 char* em_get_source_odroid(char* buffer) {

@@ -28,7 +28,7 @@ typedef int (*em_init_func) (void);
 /**
  * Get the total energy used since init was called.
  */
-typedef double (*em_read_total_func) (int64_t last_time, int64_t curr_time);
+typedef double (*em_read_total_func) (void);
 
 /**
  * Stop background tasks, close open file(s), etc.
@@ -59,7 +59,7 @@ typedef struct {
 #ifdef EM_GENERIC
 int em_init(void);
 
-double em_read_total(int64_t last_time, int64_t curr_time);
+double em_read_total(void);
 
 int em_finish(void);
 

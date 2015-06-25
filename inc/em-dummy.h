@@ -16,7 +16,7 @@ extern "C" {
 
 int em_init_dummy(void);
 
-double em_read_total_dummy(int64_t last_time, int64_t curr_time);
+double em_read_total_dummy(void);
 
 int em_finish_dummy(void);
 
