@@ -28,20 +28,20 @@ energy: $(LIBDIR)/libem.so $(LIBDIR)/libem-dummy.so $(LIBDIR)/libem-msr.so $(LIB
 $(LIBDIR)/libem.so: $(SRCDIR)/em-dummy.c $(SRCDIR)/em-msr.c $(SRCDIR)/em-odroid.c $(SRCDIR)/em-odroid-smart-power.c
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
 
-$(LIBDIR)/libem-dummy.so: $(SRCDIR)/em-dummy.c $(INCDIR)/em-generic.h $(INCDIR)/em-dummy.h
-	$(CXX) $(CXXFLAGS) -DEM_GENERIC $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
+$(LIBDIR)/libem-dummy.so: $(SRCDIR)/em-dummy.c $(INCDIR)/energymon.h $(INCDIR)/em-dummy.h
+	$(CXX) $(CXXFLAGS) -DEM_DEFAULT $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
 
-$(LIBDIR)/libem-msr.so: $(SRCDIR)/em-msr.c  $(INCDIR)/em-generic.h $(INCDIR)/em-msr.h
-	$(CXX) $(CXXFLAGS) -DEM_GENERIC $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
+$(LIBDIR)/libem-msr.so: $(SRCDIR)/em-msr.c  $(INCDIR)/energymon.h $(INCDIR)/em-msr.h
+	$(CXX) $(CXXFLAGS) -DEM_DEFAULT $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
 
-$(LIBDIR)/libem-odroid.so: $(SRCDIR)/em-odroid.c  $(INCDIR)/em-generic.h $(INCDIR)/em-odroid.h
-	$(CXX) $(CXXFLAGS) -DEM_GENERIC $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
+$(LIBDIR)/libem-odroid.so: $(SRCDIR)/em-odroid.c  $(INCDIR)/energymon.h $(INCDIR)/em-odroid.h
+	$(CXX) $(CXXFLAGS) -DEM_DEFAULT $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
 
-$(LIBDIR)/libem-osp.so: $(SRCDIR)/em-odroid-smart-power.c  $(INCDIR)/em-generic.h $(INCDIR)/em-odroid-smart-power.h
-	$(CXX) $(CXXFLAGS) -DEM_GENERIC $(LDFLAGS) -lhidapi-libusb -Wl,-soname,$(@F) -o $@ $^
+$(LIBDIR)/libem-osp.so: $(SRCDIR)/em-odroid-smart-power.c  $(INCDIR)/energymon.h $(INCDIR)/em-odroid-smart-power.h
+	$(CXX) $(CXXFLAGS) -DEM_DEFAULT $(LDFLAGS) -lhidapi-libusb -Wl,-soname,$(@F) -o $@ $^
 
 $(LIBDIR)/libem-osp-polling.so: $(SRCDIR)/em-odroid-smart-power.c
-	$(CXX) $(CXXFLAGS) -DEM_GENERIC $(LDFLAGS) -DEM_ODROID_SMART_POWER_USE_POLLING -lhidapi-libusb -Wl,-soname,$(@F) -o $@ $^
+	$(CXX) $(CXXFLAGS) -DEM_DEFAULT $(LDFLAGS) -DEM_ODROID_SMART_POWER_USE_POLLING -lhidapi-libusb -Wl,-soname,$(@F) -o $@ $^
 
 # Build test object files
 $(BINDIR)/%.o : $(TESTDIR)/%.c $(HEADERS) | $(BINDIR)

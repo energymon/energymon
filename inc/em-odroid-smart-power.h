@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-#include "em-generic.h"
+#include "energymon.h"
 
 int em_init_osp(em_impl* em);
 

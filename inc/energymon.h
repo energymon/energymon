@@ -10,14 +10,12 @@
  * @author Connor Imes
  * @date 2014-06-30
  */
-#ifndef _EM_GENERIC_H_
-#define _EM_GENERIC_H_
+#ifndef _ENERGYMON_H_
+#define _ENERGYMON_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "em-generic.h"
 
 typedef struct em_impl em_impl;
 
@@ -57,11 +55,11 @@ struct em_impl {
 };
 
 /*
- * Compile with EM_GENERIC to allow code to access a default energy monitor.
+ * Compile with EM_DEFAULT to allow code to access a default energy monitor.
  * This allows implementations to be swapped without making code changes, only
  * re-linking.
  */
-#ifdef EM_GENERIC
+#ifdef EM_DEFAULT
 /**
  * Get functions specific to this implementation.
  */

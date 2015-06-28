@@ -15,7 +15,7 @@
 extern "C" {
 #endif
 
-#include "em-generic.h"
+#include "energymon.h"
 
 /* Environment variable for specifying the MSRs to use */
 #define EM_MSR_ENV_VAR "EM_MSRS"

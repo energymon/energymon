@@ -5,7 +5,7 @@
  * @date 2014-07-30
  */
 
-#include "em-generic.h"
+#include "energymon.h"
 #include "em-dummy.h"
 #include <stdlib.h>
 #include <string.h>
@@ -14,7 +14,7 @@ typedef struct em_dummy {
   double energy;
 } em_dummy;
 
-#ifdef EM_GENERIC
+#ifdef EM_DEFAULT
 int em_impl_get(em_impl* impl) {
   return em_impl_get_dummy(impl);
 }

@@ -9,7 +9,7 @@
  * @author Connor Imes
  */
 
-#include "em-generic.h"
+#include "energymon.h"
 #include "em-msr.h"
 #include <inttypes.h>
 #include <math.h>
@@ -66,7 +66,7 @@ typedef struct em_msr {
   double* msr_energy_units;
 } em_msr;
 
-#ifdef EM_GENERIC
+#ifdef EM_DEFAULT
 int em_impl_get(em_impl* impl) {
   return em_impl_get_msr(impl);
 }

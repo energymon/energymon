@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-#include "em-generic.h"
+#include "energymon.h"
 
 int em_init_odroid(em_impl* em);
 

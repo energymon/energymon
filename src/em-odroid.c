@@ -5,7 +5,7 @@
  * @date 2014-06-30
  */
 
-#include "em-generic.h"
+#include "energymon.h"
 #include "em-odroid.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -38,7 +38,7 @@ typedef struct em_odroid {
   double odroid_total_energy;
 } em_odroid;
 
-#ifdef EM_GENERIC
+#ifdef EM_DEFAULT
 int em_impl_get(em_impl* impl) {
   return em_impl_get_odroid(impl);
 }

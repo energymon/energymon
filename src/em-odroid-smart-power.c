@@ -9,7 +9,7 @@
  * @date 2015-01-27
  */
 
-#include "em-generic.h"
+#include "energymon.h"
 #include "em-odroid-smart-power.h"
 #include <hidapi/hidapi.h>
 #include <stdlib.h>
@@ -50,7 +50,7 @@ typedef struct em_osp {
 #endif
 } em_osp;
 
-#ifdef EM_GENERIC
+#ifdef EM_DEFAULT
 int em_impl_get(em_impl* impl) {
   return em_impl_get_osp(impl);
 }
