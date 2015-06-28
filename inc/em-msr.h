@@ -16,17 +16,16 @@ extern "C" {
 #endif
 
 #include "em-generic.h"
-#include <inttypes.h>
 
 /* Environment variable for specifying the MSRs to use */
 #define EM_MSR_ENV_VAR "EM_MSRS"
 #define EM_MSRS_DELIMS ", :;|"
 
-int em_init_msr(void);
+int em_init_msr(em_impl* impl);
 
-double em_read_total_msr(void);
+double em_read_total_msr(em_impl* impl);
 
-int em_finish_msr(void);
+int em_finish_msr(em_impl* impl);
 
 char* em_get_source_msr(char* buffer);
 

@@ -12,13 +12,12 @@ extern "C" {
 #endif
 
 #include "em-generic.h"
-#include <inttypes.h>
 
-int em_init_dummy(void);
+int em_init_dummy(em_impl* em);
 
-double em_read_total_dummy(void);
+double em_read_total_dummy(em_impl* em);
 
-int em_finish_dummy(void);
+int em_finish_dummy(em_impl* em);
 
 char* em_get_source_dummy(char* buffer);
 

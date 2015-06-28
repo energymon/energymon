@@ -12,13 +12,12 @@ extern "C" {
 #endif
 
 #include "em-generic.h"
-#include <inttypes.h>
 
-int em_init_odroid(void);
+int em_init_odroid(em_impl* em);
 
-double em_read_total_odroid(void);
+double em_read_total_odroid(em_impl* em);
 
-int em_finish_odroid(void);
+int em_finish_odroid(em_impl* em);
 
 char* em_get_source_odroid(char* buffer);
 

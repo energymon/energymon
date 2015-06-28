@@ -30,54 +30,38 @@
   #define EM_ODROID_SMART_POWER_SLEEP_TIME_US 200000
 #endif
 
-/* Shared variables */
-static hid_device* device = NULL;
-static unsigned char buf[OSP_MAX_STR];
-
-#ifdef EM_ODROID_SMART_POWER_USE_POLLING
 // sensor polling interval in microseconds
 #ifndef EM_ODROID_SMART_POWER_POLL_DELAY_US
   // default value determined experimentally
   #define EM_ODROID_SMART_POWER_POLL_DELAY_US 200000
 #endif
 
-static double osp_total_energy;
-
-// thread variables
-static pthread_t osp_polling_thread;
-static int osp_do_polling;
-#else
 #define JOULES_PER_WATTHOUR     3600
+
+typedef struct em_osp {
+  hid_device* device;
+  unsigned char buf[OSP_MAX_STR];
+
+#ifdef EM_ODROID_SMART_POWER_USE_POLLING
+  double osp_total_energy;
+  // thread variables
+  pthread_t osp_polling_thread;
+  int osp_do_polling;
 #endif
+} em_osp;
 
 #ifdef EM_GENERIC
-int em_init(void) {
-  return em_init_osp();
-}
-
-double em_read_total(void) {
-  return em_read_total_osp();
-}
-
-int em_finish(void) {
-  return em_finish_osp();
-}
-
-char* em_get_source(char* buffer) {
-  return em_get_source_osp(buffer);
-}
-
 int em_impl_get(em_impl* impl) {
   return em_impl_get_osp(impl);
 }
 #endif
 
-static inline int em_osp_request_status() {
-  buf[0] = 0x00;
-  memset((void*) &buf[2], 0x00, sizeof(buf) - 2);
-  buf[1] = OSP_REQUEST_STATUS;
-  if (hid_write(device, buf, sizeof(buf)) == -1 ||
-      hid_read(device, buf, sizeof(buf)) == -1) {
+static inline int em_osp_request_status(em_osp* em) {
+  em->buf[0] = 0x00;
+  memset((void*) &em->buf[2], 0x00, sizeof(em->buf) - 2);
+  em->buf[1] = OSP_REQUEST_STATUS;
+  if (hid_write(em->device, em->buf, sizeof(em->buf)) == -1 ||
+      hid_read(em->device, em->buf, sizeof(em->buf)) == -1) {
     fprintf(stderr,
             "em_osp_request_status: Failed to request/read status\n");
     return -1;
@@ -85,17 +69,17 @@ static inline int em_osp_request_status() {
   return 0;
 }
 
-static inline int em_osp_request_start_stop(int started) {
+static inline int em_osp_request_start_stop(em_osp* em, int started) {
   if(started == 0) {
-    buf[1] = OSP_REQUEST_STARTSTOP;
-    if (hid_write(device, buf, sizeof(buf)) == -1) {
+    em->buf[1] = OSP_REQUEST_STARTSTOP;
+    if (hid_write(em->device, em->buf, sizeof(em->buf)) == -1) {
       fprintf(stderr, "em_osp_request_start_stop: Request failed\n");
       return -1;
     }
   }
 
-  buf[1] = OSP_REQUEST_STARTSTOP;
-  if (hid_write(device, buf, sizeof(buf)) == -1) {
+  em->buf[1] = OSP_REQUEST_STARTSTOP;
+  if (hid_write(em->device, em->buf, sizeof(em->buf)) == -1) {
     fprintf(stderr, "em_osp_request_start_stop: Request failed\n");
     return -1;
   }
@@ -105,12 +89,12 @@ static inline int em_osp_request_start_stop(int started) {
   return 0;
 }
 
-static inline int em_osp_request_data() {
-  buf[0] = 0x00;
-  memset((void*) &buf[2], 0x00, sizeof(buf) - 2);
-  buf[1] = OSP_REQUEST_DATA;
-  if (hid_write(device, buf, sizeof(buf)) == -1 ||
-      hid_read(device, buf, sizeof(buf)) == -1) {
+static inline int em_osp_request_data(em_osp* em) {
+  em->buf[0] = 0x00;
+  memset((void*) &em->buf[2], 0x00, sizeof(em->buf) - 2);
+  em->buf[1] = OSP_REQUEST_DATA;
+  if (hid_write(em->device, em->buf, sizeof(em->buf)) == -1 ||
+      hid_read(em->device, em->buf, sizeof(em->buf)) == -1) {
     fprintf(stderr, "Failed to request data from ODROID Smart Power\n");
     return -1;
   }
@@ -123,14 +107,15 @@ static inline int em_osp_request_data() {
  */
 static void* osp_poll_device(void* args) {
   double watts;
-  while(osp_do_polling > 0 && device != NULL) {
+  em_osp* em = (em_osp*) args;
+  while(em->osp_do_polling > 0 && em->device != NULL) {
     char w[8] = {'\0'};
-    if(em_osp_request_data()) {
+    if(em_osp_request_data(em)) {
       fprintf(stderr, "osp_poll_device: Data request failed\n");
-    } else if(buf[0] == OSP_REQUEST_DATA) {
-      strncpy(w, (char*) &buf[17], 6);
+    } else if(em->buf[0] == OSP_REQUEST_DATA) {
+      strncpy(w, (char*) &em->buf[17], 6);
       watts = atof(w);
-      osp_total_energy += watts * EM_ODROID_SMART_POWER_POLL_DELAY_US / 1000000.0;
+      em->osp_total_energy += watts * EM_ODROID_SMART_POWER_POLL_DELAY_US / 1000000.0;
     } else {
       fprintf(stderr, "osp_poll_device: Did not get data\n");
     }
@@ -141,10 +126,21 @@ static void* osp_poll_device(void* args) {
 }
 #endif
 
-int em_init_osp(void) {
+int em_init_osp(em_impl* impl) {
+  if (impl == NULL || impl->state != NULL) {
+    return -1;
+  }
+
   int started;
-  buf[0] = 0x00;
-  memset((void*) &buf[2], 0x00, sizeof(buf) - 2);
+
+  em_osp* em = malloc(sizeof(em_osp));
+  if (em == NULL) {
+    return -1;
+  }
+  impl->state = em;
+
+  em->buf[0] = 0x00;
+  memset((void*) &em->buf[2], 0x00, sizeof(em->buf) - 2);
 
   // initialize
   if(hid_init()) {
@@ -153,42 +149,42 @@ int em_init_osp(void) {
   }
 
   // get the device
-  device = hid_open(OSP_VENDOR_ID, OSP_PRODUCT_ID, NULL);
-  if (device == NULL) {
+  em->device = hid_open(OSP_VENDOR_ID, OSP_PRODUCT_ID, NULL);
+  if (em->device == NULL) {
     fprintf(stderr, "Failed to open ODROID Smart Power\n");
     return -1;
   }
 
   // set nonblocking
-  hid_set_nonblocking(device, 1);
+  hid_set_nonblocking(em->device, 1);
 
   // get the status
-  if(em_osp_request_status()) {
-    em_finish_osp();
+  if(em_osp_request_status(em)) {
+    em_finish_osp(impl);
     return -1;
   }
 
   // TODO: This doesn't seem to be accurate
-  started = (buf[1] == 0x01) ? 1 : 0;
-  if (em_osp_request_start_stop(started)) {
-    em_finish_osp();
+  started = (em->buf[1] == 0x01) ? 1 : 0;
+  if (em_osp_request_start_stop(em, started)) {
+    em_finish_osp(impl);
     return -1;
   }
 
   // do an initial couple of reads
-  if (em_osp_request_data() || em_osp_request_data()) {
+  if (em_osp_request_data(em) || em_osp_request_data(em)) {
     fprintf(stderr, "Failed initial write/read of ODROID Smart Power\n");
-    em_finish_osp();
+    em_finish_osp(impl);
     return -1;
   }
 
 #ifdef EM_ODROID_SMART_POWER_USE_POLLING
   // start device polling thread
-  osp_total_energy = 0;
-  osp_do_polling = 1;
-  if (pthread_create(&osp_polling_thread, NULL, osp_poll_device, NULL)) {
+  em->osp_total_energy = 0;
+  em->osp_do_polling = 1;
+  if (pthread_create(&em->osp_polling_thread, NULL, osp_poll_device, em)) {
     fprintf(stderr, "Failed to start ODROID Smart Power thread.\n");
-    em_finish_osp();
+    em_finish_osp(impl);
     return -1;
   }
 #endif
@@ -196,23 +192,28 @@ int em_init_osp(void) {
   return 0;
 }
 
-double em_read_total_osp(void) {
-  double joules = 0;
+double em_read_total_osp(em_impl* impl) {
+  if (impl == NULL || impl->state == NULL) {
+    return -1.0;
+  }
 
-  if (device == NULL) {
+  double joules = 0;
+  em_osp* em = (em_osp*) impl->state;
+
+  if (em->device == NULL) {
     fprintf(stderr, "em_read_total_osp: Not initialized!\n");
-    return -1;
+    return -1.0;
   }
 
 #ifdef EM_ODROID_SMART_POWER_USE_POLLING
-  joules = osp_total_energy;
+  joules = em->osp_total_energy;
 #else
   char wh[7] = {'\0'};
 
-  if(em_osp_request_data()) {
+  if(em_osp_request_data(em)) {
     fprintf(stderr, "em_read_total_osp: Data request failed\n");
-  } else if(buf[0] == OSP_REQUEST_DATA) {
-    strncpy(wh, (char*) &buf[26], 5);
+  } else if(em->buf[0] == OSP_REQUEST_DATA) {
+    strncpy(wh, (char*) &em->buf[26], 5);
     joules = atof(wh) * JOULES_PER_WATTHOUR;
     // printf("em_read_total_osp: %s Watt-Hours = %f Joules\n", wh, joules);
   } else {
@@ -223,38 +224,48 @@ double em_read_total_osp(void) {
   return joules;
 }
 
-int em_finish_osp(void) {
-  if (device == NULL) {
+int em_finish_osp(em_impl* impl) {
+  if (impl == NULL || impl->state == NULL) {
+    return -1;
+  }
+
+  em_osp* em = (em_osp*) impl->state;
+
+  if (em->device == NULL) {
     // nothing to do
     return 0;
   }
 
 #ifdef EM_ODROID_SMART_POWER_USE_POLLING
   // stop sensors polling thread and cleanup
-  osp_do_polling = 0;
-  if(pthread_join(osp_polling_thread, NULL)) {
+  em->osp_do_polling = 0;
+  if(pthread_join(em->osp_polling_thread, NULL)) {
     fprintf(stderr, "Error joining ODROID Smart Power polling thread.\n");
   }
 #endif
 
-  buf[0] = 0x00;
-  memset((void*) &buf[2], 0x00, sizeof(buf) - 2);
+  em->buf[0] = 0x00;
+  memset((void*) &em->buf[2], 0x00, sizeof(em->buf) - 2);
 #ifdef EM_ODROID_SMART_POWER_STOP_ON_FINISH
   buf[1] = OSP_REQUEST_STARTSTOP;
-  if (hid_write(device, buf, sizeof(buf)) == -1) {
+  if (hid_write(em->device, em->buf, sizeof(em->buf)) == -1) {
     fprintf(stderr, "em_finish_osp: Failed to request start/stop\n");
   }
   usleep(EM_ODROID_SMART_POWER_SLEEP_TIME_US);
 #endif
-  hid_close(device);
-  device = NULL;
+  hid_close(em->device);
+  em->device = NULL;
   if(hid_exit()) {
     fprintf(stderr, "em_finish_osp: Failed to exit\n");
   }
+  free(impl->state);
   return 0;
 }
 
 char* em_get_source_osp(char* buffer) {
+  if (buffer == NULL) {
+    return NULL;
+  }
 #ifdef EM_ODROID_SMART_POWER_USE_POLLING
   return strcpy(buffer, "ODROID Smart Power with Polling");
 #else
@@ -263,12 +274,13 @@ char* em_get_source_osp(char* buffer) {
 }
 
 int em_impl_get_osp(em_impl* impl) {
-  if (impl != NULL) {
-      impl->finit = &em_init_osp;
-      impl->fread = &em_read_total_osp;
-      impl->ffinish = &em_finish_osp;
-      impl->fsource = &em_get_source_osp;
-      return 0;
+  if (impl == NULL) {
+    return -1;
   }
-  return 1;
+  impl->finit = &em_init_osp;
+  impl->fread = &em_read_total_osp;
+  impl->ffinish = &em_finish_osp;
+  impl->fsource = &em_get_source_osp;
+  impl->state = NULL;
+  return 0;
 }

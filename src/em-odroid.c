@@ -21,41 +21,35 @@
 #define ODROID_SENSOR_ENABLE_FILENAME_TEMPLATE ODROID_INA231_DIR"%s/enable"
 #define ODROID_SENSOR_UPDATE_INTERVAL_FILENAME_TEMPLATE ODROID_INA231_DIR"%s/update_period"
 
-// sensor update interval in microseconds
 #define ODROID_SENSOR_READ_DELAY_US_DEFAULT 263808
-static int odroid_read_delay_us;
 
-// sensor file descriptors
-static int* odroid_pwr_ids = NULL;
-static unsigned int odroid_pwr_id_count;
+typedef struct em_odroid {
+  // sensor update interval in microseconds
+  int odroid_read_delay_us;
 
-static double odroid_total_energy;
+  // sensor file descriptors
+  int* odroid_pwr_ids;
+  unsigned int odroid_pwr_id_count;
 
-// thread variables
-static pthread_t odroid_sensor_thread;
-static int odroid_read_sensors;
+  // thread variables
+  pthread_t odroid_sensor_thread;
+  int odroid_read_sensors;
+
+  double odroid_total_energy;
+} em_odroid;
 
 #ifdef EM_GENERIC
-int em_init(void) {
-  return em_init_odroid();
-}
-
-double em_read_total(void) {
-  return em_read_total_odroid();
-}
-
-int em_finish(void) {
-  return em_finish_odroid();
-}
-
-char* em_get_source(char* buffer) {
-  return em_get_source_odroid(buffer);
-}
-
 int em_impl_get(em_impl* impl) {
   return em_impl_get_odroid(impl);
 }
 #endif
+
+/**
+ * Convert a timespec struct into a nanosecond value.
+ */
+static inline int64_t to_nanosec(struct timespec* ts) {
+  return (int64_t) ts->tv_sec * 1000000000 + (int64_t) ts->tv_nsec;
+}
 
 static inline int odroid_open_file(char* filename) {
   int fd = open(filename, O_RDONLY);
@@ -137,24 +131,31 @@ static inline long get_update_interval(char** sensors, unsigned int num) {
 /**
  * Stop the sensors polling pthread, cleanup, and close sensor files.
  */
-int em_finish_odroid(void) {
+int em_finish_odroid(em_impl* impl) {
+  if (impl == NULL || impl->state == NULL) {
+    return -1;
+  }
+
   int ret = 0;
   int i;
+  em_odroid* em = (em_odroid*) impl->state;
   // stop sensors polling thread and cleanup
-  odroid_read_sensors = 0;
-  if(pthread_join(odroid_sensor_thread, NULL)) {
+  em->odroid_read_sensors = 0;
+  if(pthread_join(em->odroid_sensor_thread, NULL)) {
     fprintf(stderr, "Error joining ODROID sensor polling thread.\n");
     ret -= 1;
   }
 
-  if (odroid_pwr_ids != NULL) {
+  if (em->odroid_pwr_ids != NULL) {
     // close individual sensor files
-    for (i = 0; i < odroid_pwr_id_count; i++) {
-      if (odroid_pwr_ids[i] > 0) {
-        ret += close(odroid_pwr_ids[i]);
+    for (i = 0; i < em->odroid_pwr_id_count; i++) {
+      if (em->odroid_pwr_ids[i] > 0) {
+        ret += close(em->odroid_pwr_ids[i]);
       }
     }
-    free(odroid_pwr_ids);
+    free(em->odroid_pwr_ids);
+    free(impl->state);
+    impl->state = NULL;
   }
   return ret;
 }
@@ -207,19 +208,20 @@ static inline char** odroid_get_sensor_directories(unsigned int* count) {
  * pthread function to poll the sensors at regular intervals.
  */
 void* odroid_poll_sensors(void* args) {
+  em_odroid* em = (em_odroid*) args;
   double sum;
-  double readings[odroid_pwr_id_count];
+  double readings[em->odroid_pwr_id_count];
   int i;
   int bad_reading;
   struct timespec ts_interval;
-  ts_interval.tv_sec = odroid_read_delay_us / (1000 * 1000);
-  ts_interval.tv_nsec = (odroid_read_delay_us % (1000 * 1000) * 1000);
-  while(odroid_read_sensors > 0) {
+  ts_interval.tv_sec = em->odroid_read_delay_us / (1000 * 1000);
+  ts_interval.tv_nsec = (em->odroid_read_delay_us % (1000 * 1000) * 1000);
+  while(em->odroid_read_sensors > 0) {
     bad_reading = 0;
     sum = 0;
     // read individual sensors
-    for (i = 0; i < odroid_pwr_id_count; i++) {
-      readings[i] = odroid_read_pwr(odroid_pwr_ids[i]);
+    for (i = 0; i < em->odroid_pwr_id_count; i++) {
+      readings[i] = odroid_read_pwr(em->odroid_pwr_ids[i]);
       if (readings[i] < 0) {
         fprintf(stderr, "At least one ODROID power sensor returned bad value - skipping this reading\n");
         bad_reading = 1;
@@ -230,7 +232,7 @@ void* odroid_poll_sensors(void* args) {
       }
     }
     if (bad_reading == 0) {
-      odroid_total_energy += sum * to_nanosec(&ts_interval) / 1000000000.0;
+      em->odroid_total_energy += sum * to_nanosec(&ts_interval) / 1000000000.0;
     }
     // sleep for the update interval of the sensors
     // TODO: Should use a conditional here so thread can be woken up to end immediately
@@ -242,29 +244,39 @@ void* odroid_poll_sensors(void* args) {
 /**
  * Open all sensor files and start the thread to poll the sensors.
  */
-int em_init_odroid(void) {
+int em_init_odroid(em_impl* impl) {
+  if (impl == NULL || impl->state != NULL) {
+    return -1;
+  }
+
   int ret = 0;
   int i;
   char odroid_pwr_filename[BUFSIZ];
 
+  em_odroid* em = malloc(sizeof(em_odroid));
+  if (em == NULL) {
+    return -1;
+  }
+  impl->state = em;
+
   // reset the total energy reading
-  odroid_total_energy = 0;
+  em->odroid_total_energy = 0;
 
   // find the sensors
-  odroid_pwr_id_count = 0;
-  char** sensor_dirs = odroid_get_sensor_directories(&odroid_pwr_id_count);
-  if (odroid_pwr_id_count == 0) {
+  em->odroid_pwr_id_count = 0;
+  char** sensor_dirs = odroid_get_sensor_directories(&em->odroid_pwr_id_count);
+  if (em->odroid_pwr_id_count == 0) {
     fprintf(stderr, "em_init: Failed to find power sensors\n");
     return -1;
   }
-  printf("Found %u INA231 sensors:", odroid_pwr_id_count);
-  for (i = 0; i < odroid_pwr_id_count; i++) {
+  printf("Found %u INA231 sensors:", em->odroid_pwr_id_count);
+  for (i = 0; i < em->odroid_pwr_id_count; i++) {
     printf(" %s", sensor_dirs[i]);
   }
   printf("\n");
 
   // ensure that the sensors are enabled
-  for (i = 0; i < odroid_pwr_id_count; i++) {
+  for (i = 0; i < em->odroid_pwr_id_count; i++) {
     if (odroid_check_sensor_enabled(sensor_dirs[i])) {
       fprintf(stderr, "em_init: power sensor not enabled: %s\n", sensor_dirs[i]);
       free(sensor_dirs);
@@ -273,50 +285,62 @@ int em_init_odroid(void) {
   }
 
   // open individual sensor files
-  odroid_pwr_ids = malloc(odroid_pwr_id_count * sizeof(int));
-  for (i = 0; i < odroid_pwr_id_count; i++) {
+  em->odroid_pwr_ids = malloc(em->odroid_pwr_id_count * sizeof(int));
+  if (em->odroid_pwr_ids == NULL) {
+    free(impl->state);
+    impl->state = NULL;
+    return -1;
+  }
+  for (i = 0; i < em->odroid_pwr_id_count; i++) {
     sprintf(odroid_pwr_filename, ODROID_PWR_FILENAME_TEMPLATE, sensor_dirs[i]);
-    odroid_pwr_ids[i] = odroid_open_file(odroid_pwr_filename);
-    if (odroid_pwr_ids[i] < 0) {
+    em->odroid_pwr_ids[i] = odroid_open_file(odroid_pwr_filename);
+    if (em->odroid_pwr_ids[i] < 0) {
       free(sensor_dirs);
-      em_finish_odroid();
+      em_finish_odroid(impl);
       return -1;
     }
   }
 
   // get the delay time between reads
-  odroid_read_delay_us = get_update_interval(sensor_dirs, odroid_pwr_id_count);
+  em->odroid_read_delay_us = get_update_interval(sensor_dirs, em->odroid_pwr_id_count);
 
   // we're finished with this variable
   free(sensor_dirs);
 
   // start sensors polling thread
-  odroid_read_sensors = 1;
-  ret = pthread_create(&odroid_sensor_thread, NULL, odroid_poll_sensors, NULL);
+  em->odroid_read_sensors = 1;
+  ret = pthread_create(&em->odroid_sensor_thread, NULL, odroid_poll_sensors, em);
   if (ret) {
     fprintf(stderr, "Failed to start ODROID sensors thread.\n");
-    em_finish_odroid();
+    em_finish_odroid(impl);
     return ret;
   }
 
   return ret;
 }
 
-double em_read_total_odroid(void) {
-  return odroid_total_energy;
+double em_read_total_odroid(em_impl* impl) {
+  if (impl == NULL || impl->state == NULL) {
+    return -1.0;
+  }
+  return ((em_odroid*) impl->state)->odroid_total_energy;
 }
 
 char* em_get_source_odroid(char* buffer) {
+  if (buffer == NULL) {
+    return NULL;
+  }
   return strcpy(buffer, "ODROID INA231 Power Sensors");
 }
 
 int em_impl_get_odroid(em_impl* impl) {
-  if (impl != NULL) {
-      impl->finit = &em_init_odroid;
-      impl->fread = &em_read_total_odroid;
-      impl->ffinish = &em_finish_odroid;
-      impl->fsource = &em_get_source_odroid;
-      return 0;
+  if (impl == NULL) {
+    return -1;
   }
-  return 1;
+  impl->finit = &em_init_odroid;
+  impl->fread = &em_read_total_odroid;
+  impl->ffinish = &em_finish_odroid;
+  impl->fsource = &em_get_source_odroid;
+  impl->state = NULL;
+  return 0;
 }

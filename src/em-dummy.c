@@ -9,53 +9,60 @@
 #include "em-dummy.h"
 #include <stdlib.h>
 #include <string.h>
-#include <inttypes.h>
+
+typedef struct em_dummy {
+  double energy;
+} em_dummy;
 
 #ifdef EM_GENERIC
-int em_init(void) {
-  return em_init_dummy();
-}
-
-double em_read_total(void) {
-  return em_read_total_dummy();
-}
-
-int em_finish(void) {
-  return em_finish_dummy();
-}
-
-char* em_get_source(char* buffer) {
-  return em_get_source_dummy(buffer);
-}
-
 int em_impl_get(em_impl* impl) {
   return em_impl_get_dummy(impl);
 }
 #endif
 
-int em_init_dummy(void) {
+int em_init_dummy(em_impl* impl) {
+  if (impl == NULL || impl->state != NULL) {
+    return -1;
+  }
+
+  impl->state = malloc(sizeof(em_dummy));
+  if (impl->state == NULL) {
+    return -1;
+  }
+  ((em_dummy*) impl->state)->energy = 0.0;
   return 0;
 }
 
-double em_read_total_dummy(void) {
-  return 0.0;
+double em_read_total_dummy(em_impl* impl) {
+  if (impl == NULL || impl->state == NULL) {
+    return -1.0;
+  }
+  return ((em_dummy*) impl->state)->energy;
 }
 
-int em_finish_dummy(void) {
+int em_finish_dummy(em_impl* impl) {
+  if (impl == NULL || impl->state == NULL) {
+    return -1;
+  }
+  free(impl->state);
   return 0;
 }
 
 char* em_get_source_dummy(char* buffer) {
+  if (buffer == NULL) {
+    return NULL;
+  }
   return strcpy(buffer, "Dummy Source");
 }
 
 int em_impl_get_dummy(em_impl* impl) {
-  if (impl != NULL) {
-      impl->finit = &em_init_dummy;
-      impl->fread = &em_read_total_dummy;
-      impl->ffinish = &em_finish_dummy;
-      impl->fsource = &em_get_source_dummy;
-      return 0;
+  if (impl == NULL) {
+    return -1;
   }
-  return 1;
+  impl->finit = &em_init_dummy;
+  impl->fread = &em_read_total_dummy;
+  impl->ffinish = &em_finish_dummy;
+  impl->fsource = &em_get_source_dummy;
+  impl->state = NULL;
+  return 0;
 }

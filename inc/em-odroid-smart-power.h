@@ -11,13 +11,12 @@ extern "C" {
 #endif
 
 #include "em-generic.h"
-#include <inttypes.h>
 
-int em_init_osp(void);
+int em_init_osp(em_impl* em);
 
-double em_read_total_osp(void);
+double em_read_total_osp(em_impl* em);
 
-int em_finish_osp(void);
+int em_finish_osp(em_impl* em);
 
 char* em_get_source_osp(char* buffer);
 

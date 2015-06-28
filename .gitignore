@@ -30,3 +30,8 @@
 
 # Debug files
 *.dSYM/
+
+#Other
+bin/
+test/
+

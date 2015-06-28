@@ -60,28 +60,13 @@
 #define TIME_UNIT_OFFSET	0x10
 #define TIME_UNIT_MASK		0xF000
 
-/* Shared variables */
-int msr_count = 0;
-int* msr_fds = NULL;
-double* msr_energy_units = NULL;
+typedef struct em_msr {
+  int msr_count;
+  int* msr_fds;
+  double* msr_energy_units;
+} em_msr;
 
 #ifdef EM_GENERIC
-int em_init(void) {
-  return em_init_msr();
-}
-
-double em_read_total(void) {
-  return em_read_total_msr();
-}
-
-int em_finish(void) {
-  return em_finish_msr();
-}
-
-char* em_get_source(char* buffer) {
-  return em_get_source_msr(buffer);
-}
-
 int em_impl_get(em_impl* impl) {
   return em_impl_get_msr(impl);
 }
@@ -121,7 +106,11 @@ static inline long long read_msr(int fd, int which) {
   return (long long)data;
 }
 
-int em_init_msr(void) {
+int em_init_msr(em_impl* impl) {
+  if (impl == NULL || impl->state != NULL) {
+    return -1;
+  }
+
   int ncores = 0;
   int i;
   long long power_unit_data_ll;
@@ -158,74 +147,107 @@ int em_init_msr(void) {
   }
   free(env_cores_tmp);
 
+  em_msr* em = malloc(sizeof(em_msr));
+  if (em == NULL) {
+    return -1;
+  }
+  impl->state = em;
+
   // allocate shared variables
-  msr_fds = (int*) malloc(ncores * sizeof(int));
-  msr_energy_units = (double*) malloc(ncores * sizeof(double));
+  em->msr_fds = (int*) malloc(ncores * sizeof(int));
+  if (em->msr_fds == NULL) {
+    free(impl->state);
+    impl->state = NULL;
+    return -1;
+  }
+  em->msr_energy_units = (double*) malloc(ncores * sizeof(double));
+  if (em->msr_energy_units == NULL) {
+    free(em->msr_fds);
+    free(impl->state);
+    impl->state = NULL;
+    return -1;
+  }
 
   // open the MSR files
   for (i = 0; i < ncores; i++) {
-    msr_fds[i] = open_msr(core_ids[i]);
-    if (msr_fds[i] < 0) {
-      em_finish_msr();
+    em->msr_fds[i] = open_msr(core_ids[i]);
+    if (em->msr_fds[i] < 0) {
+      em_finish_msr(impl);
       return -1;
     }
-    power_unit_data_ll = read_msr(msr_fds[i], MSR_RAPL_POWER_UNIT);
+    power_unit_data_ll = read_msr(em->msr_fds[i], MSR_RAPL_POWER_UNIT);
     if (power_unit_data_ll < 0) {
-      em_finish_msr();
+      em_finish_msr(impl);
       return -1;
     }
     power_unit_data = (double) ((power_unit_data_ll >> 8) & 0x1f);
-    msr_energy_units[i] = pow(0.5, power_unit_data);
+    em->msr_energy_units[i] = pow(0.5, power_unit_data);
   }
 
-  msr_count = ncores;
+  em->msr_count = ncores;
   return 0;
 }
 
-double em_read_total_msr(void) {
+double em_read_total_msr(em_impl* impl) {
+  if (impl == NULL || impl->state == NULL) {
+    return -1.0;
+  }
+
   int i;
   double msr_val;
   double total = 0.0;
-  for (i = 0; i < msr_count; i++) {
-    msr_val = (double) read_msr(msr_fds[i], MSR_PKG_ENERGY_STATUS);
+  em_msr* em = impl->state;
+  for (i = 0; i < em->msr_count; i++) {
+    msr_val = (double) read_msr(em->msr_fds[i], MSR_PKG_ENERGY_STATUS);
     if (msr_val < 0.0) {
       fprintf(stderr, "em_read_total: got bad energy value from MSR\n");
       return -1.0;
     }
-    total += msr_val * msr_energy_units[i];
+    total += msr_val * em->msr_energy_units[i];
   }
   return total;
 }
 
-int em_finish_msr(void) {
+int em_finish_msr(em_impl* impl) {
+  if (impl == NULL || impl->state == NULL) {
+    return -1;
+  }
+
   int ret = 0;
-  if (msr_fds != NULL) {
+  em_msr* em = impl->state;
+  if (em->msr_fds != NULL) {
     int i;
-    for (i = 0; i < msr_count; i++) {
-      if (msr_fds[i] > 0) {
-        ret += close(msr_fds[i]);
+    for (i = 0; i < em->msr_count; i++) {
+      if (em->msr_fds[i] > 0) {
+        ret += close(em->msr_fds[i]);
       }
     }
   }
-  free(msr_fds);
-  msr_fds = NULL;
-  free(msr_energy_units);
-  msr_energy_units = NULL;
-  msr_count = 0;
+  free(em->msr_fds);
+  em->msr_fds = NULL;
+  free(em->msr_energy_units);
+  em->msr_energy_units = NULL;
+  em->msr_count = 0;
+  free(impl->state);
+  impl->state = NULL;
   return ret;
 }
 
 char* em_get_source_msr(char* buffer) {
+  if (buffer == NULL) {
+    return NULL;
+  }
   return strcpy(buffer, "X86 MSR");
 }
 
 int em_impl_get_msr(em_impl* impl) {
-  if (impl != NULL) {
-      impl->finit = &em_init_msr;
-      impl->fread = &em_read_total_msr;
-      impl->ffinish = &em_finish_msr;
-      impl->fsource = &em_get_source_msr;
-      return 0;
+  if (impl == NULL) {
+    return -1;
   }
-  return 1;
+  impl->finit = &em_init_msr;
+  impl->fread = &em_read_total_msr;
+  impl->ffinish = &em_finish_msr;
+  impl->fsource = &em_get_source_msr;
+  impl->state = NULL;
+  return 0;
 }
