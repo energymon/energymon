@@ -54,17 +54,10 @@ struct em_impl {
   void* state;
 };
 
-/*
- * Compile with EM_DEFAULT to allow code to access a default energy monitor.
- * This allows implementations to be swapped without making code changes, only
- * re-linking.
- */
-#ifdef EM_DEFAULT
 /**
- * Get functions specific to this implementation.
+ * Get the default implementation.
  */
 int em_impl_get(em_impl* impl);
-#endif
 
 #ifdef __cplusplus
 }
