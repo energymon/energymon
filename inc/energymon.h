@@ -22,22 +22,34 @@ typedef struct em_impl em_impl;
 /**
  * Open required file(s), start necessary background tasks, etc.
  * Typically allocates the state field of the em_impl struct.
+ *
+ * @param pointer to an em_impl
+ * @return 0 on success, failure code otherwise
  */
 typedef int (*em_init_func) (em_impl*);
 
 /**
- * Get the total energy i microjoules.
+ * Get the total energy in microjoules.
+ *
+ * @param pointer to an em_impl
+ * @return energy (in uJ), or negative value on failure
  */
 typedef long long (*em_read_total_func) (em_impl*);
 
 /**
  * Stop background tasks, close open file(s), free memory allocations, etc.
  * Typically frees the state field of the em_impl struct.
+ *
+ * @param pointer to an em_impl
+ * @return 0 on success, failure code otherwise
  */
 typedef int (*em_finish_func) (em_impl*);
 
 /**
  * Get a human-readable description of the energy calculation source.
+ *
+ * @param pointer to a buffer
+ * @return pointer to the same buffer, or NULL on failure
  */
 typedef char* (*em_get_source_func) (char* buffer);
 
