@@ -36,14 +36,14 @@
   #define EM_ODROID_SMART_POWER_POLL_DELAY_US 200000
 #endif
 
-#define JOULES_PER_WATTHOUR     3600
+#define UJOULES_PER_WATTHOUR     3600000000
 
 typedef struct em_osp {
   hid_device* device;
   unsigned char buf[OSP_MAX_STR];
 
 #ifdef EM_ODROID_SMART_POWER_USE_POLLING
-  double osp_total_energy;
+  long long osp_total_energy;
   // thread variables
   pthread_t osp_polling_thread;
   int osp_do_polling;
@@ -115,7 +115,7 @@ static void* osp_poll_device(void* args) {
     } else if(em->buf[0] == OSP_REQUEST_DATA) {
       strncpy(w, (char*) &em->buf[17], 6);
       watts = atof(w);
-      em->osp_total_energy += watts * EM_ODROID_SMART_POWER_POLL_DELAY_US / 1000000.0;
+      em->osp_total_energy += watts * EM_ODROID_SMART_POWER_POLL_DELAY_US;
     } else {
       fprintf(stderr, "osp_poll_device: Did not get data\n");
     }
@@ -192,21 +192,21 @@ int em_init_osp(em_impl* impl) {
   return 0;
 }
 
-double em_read_total_osp(em_impl* impl) {
+long long em_read_total_osp(em_impl* impl) {
   if (impl == NULL || impl->state == NULL) {
-    return -1.0;
+    return -1;
   }
 
-  double joules = 0;
+  long long ujoules = -1;
   em_osp* em = (em_osp*) impl->state;
 
   if (em->device == NULL) {
     fprintf(stderr, "em_read_total_osp: Not initialized!\n");
-    return -1.0;
+    return -1;
   }
 
 #ifdef EM_ODROID_SMART_POWER_USE_POLLING
-  joules = em->osp_total_energy;
+  ujoules = em->osp_total_energy;
 #else
   char wh[7] = {'\0'};
 
@@ -214,14 +214,14 @@ double em_read_total_osp(em_impl* impl) {
     fprintf(stderr, "em_read_total_osp: Data request failed\n");
   } else if(em->buf[0] == OSP_REQUEST_DATA) {
     strncpy(wh, (char*) &em->buf[26], 5);
-    joules = atof(wh) * JOULES_PER_WATTHOUR;
-    // printf("em_read_total_osp: %s Watt-Hours = %f Joules\n", wh, joules);
+    ujoules = atof(wh) * UJOULES_PER_WATTHOUR;
+    // printf("em_read_total_osp: %s Watt-Hours = %lld uJoules\n", wh, ujoules);
   } else {
     fprintf(stderr, "em_read_total_osp: Did not get data\n");
   }
 #endif
 
-  return joules;
+  return ujoules;
 }
 
 int em_finish_osp(em_impl* impl) {

@@ -35,7 +35,7 @@ typedef struct em_odroid {
   pthread_t odroid_sensor_thread;
   int odroid_read_sensors;
 
-  double odroid_total_energy;
+  long long odroid_total_energy;
 } em_odroid;
 
 #ifdef EM_DEFAULT
@@ -45,10 +45,10 @@ int em_impl_get(em_impl* impl) {
 #endif
 
 /**
- * Convert a timespec struct into a nanosecond value.
+ * Convert a timespec struct into a microsecond value.
  */
-static inline int64_t to_nanosec(struct timespec* ts) {
-  return (int64_t) ts->tv_sec * 1000000000 + (int64_t) ts->tv_nsec;
+static inline int64_t to_usec(struct timespec* ts) {
+  return (int64_t) ts->tv_sec * 1000000 + (int64_t) ts->tv_nsec;
 }
 
 static inline int odroid_open_file(char* filename) {
@@ -232,7 +232,7 @@ void* odroid_poll_sensors(void* args) {
       }
     }
     if (bad_reading == 0) {
-      em->odroid_total_energy += sum * to_nanosec(&ts_interval) / 1000000000.0;
+      em->odroid_total_energy += sum * to_usec(&ts_interval);
     }
     // sleep for the update interval of the sensors
     // TODO: Should use a conditional here so thread can be woken up to end immediately
@@ -319,9 +319,9 @@ int em_init_odroid(em_impl* impl) {
   return ret;
 }
 
-double em_read_total_odroid(em_impl* impl) {
+long long em_read_total_odroid(em_impl* impl) {
   if (impl == NULL || impl->state == NULL) {
-    return -1.0;
+    return -1;
   }
   return ((em_odroid*) impl->state)->odroid_total_energy;
 }

@@ -26,9 +26,9 @@ typedef struct em_impl em_impl;
 typedef int (*em_init_func) (em_impl*);
 
 /**
- * Get the total energy.
+ * Get the total energy i microjoules.
  */
-typedef double (*em_read_total_func) (em_impl*);
+typedef long long (*em_read_total_func) (em_impl*);
 
 /**
  * Stop background tasks, close open file(s), free memory allocations, etc.

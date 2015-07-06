@@ -88,15 +88,12 @@ static inline int open_msr(int core) {
       fprintf(stderr, "Trying to open %s\n", msr_filename);
     }
   }
-  //printf("fd = %d\n", fd);
   return fd;
 }
 
 static inline long long read_msr(int fd, int which) {
   uint64_t data = 0;
   uint64_t data_size = pread(fd, &data, sizeof data, which);
-
-  //prinuse-armtf("Data size = %lld, fd = %d\n", data_size,fd);
 
   if ( data_size != sizeof data ) {
     perror("read_msr:pread");
@@ -188,22 +185,22 @@ int em_init_msr(em_impl* impl) {
   return 0;
 }
 
-double em_read_total_msr(em_impl* impl) {
+long long em_read_total_msr(em_impl* impl) {
   if (impl == NULL || impl->state == NULL) {
-    return -1.0;
+    return -1;
   }
 
   int i;
-  double msr_val;
-  double total = 0.0;
+  long long msr_val;
+  long long total = 0;
   em_msr* em = impl->state;
   for (i = 0; i < em->msr_count; i++) {
-    msr_val = (double) read_msr(em->msr_fds[i], MSR_PKG_ENERGY_STATUS);
-    if (msr_val < 0.0) {
+    msr_val = read_msr(em->msr_fds[i], MSR_PKG_ENERGY_STATUS);
+    if (msr_val < 0) {
       fprintf(stderr, "em_read_total: got bad energy value from MSR\n");
-      return -1.0;
+      return -1;
     }
-    total += msr_val * em->msr_energy_units[i];
+    total += msr_val * em->msr_energy_units[i] * 1000000;
   }
   return total;
 }
