@@ -1,24 +1,34 @@
 CXX = /usr/bin/gcc
 CXXFLAGS = -fPIC -Wall -Wno-unknown-pragmas -Iinc -O6
 LDFLAGS = -shared -lhidapi-libusb -lpthread -lrt -lm
-DEFAULT_IMPL = -lem-dummy
+APP_IMPL = -lem-dummy
+APPCXXFLAGS = -Wall -Wno-unknown-pragmas -Iinc -O6
+APPLDFLAGS = -Llib $(APP_IMPL)
+TEST_IMPL = -lem-dummy
 TESTCXXFLAGS = -Wall -Iinc -g -O0
-TESTLDFLAGS = -Llib $(DEFAULT_IMPL) -lpthread -lrt -lm
+TESTLDFLAGS = -Llib $(TEST_IMPL)
 
 INCDIR = inc
 SRCDIR = src
-TESTDIR = test
 LIBDIR = lib
 BINDIR = bin
+APPDIR = $(SRCDIR)/app
+APPBINDIR = $(BINDIR)/app
+TESTDIR = test
+TESTBINDIR = $(BINDIR)/test
+
+APP_SOURCES = $(wildcard $(APPDIR)/*.c)
+APP_OBJECTS = $(patsubst $(APPDIR)/%.c,$(APPBINDIR)/%.o,$(APP_SOURCES))
+APPS = $(patsubst $(APPDIR)/%.c,$(APPBINDIR)/%,$(APP_SOURCES))
 
 TEST_SOURCES = $(wildcard $(TESTDIR)/*.c)
-TEST_OBJECTS = $(patsubst $(TESTDIR)/%.c,$(BINDIR)/%.o,$(TEST_SOURCES))
-TESTS = $(patsubst $(TESTDIR)/%.c,$(BINDIR)/%,$(TEST_SOURCES))
+TEST_OBJECTS = $(patsubst $(TESTDIR)/%.c,$(TESTBINDIR)/%.o,$(TEST_SOURCES))
+TESTS = $(patsubst $(TESTDIR)/%.c,$(TESTBINDIR)/%,$(TEST_SOURCES))
 
-all: $(LIBDIR) energy $(TESTS)
+all: $(LIBDIR) libs $(APPS) $(TESTS)
 
 # Power/energy monitors
-energy: $(LIBDIR)/libem.so $(LIBDIR)/libem-dummy.so $(LIBDIR)/libem-msr.so $(LIBDIR)/libem-odroid.so $(LIBDIR)/libem-osp.so $(LIBDIR)/libem-osp-polling.so
+libs: $(LIBDIR)/libem.so $(LIBDIR)/libem-dummy.so $(LIBDIR)/libem-msr.so $(LIBDIR)/libem-odroid.so $(LIBDIR)/libem-osp.so $(LIBDIR)/libem-osp-polling.so
 
 $(LIBDIR)/libem.so: $(SRCDIR)/*.c
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
@@ -38,15 +48,23 @@ $(LIBDIR)/libem-osp.so: $(SRCDIR)/em-odroid-smart-power.c $(INCDIR)/energymon.h 
 $(LIBDIR)/libem-osp-polling.so: $(SRCDIR)/em-odroid-smart-power.c $(INCDIR)/energymon.h $(INCDIR)/em-odroid-smart-power.h
 	$(CXX) $(CXXFLAGS) -DEM_DEFAULT $(LDFLAGS) -DEM_ODROID_SMART_POWER_USE_POLLING -Wl,-soname,$(@F) -o $@ $^
 
+# Build app object files
+$(APPBINDIR)/%.o : $(APPDIR)/%.c | $(APPBINDIR)
+	$(CXX) -c $(APPCXXFLAGS) $< -o $@
+
+# Build app binaries
+$(APPBINDIR)/% : $(APPBINDIR)/%.o
+	$(CXX) $< $(APPLDFLAGS) -o $@
+
 # Build test object files
-$(BINDIR)/%.o : $(TESTDIR)/%.c | $(BINDIR)
+$(TESTBINDIR)/%.o : $(TESTDIR)/%.c | $(TESTBINDIR)
 	$(CXX) -c $(TESTCXXFLAGS) $< -o $@
 
 # Build test binaries
-$(BINDIR)/% : $(BINDIR)/%.o
+$(TESTBINDIR)/% : $(TESTBINDIR)/%.o
 	$(CXX) $< $(TESTLDFLAGS) -o $@
 
-$(BINDIR) $(LIBDIR) :
+$(LIBDIR) $(BINDIR) $(APPBINDIR) $(TESTBINDIR) :
 	mkdir -p $@
 
 # Installation
