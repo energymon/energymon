@@ -1,26 +1,21 @@
 CXX = /usr/bin/gcc
-CXXFLAGS = -fPIC -Wall -Wno-unknown-pragmas -Iinc -Llib -O6
-DBG = -g
-DEFINES ?=
+CXXFLAGS = -fPIC -Wall -Wno-unknown-pragmas -Iinc -O6
 LDFLAGS = -shared -lhidapi-libusb -lpthread -lrt -lm
+DEFAULT_IMPL = -lem-dummy
 TESTCXXFLAGS = -Wall -Iinc -g -O0
-TESTLDFLAGS = -Llib -lem-dummy -lpthread -lrt -lm
+TESTLDFLAGS = -Llib $(DEFAULT_IMPL) -lpthread -lrt -lm
 
-DOCDIR = doc
+INCDIR = inc
+SRCDIR = src
+TESTDIR = test
 LIBDIR = lib
-INCDIR = ./inc
-SRCDIR = ./src
-TESTDIR = ./test
-BINDIR = ./bin
+BINDIR = bin
 
 TEST_SOURCES = $(wildcard $(TESTDIR)/*.c)
 TEST_OBJECTS = $(patsubst $(TESTDIR)/%.c,$(BINDIR)/%.o,$(TEST_SOURCES))
 TESTS = $(patsubst $(TESTDIR)/%.c,$(BINDIR)/%,$(TEST_SOURCES))
 
 all: $(LIBDIR) energy $(TESTS)
-
-$(LIBDIR):
-	-mkdir -p $(LIBDIR)
 
 # Power/energy monitors
 energy: $(LIBDIR)/libem.so $(LIBDIR)/libem-dummy.so $(LIBDIR)/libem-msr.so $(LIBDIR)/libem-odroid.so $(LIBDIR)/libem-osp.so $(LIBDIR)/libem-osp-polling.so
@@ -31,27 +26,27 @@ $(LIBDIR)/libem.so: $(SRCDIR)/*.c
 $(LIBDIR)/libem-dummy.so: $(SRCDIR)/em-dummy.c $(INCDIR)/energymon.h $(INCDIR)/em-dummy.h
 	$(CXX) $(CXXFLAGS) -DEM_DEFAULT $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
 
-$(LIBDIR)/libem-msr.so: $(SRCDIR)/em-msr.c  $(INCDIR)/energymon.h $(INCDIR)/em-msr.h
+$(LIBDIR)/libem-msr.so: $(SRCDIR)/em-msr.c $(INCDIR)/energymon.h $(INCDIR)/em-msr.h
 	$(CXX) $(CXXFLAGS) -DEM_DEFAULT $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
 
-$(LIBDIR)/libem-odroid.so: $(SRCDIR)/em-odroid.c  $(INCDIR)/energymon.h $(INCDIR)/em-odroid.h
+$(LIBDIR)/libem-odroid.so: $(SRCDIR)/em-odroid.c $(INCDIR)/energymon.h $(INCDIR)/em-odroid.h
 	$(CXX) $(CXXFLAGS) -DEM_DEFAULT $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
 
-$(LIBDIR)/libem-osp.so: $(SRCDIR)/em-odroid-smart-power.c  $(INCDIR)/energymon.h $(INCDIR)/em-odroid-smart-power.h
+$(LIBDIR)/libem-osp.so: $(SRCDIR)/em-odroid-smart-power.c $(INCDIR)/energymon.h $(INCDIR)/em-odroid-smart-power.h
 	$(CXX) $(CXXFLAGS) -DEM_DEFAULT $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
 
-$(LIBDIR)/libem-osp-polling.so: $(SRCDIR)/em-odroid-smart-power.c
-	$(CXX) $(CXXFLAGS) -DEM_DEFAULT $(LDFLAGS) -DEM_ODROID_SMART_POWER_USE_POLLING -lhidapi-libusb -Wl,-soname,$(@F) -o $@ $^
+$(LIBDIR)/libem-osp-polling.so: $(SRCDIR)/em-odroid-smart-power.c $(INCDIR)/energymon.h $(INCDIR)/em-odroid-smart-power.h
+	$(CXX) $(CXXFLAGS) -DEM_DEFAULT $(LDFLAGS) -DEM_ODROID_SMART_POWER_USE_POLLING -Wl,-soname,$(@F) -o $@ $^
 
 # Build test object files
-$(BINDIR)/%.o : $(TESTDIR)/%.c $(HEADERS) | $(BINDIR)
-	$(CC) $(CFLAGS) -c $(TESTCXXFLAGS) $< -o $@
+$(BINDIR)/%.o : $(TESTDIR)/%.c | $(BINDIR)
+	$(CXX) -c $(TESTCXXFLAGS) $< -o $@
 
 # Build test binaries
 $(BINDIR)/% : $(BINDIR)/%.o
-	$(CC) $< $(TESTLDFLAGS) -o $@
+	$(CXX) $< $(TESTLDFLAGS) -o $@
 
-$(BINDIR) :
+$(BINDIR) $(LIBDIR) :
 	mkdir -p $@
 
 # Installation
