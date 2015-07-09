@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
   long usec;
   long long start, end, uj;
   if (argc < 2) {
-    fprintf(stderr, "Usage: %s <idle_usec>", argv[0]);
+    fprintf(stderr, "Usage: %s <idle_usec>\n", argv[0]);
     return 1;
   }
   usec = strtol(argv[1], NULL, 0);
