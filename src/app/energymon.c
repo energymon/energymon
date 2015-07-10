@@ -13,49 +13,35 @@
 #include <time.h>
 #include "energymon.h"
 
+// set a minimum sleep time between polls
+#ifndef ENERGYMON_MIN_INTERVAL_US
+  #define ENERGYMON_MIN_INTERVAL_US 1000
+#endif
+
 static volatile int running = 1;
 
 static void print_usage(const char* app) {
   fprintf(stderr, "Usage:\n");
-  fprintf(stderr, "  %s <output_file> <poll_delay_us>\n", app);
+  fprintf(stderr, "  %s <output_file>\n", app);
 }
 
 void shandle(int dummy) {
   running = 0;
 }
 
-static int get_poll_delay(struct timespec* ts, char* us) {
-  unsigned long long sleep_us = strtoull(us, NULL, 0);
-  if (sleep_us == 0ULL) {
-    fprintf(stderr, "Poll delay must be > 0\n");
-    return 1;
-  }
-  if (sleep_us == ULLONG_MAX) {
-    perror("Poll delay is too long");
-    return 1;
-  }
-  ts->tv_sec = sleep_us / 1000000;
-  ts->tv_nsec = (sleep_us % 1000000) * 1000;
-  return 0;
-}
-
 int main(int argc, char** argv) {
   em_impl impl;
+  unsigned long long us;
   struct timespec ts;
   long long energy;
   FILE* fout;
-  if (argc < 3) {
+  if (argc < 2) {
     print_usage(argv[0]);
     return 1;
   }
 
   // register the signal handler
   signal(SIGINT, shandle);
-
-  // get the polling interval
-  if (get_poll_delay(&ts, argv[2])) {
-    return 1;
-  }
 
   // open the output file
   fout = fopen(argv[1], "wb");
@@ -69,6 +55,14 @@ int main(int argc, char** argv) {
     fclose(fout);
     return 1;
   }
+
+  // get the update interval
+  us = impl.finterval(&impl);
+  if (us < ENERGYMON_MIN_INTERVAL_US) {
+    us = ENERGYMON_MIN_INTERVAL_US;
+  }
+  ts.tv_sec = us / 1000000;
+  ts.tv_nsec = (us % 1000000) * 1000;
 
   // update file at regular intervals
   while (running) {
