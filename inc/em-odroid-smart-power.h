@@ -20,6 +20,8 @@ int em_finish_osp(em_impl* em);
 
 char* em_get_source_osp(char* buffer);
 
+unsigned long long em_get_interval_osp(const em_impl* em);
+
 int em_impl_get_osp(em_impl* impl);
 
 #ifdef __cplusplus

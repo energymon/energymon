@@ -273,6 +273,10 @@ char* em_get_source_osp(char* buffer) {
 #endif
 }
 
+unsigned long long em_get_interval_osp(const em_impl* em) {
+  return EM_ODROID_SMART_POWER_POLL_DELAY_US;
+}
+
 int em_impl_get_osp(em_impl* impl) {
   if (impl == NULL) {
     return -1;
@@ -281,6 +285,7 @@ int em_impl_get_osp(em_impl* impl) {
   impl->fread = &em_read_total_osp;
   impl->ffinish = &em_finish_osp;
   impl->fsource = &em_get_source_osp;
+  impl->finterval = &em_get_interval_osp;
   impl->state = NULL;
   return 0;
 }

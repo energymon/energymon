@@ -25,7 +25,7 @@
 
 typedef struct em_odroid {
   // sensor update interval in microseconds
-  int odroid_read_delay_us;
+  unsigned long odroid_read_delay_us;
 
   // sensor file descriptors
   int* odroid_pwr_ids;
@@ -60,24 +60,24 @@ static inline int odroid_open_file(char* filename) {
   return fd;
 }
 
-static inline long get_sensor_update_interval(char* sensor) {
+static inline unsigned long get_sensor_update_interval(char* sensor) {
   char ui_filename[BUFSIZ];
   int fd;
   char cdata[BUFSIZ];
-  long val;
+  unsigned long val;
   int read_ret;
 
   sprintf(ui_filename, ODROID_SENSOR_UPDATE_INTERVAL_FILENAME_TEMPLATE, sensor);
   fd = odroid_open_file(ui_filename);
   if (fd < 0) {
-    return -1;
+    return 0;
   }
   read_ret = read(fd, cdata, sizeof(val));
   close(fd);
   if (read_ret < 0) {
-    return -1;
+    return 0;
   }
-  val = atol(cdata);
+  val = strtoul(cdata, NULL, 0);
   return val;
 }
 
@@ -106,13 +106,13 @@ static inline int odroid_check_sensor_enabled(char* sensor) {
 }
 
 static inline long get_update_interval(char** sensors, unsigned int num) {
-  long ret = 0;
-  long tmp = 0;
+  unsigned long ret = 0;
+  unsigned long tmp = 0;
   unsigned int i;
 
   for (i = 0; i < num; i++) {
     tmp = get_sensor_update_interval(sensors[i]);
-    if (tmp < 0) {
+    if (tmp == 0) {
       fprintf(stderr, "get_update_interval: Warning: could not read update "
               "interval from sensor %s\n", sensors[i]);
     }
@@ -333,6 +333,10 @@ char* em_get_source_odroid(char* buffer) {
   return strcpy(buffer, "ODROID INA231 Power Sensors");
 }
 
+unsigned long long em_get_interval_odroid(const em_impl* em) {
+  return (unsigned long long) ((em_odroid*) em->state)->odroid_read_delay_us;
+}
+
 int em_impl_get_odroid(em_impl* impl) {
   if (impl == NULL) {
     return -1;
@@ -341,6 +345,7 @@ int em_impl_get_odroid(em_impl* impl) {
   impl->fread = &em_read_total_odroid;
   impl->ffinish = &em_finish_odroid;
   impl->fsource = &em_get_source_odroid;
+  impl->finterval = &em_get_interval_odroid;
   impl->state = NULL;
   return 0;
 }

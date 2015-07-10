@@ -55,6 +55,10 @@ char* em_get_source_dummy(char* buffer) {
   return strcpy(buffer, "Dummy Source");
 }
 
+unsigned long long em_get_interval_dummy(const em_impl* em) {
+  return 1;
+}
+
 int em_impl_get_dummy(em_impl* impl) {
   if (impl == NULL) {
     return -1;
@@ -63,6 +67,7 @@ int em_impl_get_dummy(em_impl* impl) {
   impl->fread = &em_read_total_dummy;
   impl->ffinish = &em_finish_dummy;
   impl->fsource = &em_get_source_dummy;
+  impl->finterval = &em_get_interval_dummy;
   impl->state = NULL;
   return 0;
 }

@@ -21,6 +21,8 @@ int em_finish_dummy(em_impl* em);
 
 char* em_get_source_dummy(char* buffer);
 
+unsigned long long em_get_interval_dummy(const em_impl* em);
+
 int em_impl_get_dummy(em_impl* impl);
 
 #ifdef __cplusplus

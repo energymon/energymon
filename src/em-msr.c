@@ -237,6 +237,10 @@ char* em_get_source_msr(char* buffer) {
   return strcpy(buffer, "X86 MSR");
 }
 
+unsigned long long em_get_interval_msr(const em_impl* em) {
+  return 1000;
+}
+
 int em_impl_get_msr(em_impl* impl) {
   if (impl == NULL) {
     return -1;
@@ -245,6 +249,7 @@ int em_impl_get_msr(em_impl* impl) {
   impl->fread = &em_read_total_msr;
   impl->ffinish = &em_finish_msr;
   impl->fsource = &em_get_source_msr;
+  impl->finterval = &em_get_interval_msr;
   impl->state = NULL;
   return 0;
 }

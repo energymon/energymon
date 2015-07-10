@@ -21,6 +21,8 @@ int em_finish_odroid(em_impl* em);
 
 char* em_get_source_odroid(char* buffer);
 
+unsigned long long em_get_interval_odroid(const em_impl* em);
+
 int em_impl_get_odroid(em_impl* impl);
 
 #ifdef __cplusplus

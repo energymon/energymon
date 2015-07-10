@@ -54,6 +54,14 @@ typedef int (*em_finish_func) (em_impl*);
 typedef char* (*em_get_source_func) (char* buffer);
 
 /**
+ * Get the refresh interval in microseconds of the underlying sensor(s).
+ *
+ * @param pointer to an em_impl
+ * @return the refresh interval
+ */
+typedef unsigned long long (*em_get_interval_func) (const em_impl*);
+
+/**
  * A structure to encapsulate a complete implementation. The first four fields
  * are pointers to required functions. The state field is managed by the
  * implementation.
@@ -63,6 +71,7 @@ struct em_impl {
   em_read_total_func fread;
   em_finish_func ffinish;
   em_get_source_func fsource;
+  em_get_interval_func finterval;
   void* state;
 };
 

@@ -29,6 +29,8 @@ int em_finish_msr(em_impl* impl);
 
 char* em_get_source_msr(char* buffer);
 
+unsigned long long em_get_interval_msr(const em_impl* em);
+
 int em_impl_get_msr(em_impl* impl);
 
 #ifdef __cplusplus
