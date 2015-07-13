@@ -23,7 +23,7 @@ extern "C" {
 
 int em_init_msr(em_impl* impl);
 
-long long em_read_total_msr(em_impl* impl);
+long long em_read_total_msr(const em_impl* impl);
 
 int em_finish_msr(em_impl* impl);
 

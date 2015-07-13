@@ -33,7 +33,7 @@ int em_init_dummy(em_impl* impl) {
   return 0;
 }
 
-long long em_read_total_dummy(em_impl* impl) {
+long long em_read_total_dummy(const em_impl* impl) {
   if (impl == NULL || impl->state == NULL) {
     return -1;
   }

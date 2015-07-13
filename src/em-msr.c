@@ -185,7 +185,7 @@ int em_init_msr(em_impl* impl) {
   return 0;
 }
 
-long long em_read_total_msr(em_impl* impl) {
+long long em_read_total_msr(const em_impl* impl) {
   if (impl == NULL || impl->state == NULL) {
     return -1;
   }

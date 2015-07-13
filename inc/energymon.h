@@ -34,7 +34,7 @@ typedef int (*em_init_func) (em_impl*);
  * @param pointer to an em_impl
  * @return energy (in uJ), or negative value on failure
  */
-typedef long long (*em_read_total_func) (em_impl*);
+typedef long long (*em_read_total_func) (const em_impl*);
 
 /**
  * Stop background tasks, close open file(s), free memory allocations, etc.

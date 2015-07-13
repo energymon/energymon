@@ -15,7 +15,7 @@ extern "C" {
 
 int em_init_dummy(em_impl* em);
 
-long long em_read_total_dummy(em_impl* em);
+long long em_read_total_dummy(const em_impl* em);
 
 int em_finish_dummy(em_impl* em);
 

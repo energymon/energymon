@@ -192,7 +192,7 @@ int em_init_osp(em_impl* impl) {
   return 0;
 }
 
-long long em_read_total_osp(em_impl* impl) {
+long long em_read_total_osp(const em_impl* impl) {
   if (impl == NULL || impl->state == NULL) {
     return -1;
   }

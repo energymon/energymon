@@ -319,7 +319,7 @@ int em_init_odroid(em_impl* impl) {
   return ret;
 }
 
-long long em_read_total_odroid(em_impl* impl) {
+long long em_read_total_odroid(const em_impl* impl) {
   if (impl == NULL || impl->state == NULL) {
     return -1;
   }

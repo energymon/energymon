@@ -14,7 +14,7 @@ extern "C" {
 
 int em_init_osp(em_impl* em);
 
-long long em_read_total_osp(em_impl* em);
+long long em_read_total_osp(const em_impl* em);
 
 int em_finish_osp(em_impl* em);
 
