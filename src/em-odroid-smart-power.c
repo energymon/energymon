@@ -43,7 +43,7 @@ typedef struct em_osp {
   unsigned char buf[OSP_MAX_STR];
 
 #ifdef EM_ODROID_SMART_POWER_USE_POLLING
-  long long osp_total_energy;
+  unsigned long long osp_total_energy;
   // thread variables
   pthread_t osp_polling_thread;
   int osp_do_polling;
@@ -192,17 +192,17 @@ int em_init_osp(em_impl* impl) {
   return 0;
 }
 
-long long em_read_total_osp(const em_impl* impl) {
+unsigned long long em_read_total_osp(const em_impl* impl) {
   if (impl == NULL || impl->state == NULL) {
-    return -1;
+    return 0;
   }
 
-  long long ujoules = -1;
+  unsigned long long ujoules = 0;
   em_osp* em = (em_osp*) impl->state;
 
   if (em->device == NULL) {
     fprintf(stderr, "em_read_total_osp: Not initialized!\n");
-    return -1;
+    return 0;
   }
 
 #ifdef EM_ODROID_SMART_POWER_USE_POLLING
@@ -215,7 +215,7 @@ long long em_read_total_osp(const em_impl* impl) {
   } else if(em->buf[0] == OSP_REQUEST_DATA) {
     strncpy(wh, (char*) &em->buf[26], 5);
     ujoules = atof(wh) * UJOULES_PER_WATTHOUR;
-    // printf("em_read_total_osp: %s Watt-Hours = %lld uJoules\n", wh, ujoules);
+    // printf("em_read_total_osp: %s Watt-Hours = %llu uJoules\n", wh, ujoules);
   } else {
     fprintf(stderr, "em_read_total_osp: Did not get data\n");
   }

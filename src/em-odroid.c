@@ -35,7 +35,7 @@ typedef struct em_odroid {
   pthread_t odroid_sensor_thread;
   int odroid_read_sensors;
 
-  long long odroid_total_energy;
+  unsigned long long odroid_total_energy;
 } em_odroid;
 
 #ifdef EM_DEFAULT
@@ -319,7 +319,7 @@ int em_init_odroid(em_impl* impl) {
   return ret;
 }
 
-long long em_read_total_odroid(const em_impl* impl) {
+unsigned long long em_read_total_odroid(const em_impl* impl) {
   if (impl == NULL || impl->state == NULL) {
     return -1;
   }

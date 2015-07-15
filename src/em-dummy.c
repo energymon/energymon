@@ -11,7 +11,7 @@
 #include <string.h>
 
 typedef struct em_dummy {
-  long long energy;
+  unsigned long long energy;
 } em_dummy;
 
 #ifdef EM_DEFAULT
@@ -33,9 +33,9 @@ int em_init_dummy(em_impl* impl) {
   return 0;
 }
 
-long long em_read_total_dummy(const em_impl* impl) {
+unsigned long long em_read_total_dummy(const em_impl* impl) {
   if (impl == NULL || impl->state == NULL) {
-    return -1;
+    return 0;
   }
   return ((em_dummy*) impl->state)->energy;
 }

@@ -15,7 +15,7 @@ extern "C" {
 
 int em_init_odroid(em_impl* em);
 
-long long em_read_total_odroid(const em_impl* em);
+unsigned long long em_read_total_odroid(const em_impl* em);
 
 int em_finish_odroid(em_impl* em);
 

@@ -33,7 +33,7 @@ int main(int argc, char** argv) {
   em_impl impl;
   unsigned long long us;
   struct timespec ts;
-  long long energy;
+  unsigned long long energy;
   FILE* fout;
   if (argc < 2) {
     print_usage(argv[0]);
@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
   while (running) {
     energy = impl.fread(&impl);
     rewind(fout);
-    if(fprintf(fout, "%lld\n", energy) < 0) {
+    if(fprintf(fout, "%llu\n", energy) < 0) {
       perror("Writing to output file");
       break;
     }

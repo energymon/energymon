@@ -185,20 +185,20 @@ int em_init_msr(em_impl* impl) {
   return 0;
 }
 
-long long em_read_total_msr(const em_impl* impl) {
+unsigned long long em_read_total_msr(const em_impl* impl) {
   if (impl == NULL || impl->state == NULL) {
-    return -1;
+    return 0;
   }
 
   int i;
   long long msr_val;
-  long long total = 0;
+  unsigned long long total = 0;
   em_msr* em = impl->state;
   for (i = 0; i < em->msr_count; i++) {
     msr_val = read_msr(em->msr_fds[i], MSR_PKG_ENERGY_STATUS);
     if (msr_val < 0) {
       fprintf(stderr, "em_read_total: got bad energy value from MSR\n");
-      return -1;
+      return 0;
     }
     total += msr_val * em->msr_energy_units[i] * 1000000;
   }

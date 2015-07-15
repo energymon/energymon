@@ -32,9 +32,9 @@ typedef int (*em_init_func) (em_impl*);
  * Get the total energy in microjoules.
  *
  * @param pointer to an em_impl
- * @return energy (in uJ), or negative value on failure
+ * @return energy (in uJ)
  */
-typedef long long (*em_read_total_func) (const em_impl*);
+typedef unsigned long long (*em_read_total_func) (const em_impl*);
 
 /**
  * Stop background tasks, close open file(s), free memory allocations, etc.
