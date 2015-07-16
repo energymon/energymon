@@ -1,12 +1,11 @@
 CXX = /usr/bin/gcc
 CXXFLAGS = -fPIC -Wall -Wno-unknown-pragmas -Iinc -O6
 LDFLAGS = -shared -lhidapi-libusb -lpthread -lrt -lm
-APP_IMPL = -lenergymon-dummy
+IMPL = libenergymon-dummy.so
 APPCXXFLAGS = -Wall -Wno-unknown-pragmas -Iinc -O6
-APPLDFLAGS = -Llib $(APP_IMPL)
-TEST_IMPL = -lenergymon-dummy
+APPLDFLAGS = -Llib -lenergymon -lhidapi-libusb -lpthread -lrt -lm
 TESTCXXFLAGS = -Wall -Iinc -g -O0
-TESTLDFLAGS = -Llib $(TEST_IMPL)
+TESTLDFLAGS = -Llib -lenergymon -lhidapi-libusb -lpthread -lrt -lm
 
 INCDIR = inc
 SRCDIR = src
@@ -25,12 +24,12 @@ TEST_SOURCES = $(wildcard $(TESTDIR)/*.c)
 TEST_OBJECTS = $(patsubst $(TESTDIR)/%.c,$(TESTBINDIR)/%.o,$(TEST_SOURCES))
 TESTS = $(patsubst $(TESTDIR)/%.c,$(TESTBINDIR)/%,$(TEST_SOURCES))
 
-all: $(LIBDIR) libs $(APPS) $(TESTS)
+all: $(LIBDIR) libs impl $(APPS) $(TESTS)
 
 # Power/energy monitors
-libs: $(LIBDIR)/libenergymon.so $(LIBDIR)/libenergymon-dummy.so $(LIBDIR)/libenergymon-msr.so $(LIBDIR)/libenergymon-odroid.so $(LIBDIR)/libenergymon-osp.so $(LIBDIR)/libenergymon-osp-polling.so
+libs: $(LIBDIR)/libenergymon-all.so $(LIBDIR)/libenergymon-dummy.so $(LIBDIR)/libenergymon-msr.so $(LIBDIR)/libenergymon-odroid.so $(LIBDIR)/libenergymon-osp.so $(LIBDIR)/libenergymon-osp-polling.so
 
-$(LIBDIR)/libenergymon.so: $(SRCDIR)/*.c
+$(LIBDIR)/libenergymon-all.so: $(SRCDIR)/*.c
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
 
 $(LIBDIR)/libenergymon-dummy.so: $(SRCDIR)/em-dummy.c $(INCDIR)/energymon.h $(INCDIR)/em-dummy.h
@@ -47,6 +46,9 @@ $(LIBDIR)/libenergymon-osp.so: $(SRCDIR)/em-odroid-smart-power.c $(INCDIR)/energ
 
 $(LIBDIR)/libenergymon-osp-polling.so: $(SRCDIR)/em-odroid-smart-power.c $(INCDIR)/energymon.h $(INCDIR)/em-odroid-smart-power.h
 	$(CXX) $(CXXFLAGS) -DEM_DEFAULT $(LDFLAGS) -DEM_ODROID_SMART_POWER_USE_POLLING -Wl,-soname,$(@F) -o $@ $^
+
+impl : | libs
+	cp $(LIBDIR)/$(IMPL) $(LIBDIR)/libenergymon.so
 
 # Build app object files
 $(APPBINDIR)/%.o : $(APPDIR)/%.c | $(APPBINDIR)
