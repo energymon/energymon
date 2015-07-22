@@ -48,7 +48,7 @@ $(LIBDIR)/libenergymon-osp-polling.so: $(SRCDIR)/em-odroid-smart-power.c $(INCDI
 	$(CXX) $(CXXFLAGS) -DEM_DEFAULT $(LDFLAGS) -DEM_ODROID_SMART_POWER_USE_POLLING -Wl,-soname,$(@F) -o $@ $^
 
 impl : | libs
-	cp $(LIBDIR)/$(IMPL) $(LIBDIR)/libenergymon.so
+	ln -sfr $(LIBDIR)/$(IMPL) $(LIBDIR)/libenergymon.so
 
 # Build app object files
 $(APPBINDIR)/%.o : $(APPDIR)/%.c | $(APPBINDIR)
@@ -72,6 +72,7 @@ $(LIBDIR) $(BINDIR) $(APPBINDIR) $(TESTBINDIR) :
 # Installation
 install: all
 	install -m 0644 $(LIBDIR)/*.so /usr/local/lib/
+	ln -sfr /usr/local/lib/$(IMPL) /usr/local/lib/libenergymon.so
 	mkdir -p /usr/local/include/energymon
 	install -m 0644 $(INCDIR)/* /usr/local/include/energymon/
 
