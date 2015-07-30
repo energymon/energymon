@@ -73,11 +73,13 @@ $(LIBDIR) $(BINDIR) $(APPBINDIR) $(TESTBINDIR) :
 install: all
 	install -m 0644 $(LIBDIR)/*.so /usr/local/lib/
 	ln -sfr /usr/local/lib/$(IMPL) /usr/local/lib/libenergymon.so
+	install -m 0755 $(APPBINDIR)/* /usr/local/bin/
 	mkdir -p /usr/local/include/energymon
 	install -m 0644 $(INCDIR)/* /usr/local/include/energymon/
 
 uninstall:
 	rm -f /usr/local/lib/libenergymon*.so
+	rm -f /usr/local/bin/energymon
 	rm -rf /usr/local/include/energymon/
 
 ## cleaning
