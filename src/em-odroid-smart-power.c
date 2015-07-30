@@ -36,7 +36,7 @@
   #define EM_ODROID_SMART_POWER_POLL_DELAY_US 200000
 #endif
 
-#define UJOULES_PER_WATTHOUR     3600000000
+#define UJOULES_PER_WATTHOUR     3600000000.0
 
 typedef struct em_osp {
   hid_device* device;
@@ -247,7 +247,7 @@ int em_finish_osp(em_impl* impl) {
   em->buf[0] = 0x00;
   memset((void*) &em->buf[2], 0x00, sizeof(em->buf) - 2);
 #ifdef EM_ODROID_SMART_POWER_STOP_ON_FINISH
-  buf[1] = OSP_REQUEST_STARTSTOP;
+  em->buf[1] = OSP_REQUEST_STARTSTOP;
   if (hid_write(em->device, em->buf, sizeof(em->buf)) == -1) {
     fprintf(stderr, "em_finish_osp: Failed to request start/stop\n");
   }
