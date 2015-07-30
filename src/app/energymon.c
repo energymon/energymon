@@ -43,16 +43,16 @@ int main(int argc, char** argv) {
   // register the signal handler
   signal(SIGINT, shandle);
 
+  // initialize the energy monitor
+  if (em_impl_get(&impl) || impl.finit(&impl)) {
+    return 1;
+  }
+
   // open the output file
   fout = fopen(argv[1], "wb");
   if (fout == NULL) {
     perror("Failed to open output file");
-    return 1;
-  }
-
-  // initialize the energy monitor
-  if (em_impl_get(&impl) || impl.finit(&impl)) {
-    fclose(fout);
+    impl.ffinish(&impl);
     return 1;
   }
 
