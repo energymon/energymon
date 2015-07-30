@@ -3,9 +3,9 @@ CXXFLAGS = -fPIC -Wall -Wno-unknown-pragmas -Iinc -O6
 LDFLAGS = -shared -lhidapi-libusb -lpthread -lrt -lm
 IMPL = libenergymon-dummy.so
 APPCXXFLAGS = -Wall -Wno-unknown-pragmas -Iinc -O6
-APPLDFLAGS = -Llib -lenergymon -lhidapi-libusb -lpthread -lrt -lm
+APPLDFLAGS = -Wl,--no-as-needed -Llib -lenergymon -lhidapi-libusb -lpthread -lrt -lm
 TESTCXXFLAGS = -Wall -Iinc -g -O0
-TESTLDFLAGS = -Llib -lenergymon -lhidapi-libusb -lpthread -lrt -lm
+TESTLDFLAGS = -Wl,--no-as-needed -Llib -lenergymon -lhidapi-libusb -lpthread -lrt -lm
 
 INCDIR = inc
 SRCDIR = src
