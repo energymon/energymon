@@ -48,7 +48,7 @@ int em_impl_get(em_impl* impl) {
  * Convert a timespec struct into a microsecond value.
  */
 static inline int64_t to_usec(struct timespec* ts) {
-  return (int64_t) ts->tv_sec * 1000000 + (int64_t) ts->tv_nsec;
+  return ts->tv_sec * 1000000 + (ts->tv_nsec / 1000);
 }
 
 static inline int odroid_open_file(char* filename) {
@@ -175,6 +175,16 @@ static inline double odroid_read_pwr(int fd) {
   return val;
 }
 
+/**
+ * Ignore non-directories and hidden/relative directories (. and ..).
+ * We expect the folder name to be something like 3-0040 or 4-0045.
+ */
+static inline int is_sensor_dir(struct dirent* entry) {
+  return (entry->d_type == DT_LNK || entry->d_type == DT_DIR)
+          && entry->d_name[0] != '.'
+          && entry->d_name[1] == '-';
+}
+
 static inline char** odroid_get_sensor_directories(unsigned int* count) {
   unsigned int i = 0;
   DIR* sensors_dir;
@@ -183,8 +193,7 @@ static inline char** odroid_get_sensor_directories(unsigned int* count) {
   *count = 0;
   if ((sensors_dir = opendir(ODROID_INA231_DIR)) != NULL) {
     while ((entry = readdir(sensors_dir)) != NULL) {
-      // ignore non-directories and hidden/relative directories (. and ..)
-      if (entry->d_type == DT_LNK && entry->d_name[0] != '.') {
+      if (is_sensor_dir(entry)) {
         (*count)++;
       }
     }
@@ -192,7 +201,7 @@ static inline char** odroid_get_sensor_directories(unsigned int* count) {
     if (*count > 0) {
       directories = malloc(*count * sizeof(char*));
       while ((entry = readdir(sensors_dir)) != NULL && i < *count) {
-        if (entry->d_type == DT_LNK && entry->d_name[0] != '.') {
+        if (is_sensor_dir(entry)) {
           directories[i++] = entry->d_name;
         }
       }
