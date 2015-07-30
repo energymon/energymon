@@ -1,7 +1,5 @@
 #include <stdio.h>
 #include <assert.h>
-
-#define EM_DEFAULT
 #include "energymon.h"
 
 int main() {

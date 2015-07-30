@@ -1,10 +1,7 @@
-
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <unistd.h>
-
-#define EM_DEFAULT
 #include "energymon.h"
 
 int main(int argc, char** argv) {
