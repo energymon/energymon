@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "energymon.h"
+#include "em-default.h"
 
 // set a minimum sleep time between polls
 #ifndef ENERGYMON_MIN_INTERVAL_US

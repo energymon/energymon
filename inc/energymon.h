@@ -75,11 +75,6 @@ struct em_impl {
   void* state;
 };
 
-/**
- * Get the default implementation.
- */
-int em_impl_get(em_impl* impl);
-
 #ifdef __cplusplus
 }
 #endif

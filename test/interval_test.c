@@ -2,7 +2,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "energymon.h"
+#include "em-default.h"
 
 int main(int argc, char** argv) {
   char source[100];

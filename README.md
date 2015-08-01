@@ -1,5 +1,5 @@
-This project is under active development.  
-Things are likely to break and APIs are subject to change without warning.  
+This project is under active development.
+Things are likely to break and APIs are subject to change without warning.
 Use at your own risk!
 
 # Energy Monitoring Interface
@@ -11,18 +11,31 @@ privileges.
 
 ## Building
 
-To build the libraries and link `libenergymon.so` to the default dummy
-implementation (`libenergymon-dummy.so`), run:
+To build the libraries with the default dummy implementation as
+`libenergymon.so`, run:
 
 ``` sh
 make
 ```
 
-To build with a different library linked from `libenergymon.so`, e.g. the
-Intel MSR energy monitor, run:
+To use a different implementation as `libenergymon.so`, e.g. the Intel MSR
+energy monitor, run:
 
 ``` sh
-make IMPL=libenergymon-msr.so
+make IMPL=msr
+```
+
+Current implementation options are:
+
+* dummy [default]
+* msr
+* odroid-smart-power
+* odroid
+
+You may cleanup builds with:
+
+``` sh
+make clean
 ```
 
 ## Installing
@@ -30,18 +43,10 @@ make IMPL=libenergymon-msr.so
 Installation places libraries in `/usr/local/lib` and header files in
 `/usr/local/include/energymon`.
 
-To install all libraries with the default library linked from
-`libenergymon.so`, run:
+To install all libraries, run:
 
 ``` sh
 sudo make install
-```
-
-To install a different library, e.g. the Intel MSR energy monitor, as the
-default, run:
-
-``` sh
-sudo make install IMPL=libenergymon-msr.so
 ```
 
 ## Uninstalling
