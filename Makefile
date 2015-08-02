@@ -1,16 +1,17 @@
 CXX = /usr/bin/gcc
 CXXFLAGS = -fPIC -Wall -Wno-unknown-pragmas -Iinc -O6
-LDFLAGS = -shared -lhidapi-libusb -lpthread -lrt -lm
+LDFLAGS = -shared -lhidapi-libusb -lpthread  -lm
 IMPL = dummy
 APPCXXFLAGS = -Wall -Wno-unknown-pragmas -Iinc -O6
-APPLDFLAGS = -Wl,--no-as-needed -Llib -lenergymon-default -lhidapi-libusb -lpthread -lrt -lm
+APPLDFLAGS = -Wl,--no-as-needed -Llib -lenergymon-default -lhidapi-libusb -lpthread -lm
 TESTCXXFLAGS = -Wall -Iinc -g -O0
-TESTLDFLAGS = -Wl,--no-as-needed -Llib -lenergymon-default -lhidapi-libusb -lpthread -lrt -lm
+TESTLDFLAGS = -Wl,--no-as-needed -Llib -lenergymon-default -lhidapi-libusb -lpthread -lm
 
 INCDIR = inc
 SRCDIR = src
 LIBDIR = lib
 BINDIR = bin
+PCDIR = pkgconfig
 APPDIR = $(SRCDIR)/app
 APPBINDIR = $(BINDIR)/app
 TESTDIR = test
@@ -31,6 +32,7 @@ libs: $(LIBDIR)/libenergymon-default.so $(LIBDIR)/libenergymon-dummy.so $(LIBDIR
 
 $(LIBDIR)/libenergymon-default.so: $(SRCDIR)/em-$(IMPL).c $(INCDIR)/energymon.h $(INCDIR)/em-$(IMPL).h
 	$(CXX) $(CXXFLAGS) -DEM_DEFAULT $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
+	sed -e s/energymon-$(IMPL)/energymon-default/g $(PCDIR)/energymon-$(IMPL).pc > $(PCDIR)/energymon-default.pc
 
 $(LIBDIR)/libenergymon-dummy.so: $(SRCDIR)/em-dummy.c $(INCDIR)/energymon.h $(INCDIR)/em-dummy.h
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
@@ -72,11 +74,14 @@ install: all
 	install -m 0755 $(APPBINDIR)/* /usr/local/bin/
 	mkdir -p /usr/local/include/energymon
 	install -m 0644 $(INCDIR)/* /usr/local/include/energymon/
+	mkdir -p /usr/local/lib/pkgconfig
+	install -m 0644 $(PCDIR)/*.pc /usr/local/lib/pkgconfig
 
 uninstall:
 	rm -f /usr/local/lib/libenergymon*.so
 	rm -f /usr/local/bin/energymon
 	rm -rf /usr/local/include/energymon/
+	rm -f /usr/local/lib/pkgconfig/energymon*.pc
 
 ## cleaning
 clean:
