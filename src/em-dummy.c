@@ -10,10 +10,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct energymon_dummy {
-  unsigned long long energy;
-} energymon_dummy;
-
 #ifdef EM_DEFAULT
 int energymon_get_default(energymon* impl) {
   return energymon_get_dummy(impl);
@@ -21,30 +17,14 @@ int energymon_get_default(energymon* impl) {
 #endif
 
 int energymon_init_dummy(energymon* impl) {
-  if (impl == NULL || impl->state != NULL) {
-    return -1;
-  }
-
-  impl->state = malloc(sizeof(energymon_dummy));
-  if (impl->state == NULL) {
-    return -1;
-  }
-  ((energymon_dummy*) impl->state)->energy = 0;
   return 0;
 }
 
 unsigned long long energymon_read_total_dummy(const energymon* impl) {
-  if (impl == NULL || impl->state == NULL) {
-    return 0;
-  }
-  return ((energymon_dummy*) impl->state)->energy;
+  return 0;
 }
 
 int energymon_finish_dummy(energymon* impl) {
-  if (impl == NULL || impl->state == NULL) {
-    return -1;
-  }
-  free(impl->state);
   return 0;
 }
 
