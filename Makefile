@@ -1,11 +1,13 @@
 CXX = /usr/bin/gcc
 CXXFLAGS = -fPIC -Wall -Wno-unknown-pragmas -Iinc -O6
 LDFLAGS = -shared -lhidapi-libusb -lpthread  -lm
-IMPL = dummy
 APPCXXFLAGS = -Wall -Wno-unknown-pragmas -Iinc -O6
 APPLDFLAGS = -Wl,--no-as-needed -Llib -lenergymon-default -lhidapi-libusb -lpthread -lm
 TESTCXXFLAGS = -Wall -Iinc -g -O0
 TESTLDFLAGS = -Wl,--no-as-needed -Llib -lenergymon-default -lhidapi-libusb -lpthread -lm
+
+IMPL = dummy
+INSTALL_PREFIX = /usr/local
 
 INCDIR = inc
 SRCDIR = src
@@ -70,19 +72,19 @@ $(LIBDIR) $(BINDIR) $(APPBINDIR) $(TESTBINDIR) :
 
 # Installation
 install: all
-	install -m 0644 $(LIBDIR)/*.so /usr/local/lib/
-	install -m 0755 $(APPBINDIR)/* /usr/local/bin/
-	mkdir -p /usr/local/include/energymon
-	install -m 0644 $(INCDIR)/* /usr/local/include/energymon/
-	mkdir -p /usr/local/lib/pkgconfig
-	install -m 0644 $(PCDIR)/*.pc /usr/local/lib/pkgconfig
+	install -m 0644 $(LIBDIR)/*.so $(INSTALL_PREFIX)/lib/
+	install -d $(INSTALL_PREFIX)/include/energymon
+	install -m 0644 $(INCDIR)/* $(INSTALL_PREFIX)/include/energymon/
+	install -d $(INSTALL_PREFIX)/lib/pkgconfig
+	install -m 0644 $(PCDIR)/*.pc $(INSTALL_PREFIX)/lib/pkgconfig
 
 uninstall:
-	rm -f /usr/local/lib/libenergymon*.so
-	rm -f /usr/local/bin/energymon
-	rm -rf /usr/local/include/energymon/
-	rm -f /usr/local/lib/pkgconfig/energymon*.pc
+	rm -f $(INSTALL_PREFIX)/lib/libenergymon*.so
+	rm -f $(INSTALL_PREFIX)/bin/energymon
+	rm -rf $(INSTALL_PREFIX)/include/energymon/
+	rm -f $(INSTALL_PREFIX)/lib/pkgconfig/energymon*.pc
 
 ## cleaning
 clean:
-	-rm -rf $(LIBDIR) $(BINDIR) *.log *~ $(SRCDIR)/*~
+	rm -rf $(LIBDIR) $(BINDIR) *.log *~ $(SRCDIR)/*~
+	rm -f $(PCDIR)/energymon-default.pc
