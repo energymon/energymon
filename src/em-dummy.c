@@ -1,5 +1,5 @@
 /**
- * Dummy em implementation - doesn't read from any source.
+ * Dummy implementation - doesn't read from any source.
  *
  * @author Connor Imes
  * @date 2014-07-30
@@ -10,37 +10,37 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct em_dummy {
+typedef struct energymon_dummy {
   unsigned long long energy;
-} em_dummy;
+} energymon_dummy;
 
 #ifdef EM_DEFAULT
-int em_impl_get(em_impl* impl) {
-  return em_impl_get_dummy(impl);
+int energymon_get_default(energymon* impl) {
+  return energymon_get_dummy(impl);
 }
 #endif
 
-int em_init_dummy(em_impl* impl) {
+int energymon_init_dummy(energymon* impl) {
   if (impl == NULL || impl->state != NULL) {
     return -1;
   }
 
-  impl->state = malloc(sizeof(em_dummy));
+  impl->state = malloc(sizeof(energymon_dummy));
   if (impl->state == NULL) {
     return -1;
   }
-  ((em_dummy*) impl->state)->energy = 0;
+  ((energymon_dummy*) impl->state)->energy = 0;
   return 0;
 }
 
-unsigned long long em_read_total_dummy(const em_impl* impl) {
+unsigned long long energymon_read_total_dummy(const energymon* impl) {
   if (impl == NULL || impl->state == NULL) {
     return 0;
   }
-  return ((em_dummy*) impl->state)->energy;
+  return ((energymon_dummy*) impl->state)->energy;
 }
 
-int em_finish_dummy(em_impl* impl) {
+int energymon_finish_dummy(energymon* impl) {
   if (impl == NULL || impl->state == NULL) {
     return -1;
   }
@@ -48,26 +48,26 @@ int em_finish_dummy(em_impl* impl) {
   return 0;
 }
 
-char* em_get_source_dummy(char* buffer) {
+char* energymon_get_source_dummy(char* buffer) {
   if (buffer == NULL) {
     return NULL;
   }
   return strcpy(buffer, "Dummy Source");
 }
 
-unsigned long long em_get_interval_dummy(const em_impl* em) {
+unsigned long long energymon_get_interval_dummy(const energymon* em) {
   return 1;
 }
 
-int em_impl_get_dummy(em_impl* impl) {
+int energymon_get_dummy(energymon* impl) {
   if (impl == NULL) {
     return -1;
   }
-  impl->finit = &em_init_dummy;
-  impl->fread = &em_read_total_dummy;
-  impl->ffinish = &em_finish_dummy;
-  impl->fsource = &em_get_source_dummy;
-  impl->finterval = &em_get_interval_dummy;
+  impl->finit = &energymon_init_dummy;
+  impl->fread = &energymon_read_total_dummy;
+  impl->ffinish = &energymon_finish_dummy;
+  impl->fsource = &energymon_get_source_dummy;
+  impl->finterval = &energymon_get_interval_dummy;
   impl->state = NULL;
   return 0;
 }

@@ -13,17 +13,17 @@ extern "C" {
 
 #include "energymon.h"
 
-int em_init_odroid(em_impl* em);
+int energymon_init_odroid(energymon* em);
 
-unsigned long long em_read_total_odroid(const em_impl* em);
+unsigned long long energymon_read_total_odroid(const energymon* em);
 
-int em_finish_odroid(em_impl* em);
+int energymon_finish_odroid(energymon* em);
 
-char* em_get_source_odroid(char* buffer);
+char* energymon_get_source_odroid(char* buffer);
 
-unsigned long long em_get_interval_odroid(const em_impl* em);
+unsigned long long energymon_get_interval_odroid(const energymon* em);
 
-int em_impl_get_odroid(em_impl* impl);
+int energymon_get_odroid(energymon* impl);
 
 #ifdef __cplusplus
 }

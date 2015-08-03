@@ -23,7 +23,7 @@
 
 #define ODROID_SENSOR_READ_DELAY_US_DEFAULT 263808
 
-typedef struct em_odroid {
+typedef struct energymon_odroid {
   // sensor update interval in microseconds
   unsigned long odroid_read_delay_us;
 
@@ -36,11 +36,11 @@ typedef struct em_odroid {
   int odroid_read_sensors;
 
   unsigned long long odroid_total_energy;
-} em_odroid;
+} energymon_odroid;
 
 #ifdef EM_DEFAULT
-int em_impl_get(em_impl* impl) {
-  return em_impl_get_odroid(impl);
+int energymon_get_default(energymon* impl) {
+  return energymon_get_odroid(impl);
 }
 #endif
 
@@ -131,14 +131,14 @@ static inline long get_update_interval(char** sensors, unsigned int num) {
 /**
  * Stop the sensors polling pthread, cleanup, and close sensor files.
  */
-int em_finish_odroid(em_impl* impl) {
+int energymon_finish_odroid(energymon* impl) {
   if (impl == NULL || impl->state == NULL) {
     return -1;
   }
 
   int ret = 0;
   int i;
-  em_odroid* em = (em_odroid*) impl->state;
+  energymon_odroid* em = (energymon_odroid*) impl->state;
   // stop sensors polling thread and cleanup
   em->odroid_read_sensors = 0;
   if(pthread_join(em->odroid_sensor_thread, NULL)) {
@@ -217,7 +217,7 @@ static inline char** odroid_get_sensor_directories(unsigned int* count) {
  * pthread function to poll the sensors at regular intervals.
  */
 void* odroid_poll_sensors(void* args) {
-  em_odroid* em = (em_odroid*) args;
+  energymon_odroid* em = (energymon_odroid*) args;
   double sum;
   double readings[em->odroid_pwr_id_count];
   int i;
@@ -253,7 +253,7 @@ void* odroid_poll_sensors(void* args) {
 /**
  * Open all sensor files and start the thread to poll the sensors.
  */
-int em_init_odroid(em_impl* impl) {
+int energymon_init_odroid(energymon* impl) {
   if (impl == NULL || impl->state != NULL) {
     return -1;
   }
@@ -262,7 +262,7 @@ int em_init_odroid(em_impl* impl) {
   int i;
   char odroid_pwr_filename[BUFSIZ];
 
-  em_odroid* em = malloc(sizeof(em_odroid));
+  energymon_odroid* em = malloc(sizeof(energymon_odroid));
   if (em == NULL) {
     return -1;
   }
@@ -305,7 +305,7 @@ int em_init_odroid(em_impl* impl) {
     em->odroid_pwr_ids[i] = odroid_open_file(odroid_pwr_filename);
     if (em->odroid_pwr_ids[i] < 0) {
       free(sensor_dirs);
-      em_finish_odroid(impl);
+      energymon_finish_odroid(impl);
       return -1;
     }
   }
@@ -321,40 +321,40 @@ int em_init_odroid(em_impl* impl) {
   ret = pthread_create(&em->odroid_sensor_thread, NULL, odroid_poll_sensors, em);
   if (ret) {
     fprintf(stderr, "Failed to start ODROID sensors thread.\n");
-    em_finish_odroid(impl);
+    energymon_finish_odroid(impl);
     return ret;
   }
 
   return ret;
 }
 
-unsigned long long em_read_total_odroid(const em_impl* impl) {
+unsigned long long energymon_read_total_odroid(const energymon* impl) {
   if (impl == NULL || impl->state == NULL) {
     return -1;
   }
-  return ((em_odroid*) impl->state)->odroid_total_energy;
+  return ((energymon_odroid*) impl->state)->odroid_total_energy;
 }
 
-char* em_get_source_odroid(char* buffer) {
+char* energymon_get_source_odroid(char* buffer) {
   if (buffer == NULL) {
     return NULL;
   }
   return strcpy(buffer, "ODROID INA231 Power Sensors");
 }
 
-unsigned long long em_get_interval_odroid(const em_impl* em) {
-  return (unsigned long long) ((em_odroid*) em->state)->odroid_read_delay_us;
+unsigned long long energymon_get_interval_odroid(const energymon* em) {
+  return (unsigned long long) ((energymon_odroid*) em->state)->odroid_read_delay_us;
 }
 
-int em_impl_get_odroid(em_impl* impl) {
+int energymon_get_odroid(energymon* impl) {
   if (impl == NULL) {
     return -1;
   }
-  impl->finit = &em_init_odroid;
-  impl->fread = &em_read_total_odroid;
-  impl->ffinish = &em_finish_odroid;
-  impl->fsource = &em_get_source_odroid;
-  impl->finterval = &em_get_interval_odroid;
+  impl->finit = &energymon_init_odroid;
+  impl->fread = &energymon_read_total_odroid;
+  impl->ffinish = &energymon_finish_odroid;
+  impl->fsource = &energymon_get_source_odroid;
+  impl->finterval = &energymon_get_interval_odroid;
   impl->state = NULL;
   return 0;
 }

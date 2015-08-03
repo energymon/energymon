@@ -13,17 +13,17 @@ extern "C" {
 
 #include "energymon.h"
 
-int em_init_dummy(em_impl* em);
+int energymon_init_dummy(energymon* em);
 
-unsigned long long em_read_total_dummy(const em_impl* em);
+unsigned long long energymon_read_total_dummy(const energymon* em);
 
-int em_finish_dummy(em_impl* em);
+int energymon_finish_dummy(energymon* em);
 
-char* em_get_source_dummy(char* buffer);
+char* energymon_get_source_dummy(char* buffer);
 
-unsigned long long em_get_interval_dummy(const em_impl* em);
+unsigned long long energymon_get_interval_dummy(const energymon* em);
 
-int em_impl_get_dummy(em_impl* impl);
+int energymon_get_dummy(energymon* impl);
 
 #ifdef __cplusplus
 }

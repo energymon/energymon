@@ -5,7 +5,7 @@
  * from power sensors and convert power readings to energy.
  *
  * Pointers to implementations of the typedef'd functions below are included
- * in the em_impl struct for encapsulation.
+ * in the energymon struct for encapsulation.
  *
  * @author Connor Imes
  * @date 2014-06-30
@@ -17,33 +17,33 @@
 extern "C" {
 #endif
 
-typedef struct em_impl em_impl;
+typedef struct energymon energymon;
 
 /**
  * Open required file(s), start necessary background tasks, etc.
- * Typically allocates the state field of the em_impl struct.
+ * Typically allocates the state field of the energymon struct.
  *
- * @param pointer to an em_impl
+ * @param pointer to an energymon
  * @return 0 on success, failure code otherwise
  */
-typedef int (*em_init_func) (em_impl*);
+typedef int (*energymon_init) (energymon*);
 
 /**
  * Get the total energy in microjoules.
  *
- * @param pointer to an em_impl
+ * @param pointer to an energymon
  * @return energy (in uJ)
  */
-typedef unsigned long long (*em_read_total_func) (const em_impl*);
+typedef unsigned long long (*energymon_read_total) (const energymon*);
 
 /**
  * Stop background tasks, close open file(s), free memory allocations, etc.
- * Typically frees the state field of the em_impl struct.
+ * Typically frees the state field of the energymon struct.
  *
- * @param pointer to an em_impl
+ * @param pointer to an energymon
  * @return 0 on success, failure code otherwise
  */
-typedef int (*em_finish_func) (em_impl*);
+typedef int (*energymon_finish) (energymon*);
 
 /**
  * Get a human-readable description of the energy calculation source.
@@ -51,27 +51,27 @@ typedef int (*em_finish_func) (em_impl*);
  * @param pointer to a buffer
  * @return pointer to the same buffer, or NULL on failure
  */
-typedef char* (*em_get_source_func) (char* buffer);
+typedef char* (*energymon_get_source) (char* buffer);
 
 /**
  * Get the refresh interval in microseconds of the underlying sensor(s).
  *
- * @param pointer to an em_impl
+ * @param pointer to an energymon
  * @return the refresh interval
  */
-typedef unsigned long long (*em_get_interval_func) (const em_impl*);
+typedef unsigned long long (*energymon_get_interval) (const energymon*);
 
 /**
  * A structure to encapsulate a complete implementation. The first four fields
  * are pointers to required functions. The state field is managed by the
  * implementation.
  */
-struct em_impl {
-  em_init_func finit;
-  em_read_total_func fread;
-  em_finish_func ffinish;
-  em_get_source_func fsource;
-  em_get_interval_func finterval;
+struct energymon {
+  energymon_init finit;
+  energymon_read_total fread;
+  energymon_finish ffinish;
+  energymon_get_source fsource;
+  energymon_get_interval finterval;
   void* state;
 };
 

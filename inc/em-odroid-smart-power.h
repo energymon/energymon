@@ -12,17 +12,17 @@ extern "C" {
 
 #include "energymon.h"
 
-int em_init_osp(em_impl* em);
+int energymon_init_osp(energymon* em);
 
-unsigned long long em_read_total_osp(const em_impl* em);
+unsigned long long energymon_read_total_osp(const energymon* em);
 
-int em_finish_osp(em_impl* em);
+int energymon_finish_osp(energymon* em);
 
-char* em_get_source_osp(char* buffer);
+char* energymon_get_source_osp(char* buffer);
 
-unsigned long long em_get_interval_osp(const em_impl* em);
+unsigned long long energymon_get_interval_osp(const energymon* em);
 
-int em_impl_get_osp(em_impl* impl);
+int energymon_get_osp(energymon* impl);
 
 #ifdef __cplusplus
 }

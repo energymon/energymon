@@ -15,8 +15,8 @@ int main(int argc, char** argv) {
   usec = strtol(argv[1], NULL, 0);
   assert(usec > 0);
 
-  em_impl impl;
-  em_impl_get(&impl);
+  energymon impl;
+  energymon_get_default(&impl);
 
   impl.fsource(source);
   printf("Initializing reading from %s\n", source);

@@ -38,7 +38,7 @@
 
 #define UJOULES_PER_WATTHOUR     3600000000.0
 
-typedef struct em_osp {
+typedef struct energymon_osp {
   hid_device* device;
   unsigned char buf[OSP_MAX_STR];
 
@@ -48,15 +48,15 @@ typedef struct em_osp {
   pthread_t osp_polling_thread;
   int osp_do_polling;
 #endif
-} em_osp;
+} energymon_osp;
 
 #ifdef EM_DEFAULT
-int em_impl_get(em_impl* impl) {
-  return em_impl_get_osp(impl);
+int energymon_get_default(energymon* impl) {
+  return energymon_get_osp(impl);
 }
 #endif
 
-static inline int em_osp_request_status(em_osp* em) {
+static inline int em_osp_request_status(energymon_osp* em) {
   em->buf[0] = 0x00;
   memset((void*) &em->buf[2], 0x00, sizeof(em->buf) - 2);
   em->buf[1] = OSP_REQUEST_STATUS;
@@ -69,7 +69,7 @@ static inline int em_osp_request_status(em_osp* em) {
   return 0;
 }
 
-static inline int em_osp_request_start_stop(em_osp* em, int started) {
+static inline int em_osp_request_start_stop(energymon_osp* em, int started) {
   if(started == 0) {
     em->buf[1] = OSP_REQUEST_STARTSTOP;
     if (hid_write(em->device, em->buf, sizeof(em->buf)) == -1) {
@@ -89,7 +89,7 @@ static inline int em_osp_request_start_stop(em_osp* em, int started) {
   return 0;
 }
 
-static inline int em_osp_request_data(em_osp* em) {
+static inline int em_osp_request_data(energymon_osp* em) {
   em->buf[0] = 0x00;
   memset((void*) &em->buf[2], 0x00, sizeof(em->buf) - 2);
   em->buf[1] = OSP_REQUEST_DATA;
@@ -107,7 +107,7 @@ static inline int em_osp_request_data(em_osp* em) {
  */
 static void* osp_poll_device(void* args) {
   double watts;
-  em_osp* em = (em_osp*) args;
+  energymon_osp* em = (energymon_osp*) args;
   while(em->osp_do_polling > 0 && em->device != NULL) {
     char w[8] = {'\0'};
     if(em_osp_request_data(em)) {
@@ -126,14 +126,14 @@ static void* osp_poll_device(void* args) {
 }
 #endif
 
-int em_init_osp(em_impl* impl) {
+int energymon_init_osp(energymon* impl) {
   if (impl == NULL || impl->state != NULL) {
     return -1;
   }
 
   int started;
 
-  em_osp* em = malloc(sizeof(em_osp));
+  energymon_osp* em = malloc(sizeof(energymon_osp));
   if (em == NULL) {
     return -1;
   }
@@ -160,21 +160,21 @@ int em_init_osp(em_impl* impl) {
 
   // get the status
   if(em_osp_request_status(em)) {
-    em_finish_osp(impl);
+    energymon_finish_osp(impl);
     return -1;
   }
 
   // TODO: This doesn't seem to be accurate
   started = (em->buf[1] == 0x01) ? 1 : 0;
   if (em_osp_request_start_stop(em, started)) {
-    em_finish_osp(impl);
+    energymon_finish_osp(impl);
     return -1;
   }
 
   // do an initial couple of reads
   if (em_osp_request_data(em) || em_osp_request_data(em)) {
     fprintf(stderr, "Failed initial write/read of ODROID Smart Power\n");
-    em_finish_osp(impl);
+    energymon_finish_osp(impl);
     return -1;
   }
 
@@ -184,7 +184,7 @@ int em_init_osp(em_impl* impl) {
   em->osp_do_polling = 1;
   if (pthread_create(&em->osp_polling_thread, NULL, osp_poll_device, em)) {
     fprintf(stderr, "Failed to start ODROID Smart Power thread.\n");
-    em_finish_osp(impl);
+    energymon_finish_osp(impl);
     return -1;
   }
 #endif
@@ -192,16 +192,16 @@ int em_init_osp(em_impl* impl) {
   return 0;
 }
 
-unsigned long long em_read_total_osp(const em_impl* impl) {
+unsigned long long energymon_read_total_osp(const energymon* impl) {
   if (impl == NULL || impl->state == NULL) {
     return 0;
   }
 
   unsigned long long ujoules = 0;
-  em_osp* em = (em_osp*) impl->state;
+  energymon_osp* em = (energymon_osp*) impl->state;
 
   if (em->device == NULL) {
-    fprintf(stderr, "em_read_total_osp: Not initialized!\n");
+    fprintf(stderr, "energymon_read_total_osp: Not initialized!\n");
     return 0;
   }
 
@@ -211,25 +211,25 @@ unsigned long long em_read_total_osp(const em_impl* impl) {
   char wh[7] = {'\0'};
 
   if(em_osp_request_data(em)) {
-    fprintf(stderr, "em_read_total_osp: Data request failed\n");
+    fprintf(stderr, "energymon_read_total_osp: Data request failed\n");
   } else if(em->buf[0] == OSP_REQUEST_DATA) {
     strncpy(wh, (char*) &em->buf[26], 5);
     ujoules = atof(wh) * UJOULES_PER_WATTHOUR;
-    // printf("em_read_total_osp: %s Watt-Hours = %llu uJoules\n", wh, ujoules);
+    // printf("energymon_read_total_osp: %s Watt-Hours = %llu uJoules\n", wh, ujoules);
   } else {
-    fprintf(stderr, "em_read_total_osp: Did not get data\n");
+    fprintf(stderr, "energymon_read_total_osp: Did not get data\n");
   }
 #endif
 
   return ujoules;
 }
 
-int em_finish_osp(em_impl* impl) {
+int energymon_finish_osp(energymon* impl) {
   if (impl == NULL || impl->state == NULL) {
     return -1;
   }
 
-  em_osp* em = (em_osp*) impl->state;
+  energymon_osp* em = (energymon_osp*) impl->state;
 
   if (em->device == NULL) {
     // nothing to do
@@ -249,20 +249,20 @@ int em_finish_osp(em_impl* impl) {
 #ifdef EM_ODROID_SMART_POWER_STOP_ON_FINISH
   em->buf[1] = OSP_REQUEST_STARTSTOP;
   if (hid_write(em->device, em->buf, sizeof(em->buf)) == -1) {
-    fprintf(stderr, "em_finish_osp: Failed to request start/stop\n");
+    fprintf(stderr, "energymon_finish_osp: Failed to request start/stop\n");
   }
   usleep(EM_ODROID_SMART_POWER_SLEEP_TIME_US);
 #endif
   hid_close(em->device);
   em->device = NULL;
   if(hid_exit()) {
-    fprintf(stderr, "em_finish_osp: Failed to exit\n");
+    fprintf(stderr, "energymon_finish_osp: Failed to exit\n");
   }
   free(impl->state);
   return 0;
 }
 
-char* em_get_source_osp(char* buffer) {
+char* energymon_get_source_osp(char* buffer) {
   if (buffer == NULL) {
     return NULL;
   }
@@ -273,19 +273,19 @@ char* em_get_source_osp(char* buffer) {
 #endif
 }
 
-unsigned long long em_get_interval_osp(const em_impl* em) {
+unsigned long long energymon_get_interval_osp(const energymon* em) {
   return EM_ODROID_SMART_POWER_POLL_DELAY_US;
 }
 
-int em_impl_get_osp(em_impl* impl) {
+int energymon_get_osp(energymon* impl) {
   if (impl == NULL) {
     return -1;
   }
-  impl->finit = &em_init_osp;
-  impl->fread = &em_read_total_osp;
-  impl->ffinish = &em_finish_osp;
-  impl->fsource = &em_get_source_osp;
-  impl->finterval = &em_get_interval_osp;
+  impl->finit = &energymon_init_osp;
+  impl->fread = &energymon_read_total_osp;
+  impl->ffinish = &energymon_finish_osp;
+  impl->fsource = &energymon_get_source_osp;
+  impl->finterval = &energymon_get_interval_osp;
   impl->state = NULL;
   return 0;
 }

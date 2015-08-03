@@ -3,8 +3,8 @@
 #include "em-default.h"
 
 int main() {
-  em_impl impl;
-  em_impl_get(&impl);
+  energymon impl;
+  energymon_get_default(&impl);
 
   char source[100];
   impl.fsource(source);

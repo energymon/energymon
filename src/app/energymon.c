@@ -30,7 +30,7 @@ void shandle(int dummy) {
 }
 
 int main(int argc, char** argv) {
-  em_impl impl;
+  energymon impl;
   unsigned long long us;
   struct timespec ts;
   unsigned long long energy;
@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
   signal(SIGINT, shandle);
 
   // initialize the energy monitor
-  if (em_impl_get(&impl) || impl.finit(&impl)) {
+  if (energymon_get_default(&impl) || impl.finit(&impl)) {
     return 1;
   }
 

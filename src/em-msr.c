@@ -60,15 +60,15 @@
 #define TIME_UNIT_OFFSET	0x10
 #define TIME_UNIT_MASK		0xF000
 
-typedef struct em_msr {
+typedef struct energymon_msr {
   int msr_count;
   int* msr_fds;
   double* msr_energy_units;
-} em_msr;
+} energymon_msr;
 
 #ifdef EM_DEFAULT
-int em_impl_get(em_impl* impl) {
-  return em_impl_get_msr(impl);
+int energymon_get_default(energymon* impl) {
+  return energymon_get_msr(impl);
 }
 #endif
 
@@ -103,7 +103,7 @@ static inline long long read_msr(int fd, int which) {
   return (long long)data;
 }
 
-int em_init_msr(em_impl* impl) {
+int energymon_init_msr(energymon* impl) {
   if (impl == NULL || impl->state != NULL) {
     return -1;
   }
@@ -144,7 +144,7 @@ int em_init_msr(em_impl* impl) {
   }
   free(env_cores_tmp);
 
-  em_msr* em = malloc(sizeof(em_msr));
+  energymon_msr* em = malloc(sizeof(energymon_msr));
   if (em == NULL) {
     return -1;
   }
@@ -169,12 +169,12 @@ int em_init_msr(em_impl* impl) {
   for (i = 0; i < ncores; i++) {
     em->msr_fds[i] = open_msr(core_ids[i]);
     if (em->msr_fds[i] < 0) {
-      em_finish_msr(impl);
+      energymon_finish_msr(impl);
       return -1;
     }
     power_unit_data_ll = read_msr(em->msr_fds[i], MSR_RAPL_POWER_UNIT);
     if (power_unit_data_ll < 0) {
-      em_finish_msr(impl);
+      energymon_finish_msr(impl);
       return -1;
     }
     power_unit_data = (double) ((power_unit_data_ll >> 8) & 0x1f);
@@ -185,7 +185,7 @@ int em_init_msr(em_impl* impl) {
   return 0;
 }
 
-unsigned long long em_read_total_msr(const em_impl* impl) {
+unsigned long long energymon_read_total_msr(const energymon* impl) {
   if (impl == NULL || impl->state == NULL) {
     return 0;
   }
@@ -193,11 +193,11 @@ unsigned long long em_read_total_msr(const em_impl* impl) {
   int i;
   long long msr_val;
   unsigned long long total = 0;
-  em_msr* em = impl->state;
+  energymon_msr* em = impl->state;
   for (i = 0; i < em->msr_count; i++) {
     msr_val = read_msr(em->msr_fds[i], MSR_PKG_ENERGY_STATUS);
     if (msr_val < 0) {
-      fprintf(stderr, "em_read_total: got bad energy value from MSR\n");
+      fprintf(stderr, "energymon_read_total: got bad energy value from MSR\n");
       return 0;
     }
     total += msr_val * em->msr_energy_units[i] * 1000000;
@@ -205,13 +205,13 @@ unsigned long long em_read_total_msr(const em_impl* impl) {
   return total;
 }
 
-int em_finish_msr(em_impl* impl) {
+int energymon_finish_msr(energymon* impl) {
   if (impl == NULL || impl->state == NULL) {
     return -1;
   }
 
   int ret = 0;
-  em_msr* em = impl->state;
+  energymon_msr* em = impl->state;
   if (em->msr_fds != NULL) {
     int i;
     for (i = 0; i < em->msr_count; i++) {
@@ -230,26 +230,26 @@ int em_finish_msr(em_impl* impl) {
   return ret;
 }
 
-char* em_get_source_msr(char* buffer) {
+char* energymon_get_source_msr(char* buffer) {
   if (buffer == NULL) {
     return NULL;
   }
   return strcpy(buffer, "X86 MSR");
 }
 
-unsigned long long em_get_interval_msr(const em_impl* em) {
+unsigned long long energymon_get_interval_msr(const energymon* em) {
   return 1000;
 }
 
-int em_impl_get_msr(em_impl* impl) {
+int energymon_get_msr(energymon* impl) {
   if (impl == NULL) {
     return -1;
   }
-  impl->finit = &em_init_msr;
-  impl->fread = &em_read_total_msr;
-  impl->ffinish = &em_finish_msr;
-  impl->fsource = &em_get_source_msr;
-  impl->finterval = &em_get_interval_msr;
+  impl->finit = &energymon_init_msr;
+  impl->fread = &energymon_read_total_msr;
+  impl->ffinish = &energymon_finish_msr;
+  impl->fsource = &energymon_get_source_msr;
+  impl->finterval = &energymon_get_interval_msr;
   impl->state = NULL;
   return 0;
 }

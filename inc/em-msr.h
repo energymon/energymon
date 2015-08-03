@@ -21,17 +21,17 @@ extern "C" {
 #define EM_MSR_ENV_VAR "EM_MSRS"
 #define EM_MSRS_DELIMS ", :;|"
 
-int em_init_msr(em_impl* impl);
+int energymon_init_msr(energymon* impl);
 
-unsigned long long em_read_total_msr(const em_impl* impl);
+unsigned long long energymon_read_total_msr(const energymon* impl);
 
-int em_finish_msr(em_impl* impl);
+int energymon_finish_msr(energymon* impl);
 
-char* em_get_source_msr(char* buffer);
+char* energymon_get_source_msr(char* buffer);
 
-unsigned long long em_get_interval_msr(const em_impl* em);
+unsigned long long energymon_get_interval_msr(const energymon* em);
 
-int em_impl_get_msr(em_impl* impl);
+int energymon_get_msr(energymon* impl);
 
 #ifdef __cplusplus
 }
