@@ -6,7 +6,7 @@
  */
 
 #include "energymon.h"
-#include "em-dummy.h"
+#include "energymon-dummy.h"
 #include <stdlib.h>
 #include <string.h>
 

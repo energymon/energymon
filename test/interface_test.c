@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <assert.h>
-#include "em-default.h"
+#include "energymon-default.h"
 
 int main() {
   energymon impl;

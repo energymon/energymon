@@ -10,7 +10,7 @@
  */
 
 #include "energymon.h"
-#include "em-msr.h"
+#include "energymon-msr.h"
 #include <inttypes.h>
 #include <math.h>
 #include <string.h>

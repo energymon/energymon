@@ -10,7 +10,7 @@
  */
 
 #include "energymon.h"
-#include "em-odroid-smart-power.h"
+#include "energymon-odroid-smart-power.h"
 #include <hidapi/hidapi.h>
 #include <stdlib.h>
 #include <stdio.h>

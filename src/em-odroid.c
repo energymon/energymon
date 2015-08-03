@@ -6,7 +6,7 @@
  */
 
 #include "energymon.h"
-#include "em-odroid.h"
+#include "energymon-odroid.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
