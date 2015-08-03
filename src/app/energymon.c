@@ -35,6 +35,7 @@ int main(int argc, char** argv) {
   struct timespec ts;
   unsigned long long energy;
   FILE* fout;
+  int ret = 0;
   if (argc < 2) {
     print_usage(argv[0]);
     return 1;
@@ -69,6 +70,7 @@ int main(int argc, char** argv) {
     energy = impl.fread(&impl);
     rewind(fout);
     if(fprintf(fout, "%llu\n", energy) < 0) {
+      ret = 1;
       perror("Writing to output file");
       break;
     }
@@ -77,10 +79,12 @@ int main(int argc, char** argv) {
   }
 
   // cleanup
-  fclose(fout);
+  if(fclose(fout)) {
+    ret = 1;
+  }
   if (impl.ffinish(&impl)) {
-    return 1;
+    ret = 1;
   }
 
-  return 0;
+  return ret;
 }
