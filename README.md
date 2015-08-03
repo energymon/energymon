@@ -18,19 +18,20 @@ To build the libraries with the default dummy implementation as
 make
 ```
 
-To use a different implementation as `libenergymon.so`, e.g. the Intel MSR
-energy monitor, run:
+To use a different implementation as `libenergymon-default.so`, e.g. the Intel
+MSR energy monitor, run:
 
 ``` sh
-make IMPL=msr
+make DEFAULT=msr
 ```
 
 Current implementation options are:
 
 * dummy [default]
 * msr
-* odroid-smart-power
 * odroid
+* osp
+* osp-polling
 
 You may cleanup builds with:
 

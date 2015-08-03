@@ -6,7 +6,6 @@ APPLDFLAGS = -Wl,--no-as-needed -Llib -lenergymon-default -lhidapi-libusb -lpthr
 TESTCXXFLAGS = -Wall -Iinc -g -O0
 TESTLDFLAGS = -Wl,--no-as-needed -Llib -lenergymon-default -lhidapi-libusb -lpthread -lm
 
-IMPL = dummy
 INSTALL_PREFIX = /usr/local
 
 INCDIR = inc
@@ -27,14 +26,28 @@ TEST_SOURCES = $(wildcard $(TESTDIR)/*.c)
 TEST_OBJECTS = $(patsubst $(TESTDIR)/%.c,$(TESTBINDIR)/%.o,$(TEST_SOURCES))
 TESTS = $(patsubst $(TESTDIR)/%.c,$(TESTBINDIR)/%,$(TEST_SOURCES))
 
+ifndef DEFAULT
+DEFAULT = dummy
+endif
+
+DEFAULT_FLAGS =
+ifeq ($(DEFAULT), osp)
+DEFAULT_IMPL = odroid-smart-power
+else ifeq ($(DEFAULT), osp-polling)
+DEFAULT_IMPL = odroid-smart-power
+DEFAULT_FLAGS = -DEM_ODROID_SMART_POWER_USE_POLLING
+else
+DEFAULT_IMPL = $(DEFAULT)
+endif
+
 all: $(LIBDIR) libs $(APPS) $(TESTS)
 
 # Power/energy monitors
 libs: $(LIBDIR)/libenergymon-default.so $(LIBDIR)/libenergymon-dummy.so $(LIBDIR)/libenergymon-msr.so $(LIBDIR)/libenergymon-odroid.so $(LIBDIR)/libenergymon-osp.so $(LIBDIR)/libenergymon-osp-polling.so
 
-$(LIBDIR)/libenergymon-default.so: $(SRCDIR)/em-$(IMPL).c $(INCDIR)/energymon.h $(INCDIR)/energymon-$(IMPL).h
-	$(CXX) $(CXXFLAGS) -DEM_DEFAULT $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
-	sed -e s/energymon-$(IMPL)/energymon-default/g $(PCDIR)/energymon-$(IMPL).pc > $(PCDIR)/energymon-default.pc
+$(LIBDIR)/libenergymon-default.so: $(SRCDIR)/em-$(DEFAULT_IMPL).c $(INCDIR)/energymon.h $(INCDIR)/energymon-$(DEFAULT_IMPL).h
+	$(CXX) $(CXXFLAGS) -DEM_DEFAULT $(DEFAULT_FLAGS) $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
+	sed -e s/energymon-$(DEFAULT)/energymon-default/g $(PCDIR)/energymon-$(DEFAULT).pc > $(PCDIR)/energymon-default.pc
 
 $(LIBDIR)/libenergymon-dummy.so: $(SRCDIR)/em-dummy.c $(INCDIR)/energymon.h $(INCDIR)/energymon-dummy.h
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
