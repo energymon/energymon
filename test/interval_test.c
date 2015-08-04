@@ -7,7 +7,7 @@
 int main(int argc, char** argv) {
   char source[100];
   long usec;
-  long long start, end, uj;
+  unsigned long long start, end, uj;
   if (argc < 2) {
     fprintf(stderr, "Usage: %s <idle_usec>\n", argv[0]);
     return 1;

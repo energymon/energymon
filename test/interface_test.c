@@ -10,7 +10,7 @@ int main() {
   impl.fsource(source);
   printf("Initializing reading from %s\n", source);
   assert(impl.finit(&impl) == 0);
-  long long result = impl.fread(&impl);
+  unsigned long long result = impl.fread(&impl);
   assert(result >= 0);
   printf("Got reading: %lld\n", result);
   assert(impl.ffinish(&impl) == 0);
