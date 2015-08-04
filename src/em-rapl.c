@@ -18,19 +18,44 @@
 #define RAPL_ENERGY_FILE "energy_uj"
 #define RAPL_MAX_ENERGY_FILE "max_energy_range_uj"
 
+typedef struct rapl_zone {
+  int energy_supported;
+  int energy_fd;
+  unsigned long long max_energy_range_uj;
+} rapl_zone;
+
 typedef struct energymon_rapl {
   int count;
-  int* fd;
-  unsigned long long* max_energy_range_uj;
+  rapl_zone* zones;
 } energymon_rapl;
 
-// TODO: Not all zones support energy  implement power monitoring or exclude them.
+// Add power polling support for zones that don't support energy readings?
 
 #ifdef ENERGYMON_DEFAULT
 int energymon_get_default(energymon* em) {
   return energymon_get_rapl(em);
 }
 #endif
+
+static inline int rapl_is_energy_supported(unsigned int zone) {
+  struct dirent* entry;
+  char buf[BUFSIZ];
+  snprintf(buf, sizeof(buf), RAPL_BASE_DIR"/intel-rapl:%u", zone);
+  DIR* dir = opendir(buf);
+  int ret = 0;
+  if (dir != NULL) {
+    entry = readdir(dir);
+    while (entry != NULL) {
+      if (!strncmp(entry->d_name, RAPL_ENERGY_FILE, strlen(RAPL_ENERGY_FILE))) {
+        ret = 1;
+        break;
+      }
+      entry = readdir(dir);
+    }
+    closedir(dir);
+  }
+  return ret;
+}
 
 /**
  * Count the number of zones - does not include subzones.
@@ -42,11 +67,12 @@ static inline unsigned int rapl_get_count() {
   char buf[BUFSIZ];
 
   if (dir != NULL) {
+    snprintf(buf, sizeof(buf), "intel-rapl:%u", count);
     entry = readdir(dir);
     while (entry != NULL) {
-      snprintf(buf, sizeof(buf), "intel-rapl:%u", count);
       if (!strncmp(entry->d_name, buf, strlen(buf))) {
         count++;
+        break;
       }
       entry = readdir(dir);
     }
@@ -107,44 +133,46 @@ static inline int rapl_cleanup(energymon_rapl* em) {
 
   int ret = 0;
   unsigned int i = 0;
-  for (i = 0; i < em->count; i++) {
-    ret += close(em->fd[i]);
+  if (em->zones != NULL) {
+    for (i = 0; i < em->count; i++) {
+      if (em->zones[i].energy_supported) {
+        ret += close(em->zones[i].energy_fd);
+      }
+    }
   }
-  free(em->fd);
-  em->fd = NULL;
-  free(em->max_energy_range_uj);
-  em->max_energy_range_uj = NULL;
+  free(em->zones);
+  em->zones = NULL;
   return ret;
 }
 
 static inline int rapl_init(energymon_rapl* em) {
-  em->fd = NULL;
-  em->max_energy_range_uj = NULL;
   unsigned int i;
-  em->count = rapl_get_count();
 
+  em->zones = NULL;
+  em->count = rapl_get_count();
   if (em->count == 0) {
     fprintf(stderr, "rapl_init: No RAPL zones found!\n");
     return -1;
   }
 
-  em->fd = malloc(em->count * sizeof(int));
-  if (em->fd == NULL) {
-    rapl_cleanup(em);
-    return -1;
-  }
-
-  em->max_energy_range_uj = malloc(em->count * sizeof(unsigned long long));
-  if (em->max_energy_range_uj == NULL) {
+  em->zones = calloc(em->count, sizeof(rapl_zone));
+  if (em->zones == NULL) {
+    em->count = 0;
     return -1;
   }
 
   for (i = 0; i < em->count; i++) {
-    em->max_energy_range_uj[i] = rapl_read_max_energy(i, -1);
-    em->fd[i] = rapl_open_file(i, -1, RAPL_ENERGY_FILE);
-    if (em->fd[i] < 0) {
-      rapl_cleanup(em);
-      return -1;
+    em->zones[i].energy_supported = rapl_is_energy_supported(i);
+    if (em->zones[i].energy_supported) {
+      em->zones[i].max_energy_range_uj = rapl_read_max_energy(i, -1);
+      em->zones[i].energy_fd = rapl_open_file(i, -1, RAPL_ENERGY_FILE);
+      if (em->zones[i].energy_fd < 0) {
+        rapl_cleanup(em);
+        return -1;
+      }
+    } else {
+      em->zones[i].max_energy_range_uj = 0;
+      em->zones[i].energy_fd = -1;
     }
   }
   return 0;
@@ -171,11 +199,13 @@ static inline unsigned long long rapl_read_total_energy_uj(energymon_rapl* em) {
   unsigned long long total = 0;
   unsigned int i;
   for (i = 0; i < em->count; i++) {
-    val = rapl_read_value(em->fd[i]);
-    if (val < 0) {
-      return 0;
+    if (em->zones[i].energy_supported) {
+      val = rapl_read_value(em->zones[i].energy_fd);
+      if (val < 0) {
+        return 0;
+      }
+      total += val;
     }
-    total += val;
   }
   return total;
 }
