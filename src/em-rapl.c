@@ -7,19 +7,24 @@
 
 #include "energymon.h"
 #include "energymon-rapl.h"
+#include <dirent.h>
 #include <fcntl.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
+#define RAPL_BASE_DIR "/sys/class/powercap"
 #define RAPL_ENERGY_FILE "energy_uj"
 #define RAPL_MAX_ENERGY_FILE "max_energy_range_uj"
 
 typedef struct energymon_rapl {
-  int fd;
-  unsigned long long max_energy_range_uj;
+  int count;
+  int* fd;
+  unsigned long long* max_energy_range_uj;
 } energymon_rapl;
+
+// TODO: Not all zones support energy  implement power monitoring or exclude them.
 
 #ifdef ENERGYMON_DEFAULT
 int energymon_get_default(energymon* em) {
@@ -27,13 +32,37 @@ int energymon_get_default(energymon* em) {
 }
 #endif
 
+/**
+ * Count the number of zones - does not include subzones.
+ */
+static inline unsigned int rapl_get_count() {
+  unsigned int count = 0;
+  struct dirent* entry;
+  DIR* dir = opendir(RAPL_BASE_DIR);
+  char buf[BUFSIZ];
+
+  if (dir != NULL) {
+    entry = readdir(dir);
+    while (entry != NULL) {
+      snprintf(buf, sizeof(buf), "intel-rapl:%u", count);
+      if (!strncmp(entry->d_name, buf, strlen(buf))) {
+        count++;
+      }
+      entry = readdir(dir);
+    }
+    closedir(dir);
+  }
+
+  return count;
+}
+
 static inline int rapl_open_file(unsigned int zone,
                                  int subzone,
                                  const char* file) {
   char filename[BUFSIZ];
   int fd;
   if (subzone >= 0) {
-    sprintf(filename, "/sys/class/powercap/intel-rapl:%u/intel-rapl:%u:%d/%s",
+    sprintf(filename, RAPL_BASE_DIR"/intel-rapl:%u/intel-rapl:%u:%d/%s",
             zone, zone, subzone, file);
   } else {
     sprintf(filename, "/sys/class/powercap/intel-rapl:%u/%s", zone, file);
@@ -71,16 +100,58 @@ static inline unsigned long long rapl_read_max_energy(unsigned int zone,
   return ret;
 }
 
-static inline int rapl_init(energymon_rapl* em) {
-  em->fd = rapl_open_file(0, -1, RAPL_ENERGY_FILE);
-  em->max_energy_range_uj = rapl_read_max_energy(0, -1);
-  if (em->fd < 0) {
+static inline int rapl_cleanup(energymon_rapl* em) {
+  if (em == NULL) {
     return -1;
+  }
+
+  int ret = 0;
+  unsigned int i = 0;
+  for (i = 0; i < em->count; i++) {
+    ret += close(em->fd[i]);
+  }
+  free(em->fd);
+  em->fd = NULL;
+  free(em->max_energy_range_uj);
+  em->max_energy_range_uj = NULL;
+  return ret;
+}
+
+static inline int rapl_init(energymon_rapl* em) {
+  em->fd = NULL;
+  em->max_energy_range_uj = NULL;
+  unsigned int i;
+  em->count = rapl_get_count();
+
+  if (em->count == 0) {
+    fprintf(stderr, "rapl_init: No RAPL zones found!\n");
+    return -1;
+  }
+
+  em->fd = malloc(em->count * sizeof(int));
+  if (em->fd == NULL) {
+    rapl_cleanup(em);
+    return -1;
+  }
+
+  em->max_energy_range_uj = malloc(em->count * sizeof(unsigned long long));
+  if (em->max_energy_range_uj == NULL) {
+    return -1;
+  }
+
+  for (i = 0; i < em->count; i++) {
+    em->max_energy_range_uj[i] = rapl_read_max_energy(i, -1);
+    em->fd[i] = rapl_open_file(i, -1, RAPL_ENERGY_FILE);
+    if (em->fd[i] < 0) {
+      rapl_cleanup(em);
+      return -1;
+    }
   }
   return 0;
 }
 
 int energymon_init_rapl(energymon* em) {
+  int ret;
   if (em == NULL || em->state != NULL) {
     return -1;
   }
@@ -88,15 +159,25 @@ int energymon_init_rapl(energymon* em) {
   if (em->state == NULL) {
     return -1;
   };
-  return rapl_init(em->state);
+  ret = rapl_init(em->state);
+  if (ret) {
+    energymon_finish_rapl(em);
+  }
+  return ret;
 }
 
 static inline unsigned long long rapl_read_total_energy_uj(energymon_rapl* em) {
-  long long val = rapl_read_value(em->fd);
-  if (val < 0) {
-    return 0;
+  long long val;
+  unsigned long long total = 0;
+  unsigned int i;
+  for (i = 0; i < em->count; i++) {
+    val = rapl_read_value(em->fd[i]);
+    if (val < 0) {
+      return 0;
+    }
+    total += val;
   }
-  return val;
+  return total;
 }
 
 unsigned long long energymon_read_total_rapl(const energymon* em) {
@@ -104,10 +185,6 @@ unsigned long long energymon_read_total_rapl(const energymon* em) {
     return 0;
   }
   return rapl_read_total_energy_uj(em->state);
-}
-
-static inline int rapl_cleanup(energymon_rapl* em) {
-  return close(em->fd);
 }
 
 int energymon_finish_rapl(energymon* em) {
