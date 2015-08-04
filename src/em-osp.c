@@ -50,7 +50,7 @@ typedef struct energymon_osp {
 #endif
 } energymon_osp;
 
-#ifdef EM_DEFAULT
+#ifdef ENERGYMON_DEFAULT
 int energymon_get_default(energymon* impl) {
   return energymon_get_osp(impl);
 }

@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef EM_DEFAULT
+#ifdef ENERGYMON_DEFAULT
 int energymon_get_default(energymon* impl) {
   return energymon_get_dummy(impl);
 }

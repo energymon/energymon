@@ -44,7 +44,7 @@ all: $(LIBDIR) libs $(APPS) $(TESTS)
 libs: $(LIBDIR)/libenergymon-default.so $(LIBDIR)/libenergymon-dummy.so $(LIBDIR)/libenergymon-msr.so $(LIBDIR)/libenergymon-odroid.so $(LIBDIR)/libenergymon-osp.so $(LIBDIR)/libenergymon-osp-polling.so
 
 $(LIBDIR)/libenergymon-default.so: $(SRCDIR)/em-$(DEFAULT_IMPL).c $(INCDIR)/energymon.h $(INCDIR)/energymon-$(DEFAULT_IMPL).h
-	$(CXX) $(CXXFLAGS) -DEM_DEFAULT $(DEFAULT_FLAGS) $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
+	$(CXX) $(CXXFLAGS) -DENERGYMON_DEFAULT $(DEFAULT_FLAGS) $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
 	sed -e s/energymon-$(DEFAULT)/energymon-default/g $(PCDIR)/energymon-$(DEFAULT).pc > $(PCDIR)/energymon-default.pc
 
 $(LIBDIR)/libenergymon-dummy.so: $(SRCDIR)/em-dummy.c $(INCDIR)/energymon.h $(INCDIR)/energymon-dummy.h

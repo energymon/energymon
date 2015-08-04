@@ -38,7 +38,7 @@ typedef struct energymon_odroid {
   unsigned long long odroid_total_energy;
 } energymon_odroid;
 
-#ifdef EM_DEFAULT
+#ifdef ENERGYMON_DEFAULT
 int energymon_get_default(energymon* impl) {
   return energymon_get_odroid(impl);
 }

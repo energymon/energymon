@@ -67,7 +67,7 @@ typedef struct energymon_msr {
   double* msr_energy_units;
 } energymon_msr;
 
-#ifdef EM_DEFAULT
+#ifdef ENERGYMON_DEFAULT
 int energymon_get_default(energymon* impl) {
   return energymon_get_msr(impl);
 }
