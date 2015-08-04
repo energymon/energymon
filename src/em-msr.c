@@ -2,8 +2,9 @@
  * Read energy from X86 MSRs (Model-Specific Registers).
  *
  * By default, the MSR on cpu0 is read. To configure other MSRs, set the
- * EM_MSRS environment variable with a comma-delimited list of CPU IDs, e.g.:
- *   export EM_MSRS=0,4,8,12
+ * ENERGYMON_MSRS environment variable with a comma-delimited list of CPU IDs,
+ * e.g.:
+ *   export ENERGYMON_MSRS=0,4,8,12
  *
  * @author Hank Hoffmann
  * @author Connor Imes
@@ -113,7 +114,7 @@ int energymon_init_msr(energymon* impl) {
   long long power_unit_data_ll;
   double power_unit_data;
   // get a delimited list of cores with MSRs to read from
-  char* env_cores = getenv(EM_MSR_ENV_VAR);
+  char* env_cores = getenv(ENERGYMON_MSR_ENV_VAR);
   char* env_cores_tmp; // need a writable string for strtok function
   if (env_cores == NULL) {
     // default to using core 0
@@ -122,23 +123,23 @@ int energymon_init_msr(energymon* impl) {
 
   // first determine the number of MSRs to be accessed
   env_cores_tmp = strdup(env_cores);
-  char* tok = strtok(env_cores_tmp, EM_MSRS_DELIMS);
+  char* tok = strtok(env_cores_tmp, ENERGYMON_MSRS_DELIMS);
   while (tok != NULL) {
     ncores++;
-    tok = strtok(NULL, EM_MSRS_DELIMS);
+    tok = strtok(NULL, ENERGYMON_MSRS_DELIMS);
   }
   free(env_cores_tmp);
   if (ncores == 0) {
     fprintf(stderr, "em_init: Failed to parse core numbers from "
-            "%s environment variable.\n", EM_MSR_ENV_VAR);
+            "%s environment variable.\n", ENERGYMON_MSR_ENV_VAR);
     return -1;
   }
 
   // Now determine which cores' MSRs will be accessed
   int core_ids[ncores];
   env_cores_tmp = strdup(env_cores);
-  tok = strtok(env_cores_tmp, EM_MSRS_DELIMS);
-  for (i = 0; tok != NULL; tok = strtok(NULL, EM_MSRS_DELIMS), i++) {
+  tok = strtok(env_cores_tmp, ENERGYMON_MSRS_DELIMS);
+  for (i = 0; tok != NULL; tok = strtok(NULL, ENERGYMON_MSRS_DELIMS), i++) {
     core_ids[i] = atoi(tok);
     // printf("em_init: using MSR for core %d\n", core_ids[i]);
   }

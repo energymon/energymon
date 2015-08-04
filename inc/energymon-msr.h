@@ -2,8 +2,9 @@
  * Read energy from X86 MSRs (Model-Specific Registers).
  *
  * By default, the MSR on cpu0 is read. To configure other MSRs, set the
- * EM_MSRS environment variable with a comma-delimited list of CPU IDs, e.g.:
- *   export EM_MSRS=0,4,8,12
+ * ENERGYMON_MSRS environment variable with a comma-delimited list of CPU IDs,
+ * e.g.:
+ *   export ENERGYMON_MSRS=0,4,8,12
  *
  * @author Hank Hoffmann
  * @author Connor Imes
@@ -18,8 +19,8 @@ extern "C" {
 #include "energymon.h"
 
 /* Environment variable for specifying the MSRs to use */
-#define EM_MSR_ENV_VAR "EM_MSRS"
-#define EM_MSRS_DELIMS ", :;|"
+#define ENERGYMON_MSR_ENV_VAR "ENERGYMON_MSRS"
+#define ENERGYMON_MSRS_DELIMS ", :;|"
 
 int energymon_init_msr(energymon* impl);
 
