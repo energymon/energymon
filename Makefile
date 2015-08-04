@@ -33,7 +33,7 @@ endif
 DEFAULT_FLAGS =
 ifeq ($(DEFAULT), osp-polling)
 DEFAULT_IMPL = osp
-DEFAULT_FLAGS = -DEM_ODROID_SMART_POWER_USE_POLLING
+DEFAULT_FLAGS = -DENERGYMON_OSP_USE_POLLING
 else
 DEFAULT_IMPL = $(DEFAULT)
 endif
@@ -60,7 +60,7 @@ $(LIBDIR)/libenergymon-osp.so: $(SRCDIR)/em-osp.c $(INCDIR)/energymon.h $(INCDIR
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
 
 $(LIBDIR)/libenergymon-osp-polling.so: $(SRCDIR)/em-osp.c $(INCDIR)/energymon.h $(INCDIR)/energymon-osp.h
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -DEM_ODROID_SMART_POWER_USE_POLLING -Wl,-soname,$(@F) -o $@ $^
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -DENERGYMON_OSP_USE_POLLING -Wl,-soname,$(@F) -o $@ $^
 
 # Build app object files
 $(APPBINDIR)/%.o : $(APPDIR)/%.c | $(APPBINDIR)

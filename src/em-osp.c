@@ -3,7 +3,7 @@
  * Uses the HID API.
  * The default implementation just fetches an energy reading when requested.
  * To enable polling of power readings instead, set:
- *   EM_ODROID_SMART_POWER_USE_POLLING
+ *   ENERGYMON_OSP_USE_POLLING
  *
  * @author Connor Imes
  * @date 2015-01-27
@@ -26,14 +26,14 @@
 #define OSP_REQUEST_STATUS      0x81
 
 // how long to sleep for (in microseconds) after certain operations
-#ifndef EM_ODROID_SMART_POWER_SLEEP_TIME_US
-  #define EM_ODROID_SMART_POWER_SLEEP_TIME_US 200000
+#ifndef ENERGYMON_OSP_SLEEP_TIME_US
+  #define ENERGYMON_OSP_SLEEP_TIME_US 200000
 #endif
 
 // sensor polling interval in microseconds
-#ifndef EM_ODROID_SMART_POWER_POLL_DELAY_US
+#ifndef ENERGYMON_OSP_POLL_DELAY_US
   // default value determined experimentally
-  #define EM_ODROID_SMART_POWER_POLL_DELAY_US 200000
+  #define ENERGYMON_OSP_POLL_DELAY_US 200000
 #endif
 
 #define UJOULES_PER_WATTHOUR     3600000000.0
@@ -42,7 +42,7 @@ typedef struct energymon_osp {
   hid_device* device;
   unsigned char buf[OSP_MAX_STR];
 
-#ifdef EM_ODROID_SMART_POWER_USE_POLLING
+#ifdef ENERGYMON_OSP_USE_POLLING
   unsigned long long osp_total_energy;
   // thread variables
   pthread_t osp_polling_thread;
@@ -85,7 +85,7 @@ static inline int em_osp_request_start_stop(energymon_osp* em, int started) {
   }
 
   // let meter reset
-  usleep(EM_ODROID_SMART_POWER_SLEEP_TIME_US);
+  usleep(ENERGYMON_OSP_SLEEP_TIME_US);
   return 0;
 }
 
@@ -101,7 +101,7 @@ static inline int em_osp_request_data(energymon_osp* em) {
   return 0;
 }
 
-#ifdef EM_ODROID_SMART_POWER_USE_POLLING
+#ifdef ENERGYMON_OSP_USE_POLLING
 /**
  * pthread function to poll the device at regular intervals
  */
@@ -115,12 +115,12 @@ static void* osp_poll_device(void* args) {
     } else if(em->buf[0] == OSP_REQUEST_DATA) {
       strncpy(w, (char*) &em->buf[17], 6);
       watts = atof(w);
-      em->osp_total_energy += watts * EM_ODROID_SMART_POWER_POLL_DELAY_US;
+      em->osp_total_energy += watts * ENERGYMON_OSP_POLL_DELAY_US;
     } else {
       fprintf(stderr, "osp_poll_device: Did not get data\n");
     }
     // sleep for the polling delay
-    usleep(EM_ODROID_SMART_POWER_POLL_DELAY_US);
+    usleep(ENERGYMON_OSP_POLL_DELAY_US);
   }
   return (void*) NULL;
 }
@@ -178,7 +178,7 @@ int energymon_init_osp(energymon* impl) {
     return -1;
   }
 
-#ifdef EM_ODROID_SMART_POWER_USE_POLLING
+#ifdef ENERGYMON_OSP_USE_POLLING
   // start device polling thread
   em->osp_total_energy = 0;
   em->osp_do_polling = 1;
@@ -205,7 +205,7 @@ unsigned long long energymon_read_total_osp(const energymon* impl) {
     return 0;
   }
 
-#ifdef EM_ODROID_SMART_POWER_USE_POLLING
+#ifdef ENERGYMON_OSP_USE_POLLING
   ujoules = em->osp_total_energy;
 #else
   char wh[7] = {'\0'};
@@ -236,7 +236,7 @@ int energymon_finish_osp(energymon* impl) {
     return 0;
   }
 
-#ifdef EM_ODROID_SMART_POWER_USE_POLLING
+#ifdef ENERGYMON_OSP_USE_POLLING
   // stop sensors polling thread and cleanup
   em->osp_do_polling = 0;
   if(pthread_join(em->osp_polling_thread, NULL)) {
@@ -246,12 +246,12 @@ int energymon_finish_osp(energymon* impl) {
 
   em->buf[0] = 0x00;
   memset((void*) &em->buf[2], 0x00, sizeof(em->buf) - 2);
-#ifdef EM_ODROID_SMART_POWER_STOP_ON_FINISH
+#ifdef ENERGYMON_OSP_STOP_ON_FINISH
   em->buf[1] = OSP_REQUEST_STARTSTOP;
   if (hid_write(em->device, em->buf, sizeof(em->buf)) == -1) {
     fprintf(stderr, "energymon_finish_osp: Failed to request start/stop\n");
   }
-  usleep(EM_ODROID_SMART_POWER_SLEEP_TIME_US);
+  usleep(ENERGYMON_OSP_SLEEP_TIME_US);
 #endif
   hid_close(em->device);
   em->device = NULL;
@@ -266,7 +266,7 @@ char* energymon_get_source_osp(char* buffer) {
   if (buffer == NULL) {
     return NULL;
   }
-#ifdef EM_ODROID_SMART_POWER_USE_POLLING
+#ifdef ENERGYMON_OSP_USE_POLLING
   return strcpy(buffer, "ODROID Smart Power with Polling");
 #else
   return strcpy(buffer, "ODROID Smart Power");
@@ -274,7 +274,7 @@ char* energymon_get_source_osp(char* buffer) {
 }
 
 unsigned long long energymon_get_interval_osp(const energymon* em) {
-  return EM_ODROID_SMART_POWER_POLL_DELAY_US;
+  return ENERGYMON_OSP_POLL_DELAY_US;
 }
 
 int energymon_get_osp(energymon* impl) {
