@@ -22,6 +22,8 @@ typedef struct rapl_zone {
   int energy_supported;
   int energy_fd;
   unsigned long long max_energy_range_uj;
+  unsigned long long energy_last;
+  unsigned int energy_overflow_count;
 } rapl_zone;
 
 typedef struct energymon_rapl {
@@ -162,17 +164,18 @@ static inline int rapl_init(energymon_rapl* em) {
   }
 
   for (i = 0; i < em->count; i++) {
-    em->zones[i].energy_supported = rapl_is_energy_supported(i);
-    if (em->zones[i].energy_supported) {
-      em->zones[i].max_energy_range_uj = rapl_read_max_energy(i, -1);
-      em->zones[i].energy_fd = rapl_open_file(i, -1, RAPL_ENERGY_FILE);
-      if (em->zones[i].energy_fd < 0) {
+    rapl_zone* z = &em->zones[i];
+    z->energy_supported = rapl_is_energy_supported(i);
+    if (z->energy_supported) {
+      z->max_energy_range_uj = rapl_read_max_energy(i, -1);
+      z->energy_fd = rapl_open_file(i, -1, RAPL_ENERGY_FILE);
+      if (z->energy_fd < 0) {
         rapl_cleanup(em);
         return -1;
       }
     } else {
-      em->zones[i].max_energy_range_uj = 0;
-      em->zones[i].energy_fd = -1;
+      z->max_energy_range_uj = 0;
+      z->energy_fd = -1;
     }
   }
   return 0;
@@ -199,12 +202,18 @@ static inline unsigned long long rapl_read_total_energy_uj(energymon_rapl* em) {
   unsigned long long total = 0;
   unsigned int i;
   for (i = 0; i < em->count; i++) {
-    if (em->zones[i].energy_supported) {
-      val = rapl_read_value(em->zones[i].energy_fd);
+    rapl_zone* z = &em->zones[i];
+    if (z->energy_supported) {
+      val = rapl_read_value(z->energy_fd);
       if (val < 0) {
         return 0;
       }
-      total += val;
+      // attempt to detect overflow of counter
+      if (val < z->energy_last) {
+        z->energy_overflow_count++;
+      }
+      z->energy_last = val;
+      total += val + z->energy_overflow_count * z->max_energy_range_uj;
     }
   }
   return total;
