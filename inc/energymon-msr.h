@@ -8,8 +8,8 @@
  * @author Hank Hoffmann
  * @author Connor Imes
  */
-#ifndef _EM_MSR_H_
-#define _EM_MSR_H_
+#ifndef _ENERGYMON_MSR_H_
+#define _ENERGYMON_MSR_H_
 
 #ifdef __cplusplus
 extern "C" {

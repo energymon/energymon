@@ -4,8 +4,8 @@
  * @author Connor Imes
  * @date 2014-06-30
  */
-#ifndef _EM_ODROID_H_
-#define _EM_ODROID_H_
+#ifndef _ENERGYMON_ODROID_H_
+#define _ENERGYMON_ODROID_H_
 
 #ifdef __cplusplus
 extern "C" {

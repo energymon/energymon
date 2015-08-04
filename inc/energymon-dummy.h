@@ -4,8 +4,8 @@
  * @author Connor Imes
  * @date 2014-07-30
  */
-#ifndef _EM_DUMMY_H_
-#define _EM_DUMMY_H_
+#ifndef _ENERGYMON_DUMMY_H_
+#define _ENERGYMON_DUMMY_H_
 
 #ifdef __cplusplus
 extern "C" {

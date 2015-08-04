@@ -3,8 +3,8 @@
  *
  * @author Connor Imes
  */
-#ifndef _EM_ODROID_SMART_POWER_H_
-#define _EM_ODROID_SMART_POWER_H_
+#ifndef _ENERGYMON_ODROID_SMART_POWER_H_
+#define _ENERGYMON_ODROID_SMART_POWER_H_
 
 #ifdef __cplusplus
 extern "C" {
