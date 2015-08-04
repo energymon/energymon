@@ -32,6 +32,7 @@ Current implementation options are:
 * odroid
 * osp
 * osp-polling
+* rapl
 
 You may cleanup builds with:
 

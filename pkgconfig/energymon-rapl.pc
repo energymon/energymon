@@ -1,0 +1,10 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+includedir=${prefix}/include/energymon
+libdir=${exec_prefix}/lib
+
+Name: energymon-rapl
+Description: EnergyMon implementation for Intel RAPL
+Version: 0.1.0
+Cflags: -I${includedir}
+Libs: -L${libdir} -lenergymon-rapl -lm

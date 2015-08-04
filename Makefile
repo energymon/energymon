@@ -40,7 +40,13 @@ endif
 all: $(LIBDIR) libs $(APPS) $(TESTS)
 
 # Power/energy monitors
-libs: $(LIBDIR)/libenergymon-default.so $(LIBDIR)/libenergymon-dummy.so $(LIBDIR)/libenergymon-msr.so $(LIBDIR)/libenergymon-odroid.so $(LIBDIR)/libenergymon-osp.so $(LIBDIR)/libenergymon-osp-polling.so
+libs: $(LIBDIR)/libenergymon-default.so \
+	$(LIBDIR)/libenergymon-dummy.so \
+	$(LIBDIR)/libenergymon-msr.so \
+	$(LIBDIR)/libenergymon-odroid.so \
+	$(LIBDIR)/libenergymon-osp.so \
+	$(LIBDIR)/libenergymon-osp-polling.so \
+	$(LIBDIR)/libenergymon-rapl.so
 
 $(LIBDIR)/libenergymon-default.so: $(SRCDIR)/em-$(DEFAULT_IMPL).c $(INCDIR)/energymon.h $(INCDIR)/energymon-$(DEFAULT_IMPL).h
 	$(CXX) $(CXXFLAGS) -DENERGYMON_DEFAULT $(DEFAULT_FLAGS) $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
@@ -60,6 +66,9 @@ $(LIBDIR)/libenergymon-osp.so: $(SRCDIR)/em-osp.c $(INCDIR)/energymon.h $(INCDIR
 
 $(LIBDIR)/libenergymon-osp-polling.so: $(SRCDIR)/em-osp.c $(INCDIR)/energymon.h $(INCDIR)/energymon-osp.h
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -DENERGYMON_OSP_USE_POLLING -Wl,-soname,$(@F) -o $@ $^
+
+$(LIBDIR)/libenergymon-rapl.so: $(SRCDIR)/em-rapl.c $(INCDIR)/energymon.h $(INCDIR)/energymon-rapl.h
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -Wl,-soname,$(@F) -o $@ $^
 
 # Build app object files
 $(APPBINDIR)/%.o : $(APPDIR)/%.c | $(APPBINDIR)
