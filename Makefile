@@ -1,6 +1,6 @@
 CXX = /usr/bin/gcc
 CXXFLAGS = -fPIC -Wall -Wno-unknown-pragmas -Iinc -O6
-LDFLAGS = -shared -lhidapi-libusb -lpthread  -lm
+LDFLAGS = -shared -lhidapi-libusb -lpthread -lm
 APPCXXFLAGS = -Wall -Wno-unknown-pragmas -Iinc -O6
 APPLDFLAGS = -Wl,--no-as-needed -Llib -lenergymon-default -lhidapi-libusb -lpthread -lm
 TESTCXXFLAGS = -Wall -Iinc -g -O0
@@ -30,12 +30,11 @@ ifndef DEFAULT
 DEFAULT = dummy
 endif
 
+DEFAULT_IMPL = $(DEFAULT)
 DEFAULT_FLAGS =
 ifeq ($(DEFAULT), osp-polling)
 DEFAULT_IMPL = osp
 DEFAULT_FLAGS = -DENERGYMON_OSP_USE_POLLING
-else
-DEFAULT_IMPL = $(DEFAULT)
 endif
 
 all: $(LIBDIR) libs $(APPS) $(TESTS)
