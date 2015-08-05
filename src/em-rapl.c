@@ -236,11 +236,11 @@ int energymon_finish_rapl(energymon* em) {
   return ret;
 }
 
-char* energymon_get_source_rapl(char* buffer) {
+char* energymon_get_source_rapl(char* buffer, size_t n) {
   if (buffer == NULL) {
     return NULL;
   }
-  return strcpy(buffer, "Intel RAPL");
+  return strncpy(buffer, "Intel RAPL", n);
 }
 
 unsigned long long energymon_get_interval_rapl(const energymon* em) {

@@ -262,14 +262,14 @@ int energymon_finish_osp(energymon* impl) {
   return 0;
 }
 
-char* energymon_get_source_osp(char* buffer) {
+char* energymon_get_source_osp(char* buffer, size_t n) {
   if (buffer == NULL) {
     return NULL;
   }
 #ifdef ENERGYMON_OSP_USE_POLLING
   return strcpy(buffer, "ODROID Smart Power with Polling");
 #else
-  return strcpy(buffer, "ODROID Smart Power");
+  return strncpy(buffer, "ODROID Smart Power", n);
 #endif
 }
 

@@ -16,6 +16,7 @@
 extern "C" {
 #endif
 
+#include <stddef.h>
 #include "energymon.h"
 
 /* Environment variable for specifying the MSRs to use */
@@ -28,7 +29,7 @@ unsigned long long energymon_read_total_msr(const energymon* impl);
 
 int energymon_finish_msr(energymon* impl);
 
-char* energymon_get_source_msr(char* buffer);
+char* energymon_get_source_msr(char* buffer, size_t n);
 
 unsigned long long energymon_get_interval_msr(const energymon* em);
 

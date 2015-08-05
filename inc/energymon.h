@@ -17,6 +17,8 @@
 extern "C" {
 #endif
 
+#include <stddef.h>
+
 typedef struct energymon energymon;
 
 /**
@@ -49,9 +51,10 @@ typedef int (*energymon_finish) (energymon*);
  * Get a human-readable description of the energy calculation source.
  *
  * @param pointer to a buffer
+ * @param the maximum number of bytes to write
  * @return pointer to the same buffer, or NULL on failure
  */
-typedef char* (*energymon_get_source) (char* buffer);
+typedef char* (*energymon_get_source) (char* buffer, size_t n);
 
 /**
  * Get the refresh interval in microseconds of the underlying sensor(s).

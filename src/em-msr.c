@@ -231,11 +231,11 @@ int energymon_finish_msr(energymon* impl) {
   return ret;
 }
 
-char* energymon_get_source_msr(char* buffer) {
+char* energymon_get_source_msr(char* buffer, size_t n) {
   if (buffer == NULL) {
     return NULL;
   }
-  return strcpy(buffer, "X86 MSR");
+  return strncpy(buffer, "X86 MSR", n);
 }
 
 unsigned long long energymon_get_interval_msr(const energymon* em) {

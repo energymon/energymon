@@ -335,11 +335,11 @@ unsigned long long energymon_read_total_odroid(const energymon* impl) {
   return ((energymon_odroid*) impl->state)->odroid_total_energy;
 }
 
-char* energymon_get_source_odroid(char* buffer) {
+char* energymon_get_source_odroid(char* buffer, size_t n) {
   if (buffer == NULL) {
     return NULL;
   }
-  return strcpy(buffer, "ODROID INA231 Power Sensors");
+  return strncpy(buffer, "ODROID INA231 Power Sensors", n);
 }
 
 unsigned long long energymon_get_interval_odroid(const energymon* em) {

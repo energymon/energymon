@@ -28,11 +28,11 @@ int energymon_finish_dummy(energymon* impl) {
   return 0;
 }
 
-char* energymon_get_source_dummy(char* buffer) {
+char* energymon_get_source_dummy(char* buffer, size_t n) {
   if (buffer == NULL) {
     return NULL;
   }
-  return strcpy(buffer, "Dummy Source");
+  return strncpy(buffer, "Dummy Source", n);
 }
 
 unsigned long long energymon_get_interval_dummy(const energymon* em) {

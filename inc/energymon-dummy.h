@@ -11,6 +11,7 @@
 extern "C" {
 #endif
 
+#include <stddef.h>
 #include "energymon.h"
 
 int energymon_init_dummy(energymon* em);
@@ -19,7 +20,7 @@ unsigned long long energymon_read_total_dummy(const energymon* em);
 
 int energymon_finish_dummy(energymon* em);
 
-char* energymon_get_source_dummy(char* buffer);
+char* energymon_get_source_dummy(char* buffer, size_t n);
 
 unsigned long long energymon_get_interval_dummy(const energymon* em);
 

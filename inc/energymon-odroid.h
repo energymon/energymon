@@ -11,6 +11,7 @@
 extern "C" {
 #endif
 
+#include <stddef.h>
 #include "energymon.h"
 
 int energymon_init_odroid(energymon* em);
@@ -19,7 +20,7 @@ unsigned long long energymon_read_total_odroid(const energymon* em);
 
 int energymon_finish_odroid(energymon* em);
 
-char* energymon_get_source_odroid(char* buffer);
+char* energymon_get_source_odroid(char* buffer, size_t n);
 
 unsigned long long energymon_get_interval_odroid(const energymon* em);
 

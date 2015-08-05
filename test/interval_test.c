@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
   energymon impl;
   energymon_get_default(&impl);
 
-  impl.fsource(source);
+  impl.fsource(source, sizeof(source));
   printf("Initializing reading from %s\n", source);
   assert(impl.finit(&impl) == 0);
 

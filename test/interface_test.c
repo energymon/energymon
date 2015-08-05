@@ -7,7 +7,7 @@ int main() {
   energymon_get_default(&impl);
 
   char source[100];
-  impl.fsource(source);
+  impl.fsource(source, sizeof(source));
   printf("Initializing reading from %s\n", source);
   assert(impl.finit(&impl) == 0);
   unsigned long long result = impl.fread(&impl);
