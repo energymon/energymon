@@ -61,10 +61,14 @@
 #define TIME_UNIT_OFFSET	0x10
 #define TIME_UNIT_MASK		0xF000
 
+typedef struct msr_info {
+  int fd;
+  double energy_units;
+} msr_info;
+
 typedef struct energymon_msr {
   int msr_count;
-  int* msr_fds;
-  double* msr_energy_units;
+  msr_info* msrs;
 } energymon_msr;
 
 #ifdef ENERGYMON_DEFAULT
@@ -152,15 +156,8 @@ int energymon_init_msr(energymon* impl) {
   impl->state = em;
 
   // allocate shared variables
-  em->msr_fds = (int*) malloc(ncores * sizeof(int));
-  if (em->msr_fds == NULL) {
-    free(impl->state);
-    impl->state = NULL;
-    return -1;
-  }
-  em->msr_energy_units = (double*) malloc(ncores * sizeof(double));
-  if (em->msr_energy_units == NULL) {
-    free(em->msr_fds);
+  em->msrs = (msr_info*) malloc(ncores * sizeof(msr_info));
+  if (em->msrs == NULL) {
     free(impl->state);
     impl->state = NULL;
     return -1;
@@ -168,18 +165,19 @@ int energymon_init_msr(energymon* impl) {
 
   // open the MSR files
   for (i = 0; i < ncores; i++) {
-    em->msr_fds[i] = open_msr(core_ids[i]);
-    if (em->msr_fds[i] < 0) {
+    msr_info* m = &em->msrs[i];
+    m->fd = open_msr(core_ids[i]);
+    if (m->fd < 0) {
       energymon_finish_msr(impl);
       return -1;
     }
-    power_unit_data_ll = read_msr(em->msr_fds[i], MSR_RAPL_POWER_UNIT);
+    power_unit_data_ll = read_msr(m->fd, MSR_RAPL_POWER_UNIT);
     if (power_unit_data_ll < 0) {
       energymon_finish_msr(impl);
       return -1;
     }
     power_unit_data = (double) ((power_unit_data_ll >> 8) & 0x1f);
-    em->msr_energy_units[i] = pow(0.5, power_unit_data);
+    m->energy_units = pow(0.5, power_unit_data);
   }
 
   em->msr_count = ncores;
@@ -196,12 +194,12 @@ unsigned long long energymon_read_total_msr(const energymon* impl) {
   unsigned long long total = 0;
   energymon_msr* em = impl->state;
   for (i = 0; i < em->msr_count; i++) {
-    msr_val = read_msr(em->msr_fds[i], MSR_PKG_ENERGY_STATUS);
+    msr_val = read_msr(em->msrs[i].fd, MSR_PKG_ENERGY_STATUS);
     if (msr_val < 0) {
       fprintf(stderr, "energymon_read_total: got bad energy value from MSR\n");
       return 0;
     }
-    total += msr_val * em->msr_energy_units[i] * 1000000;
+    total += msr_val * em->msrs[i].energy_units * 1000000;
   }
   return total;
 }
@@ -213,18 +211,16 @@ int energymon_finish_msr(energymon* impl) {
 
   int ret = 0;
   energymon_msr* em = impl->state;
-  if (em->msr_fds != NULL) {
+  if (em->msrs != NULL) {
     int i;
     for (i = 0; i < em->msr_count; i++) {
-      if (em->msr_fds[i] > 0) {
-        ret += close(em->msr_fds[i]);
+      if (em->msrs[i].fd >= 0) {
+        ret += close(em->msrs[i].fd);
       }
     }
   }
-  free(em->msr_fds);
-  em->msr_fds = NULL;
-  free(em->msr_energy_units);
-  em->msr_energy_units = NULL;
+  free(em->msrs);
+  em->msrs = NULL;
   em->msr_count = 0;
   free(impl->state);
   impl->state = NULL;
