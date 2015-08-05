@@ -92,6 +92,7 @@ $(LIBDIR) $(BINDIR) $(APPBINDIR) $(TESTBINDIR) :
 # Installation
 install: all
 	install -m 0644 $(LIBDIR)/*.so $(INSTALL_PREFIX)/lib/
+	install -m 0755 $(APPBINDIR)/* $(INSTALL_PREFIX)/bin/
 	install -d $(INSTALL_PREFIX)/include/energymon
 	install -m 0644 $(INCDIR)/* $(INSTALL_PREFIX)/include/energymon/
 	install -d $(INSTALL_PREFIX)/lib/pkgconfig
