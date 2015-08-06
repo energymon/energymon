@@ -137,14 +137,30 @@ static inline int rapl_cleanup(energymon_rapl* em) {
   unsigned int i = 0;
   if (em->zones != NULL) {
     for (i = 0; i < em->count; i++) {
-      if (em->zones[i].energy_supported) {
+      if (em->zones[i].energy_supported && em->zones[i].energy_fd >= 0) {
         ret += close(em->zones[i].energy_fd);
       }
     }
   }
   free(em->zones);
   em->zones = NULL;
+  em->count = 0;
   return ret;
+}
+
+static inline int rapl_zone_init(rapl_zone* z, unsigned int zone, int subzone) {
+  z->energy_supported = rapl_is_energy_supported(zone);
+  if (z->energy_supported) {
+    z->max_energy_range_uj = rapl_read_max_energy(zone, subzone);
+    z->energy_fd = rapl_open_file(zone, subzone, RAPL_ENERGY_FILE);
+    if (z->energy_fd < 0) {
+      return -1;
+    }
+  } else {
+    z->max_energy_range_uj = 0;
+    z->energy_fd = -1;
+  }
+  return 0;
 }
 
 static inline int rapl_init(energymon_rapl* em) {
@@ -164,18 +180,9 @@ static inline int rapl_init(energymon_rapl* em) {
   }
 
   for (i = 0; i < em->count; i++) {
-    rapl_zone* z = &em->zones[i];
-    z->energy_supported = rapl_is_energy_supported(i);
-    if (z->energy_supported) {
-      z->max_energy_range_uj = rapl_read_max_energy(i, -1);
-      z->energy_fd = rapl_open_file(i, -1, RAPL_ENERGY_FILE);
-      if (z->energy_fd < 0) {
-        rapl_cleanup(em);
-        return -1;
-      }
-    } else {
-      z->max_energy_range_uj = 0;
-      z->energy_fd = -1;
+    if (rapl_zone_init(&em->zones[i], i, -1)) {
+      rapl_cleanup(em);
+      return -1;
     }
   }
   return 0;
@@ -197,24 +204,33 @@ int energymon_init_rapl(energymon* em) {
   return ret;
 }
 
+static inline long long rapl_zone_read(rapl_zone* z) {
+  long long val = 0;
+  if (z->energy_supported) {
+    val = rapl_read_value(z->energy_fd);
+    if (val < 0) {
+      return -1;
+    }
+    // attempt to detect overflow of counter
+    if (val < z->energy_last) {
+      z->energy_overflow_count++;
+    }
+    z->energy_last = val;
+    val += z->energy_overflow_count * z->max_energy_range_uj;
+  }
+  return val;
+}
+
 static inline unsigned long long rapl_read_total_energy_uj(energymon_rapl* em) {
   long long val;
   unsigned long long total = 0;
   unsigned int i;
   for (i = 0; i < em->count; i++) {
-    rapl_zone* z = &em->zones[i];
-    if (z->energy_supported) {
-      val = rapl_read_value(z->energy_fd);
-      if (val < 0) {
-        return 0;
-      }
-      // attempt to detect overflow of counter
-      if (val < z->energy_last) {
-        z->energy_overflow_count++;
-      }
-      z->energy_last = val;
-      total += val + z->energy_overflow_count * z->max_energy_range_uj;
+    val = rapl_zone_read(&em->zones[i]);
+    if (val < 0) {
+      return 0;
     }
+    total += val;
   }
   return total;
 }
