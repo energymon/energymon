@@ -7,7 +7,6 @@
 
 #include "energymon.h"
 #include "energymon-dummy.h"
-#include <stdlib.h>
 #include <string.h>
 
 #ifdef ENERGYMON_DEFAULT
