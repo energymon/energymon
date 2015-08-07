@@ -41,7 +41,7 @@ int energymon_get_default(energymon* em) {
 
 static inline int rapl_is_energy_supported(unsigned int zone) {
   struct dirent* entry;
-  char buf[BUFSIZ];
+  char buf[64];
   snprintf(buf, sizeof(buf), RAPL_BASE_DIR"/intel-rapl:%u", zone);
   DIR* dir = opendir(buf);
   int ret = 0;
@@ -66,7 +66,7 @@ static inline unsigned int rapl_get_count() {
   unsigned int count = 0;
   struct dirent* entry;
   DIR* dir = opendir(RAPL_BASE_DIR);
-  char buf[BUFSIZ];
+  char buf[24];
 
   if (dir != NULL) {
     snprintf(buf, sizeof(buf), "intel-rapl:%u", count);
@@ -87,7 +87,7 @@ static inline unsigned int rapl_get_count() {
 static inline int rapl_open_file(unsigned int zone,
                                  int subzone,
                                  const char* file) {
-  char filename[BUFSIZ];
+  char filename[96];
   int fd;
   if (subzone >= 0) {
     sprintf(filename, RAPL_BASE_DIR"/intel-rapl:%u/intel-rapl:%u:%d/%s",

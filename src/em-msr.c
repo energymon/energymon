@@ -78,7 +78,7 @@ int energymon_get_default(energymon* impl) {
 #endif
 
 static inline int open_msr(int core) {
-  char msr_filename[BUFSIZ];
+  char msr_filename[24];
   int fd;
 
   sprintf(msr_filename, "/dev/cpu/%d/msr", core);
@@ -98,14 +98,14 @@ static inline int open_msr(int core) {
 
 static inline long long read_msr(int fd, int which) {
   uint64_t data = 0;
-  uint64_t data_size = pread(fd, &data, sizeof data, which);
+  uint64_t data_size = pread(fd, &data, sizeof(data), which);
 
-  if ( data_size != sizeof data ) {
+  if (data_size != sizeof(data)) {
     perror("read_msr:pread");
     return -1;
   }
 
-  return (long long)data;
+  return (long long) data;
 }
 
 int energymon_init_msr(energymon* impl) {

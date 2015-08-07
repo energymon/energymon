@@ -16,10 +16,10 @@
 #include <dirent.h>
 
 // sensor files
-#define ODROID_INA231_DIR "/sys/bus/i2c/drivers/INA231/"
-#define ODROID_PWR_FILENAME_TEMPLATE ODROID_INA231_DIR"%s/sensor_W"
-#define ODROID_SENSOR_ENABLE_FILENAME_TEMPLATE ODROID_INA231_DIR"%s/enable"
-#define ODROID_SENSOR_UPDATE_INTERVAL_FILENAME_TEMPLATE ODROID_INA231_DIR"%s/update_period"
+#define ODROID_INA231_DIR "/sys/bus/i2c/drivers/INA231"
+#define ODROID_PWR_FILENAME_TEMPLATE ODROID_INA231_DIR"/%s/sensor_W"
+#define ODROID_SENSOR_ENABLE_FILENAME_TEMPLATE ODROID_INA231_DIR"/%s/enable"
+#define ODROID_SENSOR_UPDATE_INTERVAL_FILENAME_TEMPLATE ODROID_INA231_DIR"/%s/update_period"
 
 #define ODROID_SENSOR_READ_DELAY_US_DEFAULT 263808
 
@@ -61,9 +61,9 @@ static inline int odroid_open_file(char* filename) {
 }
 
 static inline unsigned long get_sensor_update_interval(char* sensor) {
-  char ui_filename[BUFSIZ];
+  char ui_filename[64];
   int fd;
-  char cdata[BUFSIZ];
+  char cdata[24];
   unsigned long val;
   int read_ret;
 
@@ -72,7 +72,7 @@ static inline unsigned long get_sensor_update_interval(char* sensor) {
   if (fd < 0) {
     return 0;
   }
-  read_ret = read(fd, cdata, sizeof(val));
+  read_ret = read(fd, cdata, sizeof(cdata));
   close(fd);
   if (read_ret < 0) {
     return 0;
@@ -85,9 +85,9 @@ static inline unsigned long get_sensor_update_interval(char* sensor) {
  * Return 0 if the sensor is enabled, 1 if not, -1 on error.
  */
 static inline int odroid_check_sensor_enabled(char* sensor) {
-  char enable_filename[BUFSIZ];
+  char enable_filename[64];
   int fd;
-  char cdata[BUFSIZ];
+  char cdata[24];
   int val;
   int read_ret;
 
@@ -96,7 +96,7 @@ static inline int odroid_check_sensor_enabled(char* sensor) {
   if (fd < 0) {
     return -1;
   }
-  read_ret = read(fd, cdata, sizeof(val));
+  read_ret = read(fd, cdata, sizeof(cdata));
   close(fd);
   if (read_ret < 0) {
     return -1;
@@ -166,8 +166,8 @@ int energymon_finish_odroid(energymon* impl) {
 static inline double odroid_read_pwr(int fd) {
   double val;
   char cdata[sizeof(double)];
-  int data_size = pread(fd, cdata, sizeof(double), 0);
-  if (data_size != sizeof(double)) {
+  int data_size = pread(fd, cdata, sizeof(cdata), 0);
+  if (data_size != sizeof(cdata)) {
     perror("odroid_read_pwr");
     return -1;
   }
@@ -260,7 +260,7 @@ int energymon_init_odroid(energymon* impl) {
 
   int ret = 0;
   int i;
-  char odroid_pwr_filename[BUFSIZ];
+  char odroid_pwr_filename[64];
 
   energymon_odroid* em = malloc(sizeof(energymon_odroid));
   if (em == NULL) {
