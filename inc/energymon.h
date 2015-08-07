@@ -65,7 +65,7 @@ typedef char* (*energymon_get_source) (char* buffer, size_t n);
 typedef unsigned long long (*energymon_get_interval) (const energymon*);
 
 /**
- * A structure to encapsulate a complete implementation. The first four fields
+ * A structure to encapsulate a complete implementation. The first five fields
  * are pointers to required functions. The state field is managed by the
  * implementation.
  */
