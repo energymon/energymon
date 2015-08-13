@@ -23,6 +23,29 @@ macro(SET_FPIC target)
   ENDIF(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
 endmacro(SET_FPIC)
 
+macro(BUILD_DEFAULT source deplibs definitions)
+  add_library(energymon-default SHARED ${source})
+  target_link_libraries(energymon-default ${deplibs})
+  SET_FPIC(energymon-default)
+
+  add_library(energymon-default-static STATIC ${source})
+  target_link_libraries(energymon-default-static ${deplibs})
+  SET_FPIC(energymon-default-static)
+
+  set_target_properties(energymon-default energymon-default-static PROPERTIES COMPILE_DEFINITIONS "ENERGYMON_DEFAULT;${definitions}")
+endmacro(BUILD_DEFAULT)
+
+macro(PKG_CONFIG name, description, dependencies)
+  set(PKG_CONFIG_NAME "${name}")
+  set(PKG_CONFIG_DESCRIPTION "${description}")
+  # TODO: Link with dependencies
+  set(PKG_CONFIG_LIBS "-L\${libdir} -l${name} ${dependencies}")
+  configure_file(
+    "${CMAKE_SOURCE_DIR}/pkgconfig.in"
+    "${CMAKE_BINARY_DIR}/pkgconfig/${name}.pc"
+  )
+endmacro(PKG_CONFIG)
+
 # Libraries
 
 set(DEFAULT "dummy" CACHE STRING "Default EnergyMon implementation")
