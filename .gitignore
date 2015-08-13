@@ -32,5 +32,4 @@
 *.dSYM/
 
 #Other
-bin/
-pkgconfig/energymon-default.pc
+_build
