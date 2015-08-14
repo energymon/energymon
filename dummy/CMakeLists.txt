@@ -2,14 +2,14 @@ set(LNAME energymon-dummy)
 
 # Libraries
 
-add_library(${LNAME} SHARED em-dummy.c)
+add_library(${LNAME} SHARED ${LNAME}.c)
 SET_FPIC(${LNAME})
 
-add_library(${LNAME}-static STATIC em-dummy.c)
+add_library(${LNAME}-static STATIC ${LNAME}.c)
 SET_FPIC(${LNAME}-static)
 
 if(DEFAULT STREQUAL "dummy")
-  BUILD_DEFAULT("em-dummy.c" "" "")
+  BUILD_DEFAULT("${LNAME}.c" "" "")
 endif()
 
 # pkg-config

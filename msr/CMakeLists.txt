@@ -2,16 +2,16 @@ set(LNAME energymon-msr)
 
 # Libraries
 
-add_library(${LNAME} SHARED em-msr.c)
+add_library(${LNAME} SHARED ${LNAME}.c)
 target_link_libraries(${LNAME} m)
 SET_FPIC(${LNAME})
 
-add_library(${LNAME}-static STATIC em-msr.c)
+add_library(${LNAME}-static STATIC ${LNAME}.c)
 target_link_libraries(${LNAME}-static m)
 SET_FPIC(${LNAME}-static)
 
 if(DEFAULT STREQUAL "msr")
-  BUILD_DEFAULT("em-msr.c" "m" "")
+  BUILD_DEFAULT("${LNAME}.c" "m" "")
 endif()
 
 # pkg-config

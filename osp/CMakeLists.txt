@@ -2,26 +2,26 @@ set(LNAME energymon-osp)
 
 # Libraries
 
-add_library(${LNAME} SHARED em-osp.c)
+add_library(${LNAME} SHARED ${LNAME}.c)
 target_link_libraries(${LNAME} hidapi-libusb)
 SET_FPIC(${LNAME})
 
-add_library(${LNAME}-static STATIC em-osp.c)
+add_library(${LNAME}-static STATIC ${LNAME}.c)
 target_link_libraries(${LNAME}-static hidapi-libusb)
 SET_FPIC(${LNAME}-static)
 
-add_library(${LNAME}-polling SHARED em-osp.c)
+add_library(${LNAME}-polling SHARED ${LNAME}.c)
 target_link_libraries(${LNAME}-polling hidapi-libusb pthread)
 SET_FPIC(${LNAME}-polling)
 
-add_library(${LNAME}-polling-static STATIC em-osp.c)
+add_library(${LNAME}-polling-static STATIC ${LNAME}.c)
 target_link_libraries(${LNAME}-polling-static hidapi-libusb pthread)
 SET_FPIC(${LNAME}-polling-static)
 
 if(DEFAULT STREQUAL "osp")
-  BUILD_DEFAULT("em-osp.c" "hidapi-libusb" "")
+  BUILD_DEFAULT("${LNAME}.c" "hidapi-libusb" "")
 elseif(DEFAULT STREQUAL "osp-polling")
-  BUILD_DEFAULT("em-osp.c" "hidapi-libusb;pthread" "ENERGYMON_OSP_USE_POLLING")
+  BUILD_DEFAULT("${LNAME}.c" "hidapi-libusb;pthread" "ENERGYMON_OSP_USE_POLLING")
 endif()
 
 set_target_properties (${LNAME}-polling ${LNAME}-polling-static PROPERTIES COMPILE_DEFINITIONS "ENERGYMON_OSP_USE_POLLING")

@@ -2,14 +2,14 @@ set(LNAME energymon-rapl)
 
 # Libraries
 
-add_library(${LNAME} SHARED em-rapl.c)
+add_library(${LNAME} SHARED ${LNAME}.c)
 SET_FPIC(${LNAME})
 
-add_library(${LNAME}-static STATIC em-rapl.c)
+add_library(${LNAME}-static STATIC ${LNAME}.c)
 SET_FPIC(${LNAME}-static)
 
 if(DEFAULT STREQUAL "rapl")
-  BUILD_DEFAULT("em-rapl.c" "" "")
+  BUILD_DEFAULT("${LNAME}.c" "" "")
 endif()
 
 # pkg-config
