@@ -54,11 +54,8 @@ add_subdirectory(dummy)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   add_subdirectory(msr)
   add_subdirectory(odroid)
-  add_subdirectory(rapl)
-endif()
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin|Linux")
   add_subdirectory(osp)
+  add_subdirectory(rapl)
 endif()
 
 # Binaries
