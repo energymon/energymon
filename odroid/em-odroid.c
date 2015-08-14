@@ -15,6 +15,13 @@
 #include <pthread.h>
 #include <dirent.h>
 
+#ifdef ENERGYMON_DEFAULT
+#include "energymon-default.h"
+int energymon_get_default(energymon* impl) {
+  return energymon_get_odroid(impl);
+}
+#endif
+
 // sensor files
 #define ODROID_INA231_DIR "/sys/bus/i2c/drivers/INA231"
 #define ODROID_PWR_FILENAME_TEMPLATE ODROID_INA231_DIR"/%s/sensor_W"
@@ -37,12 +44,6 @@ typedef struct energymon_odroid {
 
   unsigned long long odroid_total_energy;
 } energymon_odroid;
-
-#ifdef ENERGYMON_DEFAULT
-int energymon_get_default(energymon* impl) {
-  return energymon_get_odroid(impl);
-}
-#endif
 
 /**
  * Convert a timespec struct into a microsecond value.

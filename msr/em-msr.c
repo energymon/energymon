@@ -21,6 +21,13 @@
 #include <errno.h>
 #include <unistd.h>
 
+#ifdef ENERGYMON_DEFAULT
+#include "energymon-default.h"
+int energymon_get_default(energymon* impl) {
+  return energymon_get_msr(impl);
+}
+#endif
+
 #define MSR_RAPL_POWER_UNIT		0x606
 
 /*
@@ -70,12 +77,6 @@ typedef struct energymon_msr {
   int msr_count;
   msr_info* msrs;
 } energymon_msr;
-
-#ifdef ENERGYMON_DEFAULT
-int energymon_get_default(energymon* impl) {
-  return energymon_get_msr(impl);
-}
-#endif
 
 static inline int open_msr(int core) {
   char msr_filename[24];

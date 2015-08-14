@@ -18,6 +18,13 @@
 #include <unistd.h>
 #include <pthread.h>
 
+#ifdef ENERGYMON_DEFAULT
+#include "energymon-default.h"
+int energymon_get_default(energymon* impl) {
+  return energymon_get_osp(impl);
+}
+#endif
+
 #define OSP_MAX_STR 65
 #define OSP_VENDOR_ID           0x04d8
 #define OSP_PRODUCT_ID          0x003f
@@ -49,12 +56,6 @@ typedef struct energymon_osp {
   int osp_do_polling;
 #endif
 } energymon_osp;
-
-#ifdef ENERGYMON_DEFAULT
-int energymon_get_default(energymon* impl) {
-  return energymon_get_osp(impl);
-}
-#endif
 
 static inline int em_osp_request_status(energymon_osp* em) {
   em->buf[0] = 0x00;

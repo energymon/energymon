@@ -14,9 +14,18 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#ifdef ENERGYMON_DEFAULT
+#include "energymon-default.h"
+int energymon_get_default(energymon* em) {
+  return energymon_get_rapl(em);
+}
+#endif
+
 #define RAPL_BASE_DIR "/sys/class/powercap"
 #define RAPL_ENERGY_FILE "energy_uj"
 #define RAPL_MAX_ENERGY_FILE "max_energy_range_uj"
+
+// Add power polling support for zones that don't support energy readings?
 
 typedef struct rapl_zone {
   int energy_supported;
@@ -30,14 +39,6 @@ typedef struct energymon_rapl {
   int count;
   rapl_zone* zones;
 } energymon_rapl;
-
-// Add power polling support for zones that don't support energy readings?
-
-#ifdef ENERGYMON_DEFAULT
-int energymon_get_default(energymon* em) {
-  return energymon_get_rapl(em);
-}
-#endif
 
 static inline int rapl_is_energy_supported(unsigned int zone) {
   struct dirent* entry;
