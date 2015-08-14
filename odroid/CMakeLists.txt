@@ -1,12 +1,14 @@
+set(LNAME energymon-odroid)
+
 # Libraries
 
-add_library(energymon-odroid SHARED em-odroid.c)
-target_link_libraries(energymon-odroid pthread)
-SET_FPIC(energymon-odroid)
+add_library(${LNAME} SHARED em-odroid.c)
+target_link_libraries(${LNAME} pthread)
+SET_FPIC(${LNAME})
 
-add_library(energymon-odroid-static STATIC em-odroid.c)
-target_link_libraries(energymon-odroid-static pthread)
-SET_FPIC(energymon-odroid-static)
+add_library(${LNAME}-static STATIC em-odroid.c)
+target_link_libraries(${LNAME}-static pthread)
+SET_FPIC(${LNAME}-static)
 
 if(DEFAULT STREQUAL "odroid")
   BUILD_DEFAULT("em-odroid.c" "pthread" "")
@@ -14,5 +16,11 @@ endif()
 
 # pkg-config
 
-PKG_CONFIG("energymon-odroid" "EnergyMon implementation for ODROID systems" "-lpthread")
-PKG_CONFIG("energymon-odroid-static" "EnergyMon implementation for ODROID systems" "-lpthread")
+PKG_CONFIG("${LNAME}" "EnergyMon implementation for ODROID systems" "-lpthread")
+PKG_CONFIG("${LNAME}-static" "EnergyMon implementation for ODROID systems" "-lpthread")
+
+# Install
+
+install(TARGETS ${LNAME} ${LNAME}-static DESTINATION lib)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${LNAME}.h DESTINATION include/${PROJECT_NAME})
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/ DESTINATION lib/pkgconfig)

@@ -41,7 +41,7 @@ macro(PKG_CONFIG name description dependencies)
   set(PKG_CONFIG_LIBS "-L\${libdir} -l${name} ${dependencies}")
   configure_file(
     "${CMAKE_SOURCE_DIR}/pkgconfig.in"
-    "${CMAKE_BINARY_DIR}/pkgconfig/${name}.pc"
+    "${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/${name}.pc"
   )
 endmacro(PKG_CONFIG)
 
@@ -70,12 +70,8 @@ target_link_libraries(interval-test energymon-default)
 
 # Install
 
-install(DIRECTORY ${CMAKE_BINARY_DIR}/lib/ DESTINATION lib)
-install(DIRECTORY ${CMAKE_BINARY_DIR}/pkgconfig/ DESTINATION lib/pkgconfig)
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/inc/ DESTINATION include/${PROJECT_NAME})
 install(TARGETS energymon DESTINATION bin)
-file(GLOB headers "*/*.h")
-install(FILES ${headers} DESTINATION include)
 
 # Uninstall
 

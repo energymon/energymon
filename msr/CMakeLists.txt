@@ -1,12 +1,14 @@
+set(LNAME energymon-msr)
+
 # Libraries
 
-add_library(energymon-msr SHARED em-msr.c)
-target_link_libraries(energymon-msr m)
-SET_FPIC(energymon-msr)
+add_library(${LNAME} SHARED em-msr.c)
+target_link_libraries(${LNAME} m)
+SET_FPIC(${LNAME})
 
-add_library(energymon-msr-static STATIC em-msr.c)
-target_link_libraries(energymon-msr-static m)
-SET_FPIC(energymon-msr-static)
+add_library(${LNAME}-static STATIC em-msr.c)
+target_link_libraries(${LNAME}-static m)
+SET_FPIC(${LNAME}-static)
 
 if(DEFAULT STREQUAL "msr")
   BUILD_DEFAULT("em-msr.c" "m" "")
@@ -14,5 +16,11 @@ endif()
 
 # pkg-config
 
-PKG_CONFIG("energymon-msr" "EnergyMon implementation for Intel Model Specific Register" "-lm")
-PKG_CONFIG("energymon-msr-static" "EnergyMon implementation for Intel Model Specific Register" "-lm")
+PKG_CONFIG("${LNAME}" "EnergyMon implementation for Intel Model Specific Register" "-lm")
+PKG_CONFIG("${LNAME}-static" "EnergyMon implementation for Intel Model Specific Register" "-lm")
+
+# Install
+
+install(TARGETS ${LNAME} ${LNAME}-static DESTINATION lib)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${LNAME}.h DESTINATION include/${PROJECT_NAME})
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/ DESTINATION lib/pkgconfig)
