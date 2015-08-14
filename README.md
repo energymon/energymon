@@ -1,7 +1,3 @@
-This project is under active development.
-Things are likely to break and APIs are subject to change without warning.
-Use at your own risk!
-
 # Energy Monitoring Interface
 
 EnergyMon provides a general C interface for energy monitoring utilities.
@@ -11,18 +7,16 @@ privileges.
 
 ## Building
 
-To build the libraries with the default dummy implementation as
-`libenergymon.so`, run:
+To build the libraries with the dummy implementation as the default, run:
 
 ``` sh
 make
 ```
 
-To use a different implementation as `libenergymon-default.so`, e.g. the Intel
-MSR energy monitor, run:
+To use a different default implementation, e.g. the RAPL energy monitor, run:
 
 ``` sh
-make DEFAULT=msr
+make DEFAULT=rapl
 ```
 
 Current implementation options are:
@@ -42,19 +36,26 @@ make clean
 
 ## Installing
 
-Installation places libraries in `/usr/local/lib` and header files in
-`/usr/local/include/energymon`.
-
-To install all libraries, run:
+To install all libraries, headers, and binaries, run:
 
 ``` sh
 sudo make install
 ```
 
+On Linux, the installation usually places
+libraries in `/usr/local/lib`,
+header files in `/usr/local/include/energymon`, and
+binary files in `/usr/local/bin`.
+
 ## Uninstalling
 
-To remove libraries and headers installed to the system, run:
+To remove files installed to the system, run:
 
 ``` sh
 sudo make uninstall
 ```
+
+## Usage
+
+For instructions on linking with particular libraries, see the README files in
+the appropriate subprojects.
