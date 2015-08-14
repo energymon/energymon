@@ -50,10 +50,16 @@ endmacro(PKG_CONFIG)
 set(DEFAULT "dummy" CACHE STRING "Default EnergyMon implementation")
 
 add_subdirectory(dummy)
-add_subdirectory(msr)
-add_subdirectory(odroid)
-add_subdirectory(osp)
-add_subdirectory(rapl)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  add_subdirectory(msr)
+  add_subdirectory(odroid)
+  add_subdirectory(rapl)
+endif()
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin|Linux")
+  add_subdirectory(osp)
+endif()
 
 # Binaries
 
