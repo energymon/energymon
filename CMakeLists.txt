@@ -35,10 +35,9 @@ macro(BUILD_DEFAULT source deplibs definitions)
   set_target_properties(energymon-default energymon-default-static PROPERTIES COMPILE_DEFINITIONS "ENERGYMON_DEFAULT;${definitions}")
 endmacro(BUILD_DEFAULT)
 
-macro(PKG_CONFIG name, description, dependencies)
+macro(PKG_CONFIG name description dependencies)
   set(PKG_CONFIG_NAME "${name}")
   set(PKG_CONFIG_DESCRIPTION "${description}")
-  # TODO: Link with dependencies
   set(PKG_CONFIG_LIBS "-L\${libdir} -l${name} ${dependencies}")
   configure_file(
     "${CMAKE_SOURCE_DIR}/pkgconfig.in"
