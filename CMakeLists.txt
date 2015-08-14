@@ -3,8 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 project(energymon)
 set(PROJECT_VERSION 0.1.0)
 
-set(CMAKE_C_FLAGS "-Wall -Wno-unknown-pragmas")
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-unknown-pragmas")
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 

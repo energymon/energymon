@@ -11,7 +11,7 @@ $(BUILDDIR):
 	mkdir -p $@
 
 cmake: $(BUILDDIR)
-	cd $(BUILDDIR) && cmake -DDEFAULT:STRING=$(DEFAULT) ..
+	cd $(BUILDDIR) && cmake -DCMAKE_BUILD_TYPE=Release -DDEFAULT:STRING=$(DEFAULT) ..
 
 libs: cmake
 	cd $(BUILDDIR) && make $(MAKE_PARAMS)
