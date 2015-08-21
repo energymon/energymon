@@ -13,4 +13,8 @@ before_install:
   - sudo ldconfig
   - cd -
 
-script: make
+script:
+  - mkdir _build
+  - cd _build
+  - cmake ..
+  - make
