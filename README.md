@@ -5,18 +5,27 @@ EnergyMon provides a general C interface for energy monitoring utilities.
 Applications using some libraries may need to be executed using elevated
 privileges.
 
+The following instructions are for Linux systems.
+If you are using a different platform, change the commands accordingly.
+
 ## Building
+
+This project uses CMake.
 
 To build the libraries with the dummy implementation as the default, run:
 
 ``` sh
+mkdir _build
+cd _build
+cmake ..
 make
 ```
 
-To use a different default implementation, e.g. the RAPL energy monitor, run:
+To use a different default implementation, e.g. the RAPL energy monitor, change
+the `cmake` command to specify `DEFAULT`:
 
 ``` sh
-make DEFAULT=rapl
+cmake -DDEFAULT=rapl ..
 ```
 
 Current implementation options are:
@@ -36,10 +45,10 @@ make clean
 
 ## Installing
 
-To install all libraries, headers, and binaries, run:
+To install all libraries, headers, and binaries, run with proper privileges:
 
 ``` sh
-sudo make install
+make install
 ```
 
 On Linux, the installation usually places
@@ -49,10 +58,10 @@ binary files in `/usr/local/bin`.
 
 ## Uninstalling
 
-To remove files installed to the system, run:
+To remove files installed to the system, run with proper privileges:
 
 ``` sh
-sudo make uninstall
+make uninstall
 ```
 
 ## Usage
