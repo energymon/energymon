@@ -1,17 +1,18 @@
 set(LNAME energymon-msr)
+set(SOURCES ${LNAME}.c;../src/energymon-util.c)
 
 # Libraries
 
-add_library(${LNAME} SHARED ${LNAME}.c)
+add_library(${LNAME} SHARED ${SOURCES})
 target_link_libraries(${LNAME} m)
 SET_FPIC(${LNAME})
 
-add_library(${LNAME}-static STATIC ${LNAME}.c)
+add_library(${LNAME}-static STATIC ${SOURCES})
 target_link_libraries(${LNAME}-static m)
 SET_FPIC(${LNAME}-static)
 
 if(DEFAULT STREQUAL "msr")
-  BUILD_DEFAULT("${LNAME}.c" "m" "")
+  BUILD_DEFAULT("${SOURCES}" "m" "")
 endif()
 
 # pkg-config

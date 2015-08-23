@@ -1,27 +1,37 @@
 set(LNAME energymon-osp)
+set(SOURCES ${LNAME}.c;../src/energymon-util.c)
+
+# Dependencies
+
+find_package(PkgConfig)
+pkg_search_module(HIDAPIUSB hidapi-libusb)
+if(NOT ${HIDAPIUSB_FOUND})
+  message(ERROR "${LNAME}: Failed to find libhidapi-libusb - skipping this project")
+  return()
+endif(NOT ${HIDAPIUSB_FOUND})
 
 # Libraries
 
-add_library(${LNAME} SHARED ${LNAME}.c)
+add_library(${LNAME} SHARED ${SOURCES})
 target_link_libraries(${LNAME} hidapi-libusb)
 SET_FPIC(${LNAME})
 
-add_library(${LNAME}-static STATIC ${LNAME}.c)
+add_library(${LNAME}-static STATIC ${SOURCES})
 target_link_libraries(${LNAME}-static hidapi-libusb)
 SET_FPIC(${LNAME}-static)
 
-add_library(${LNAME}-polling SHARED ${LNAME}.c)
+add_library(${LNAME}-polling SHARED ${SOURCES})
 target_link_libraries(${LNAME}-polling hidapi-libusb pthread)
 SET_FPIC(${LNAME}-polling)
 
-add_library(${LNAME}-polling-static STATIC ${LNAME}.c)
+add_library(${LNAME}-polling-static STATIC ${SOURCES})
 target_link_libraries(${LNAME}-polling-static hidapi-libusb pthread)
 SET_FPIC(${LNAME}-polling-static)
 
 if(DEFAULT STREQUAL "osp")
-  BUILD_DEFAULT("${LNAME}.c" "hidapi-libusb" "")
+  BUILD_DEFAULT("${SOURCES}" "hidapi-libusb" "")
 elseif(DEFAULT STREQUAL "osp-polling")
-  BUILD_DEFAULT("${LNAME}.c" "hidapi-libusb;pthread" "ENERGYMON_OSP_USE_POLLING")
+  BUILD_DEFAULT("${SOURCES}" "hidapi-libusb;pthread" "ENERGYMON_OSP_USE_POLLING")
 endif()
 
 set_target_properties (${LNAME}-polling ${LNAME}-polling-static PROPERTIES COMPILE_DEFINITIONS "ENERGYMON_OSP_USE_POLLING")

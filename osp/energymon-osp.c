@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include "energymon.h"
 #include "energymon-osp.h"
+#include "energymon-util.h"
 
 #ifdef ENERGYMON_DEFAULT
 #include "energymon-default.h"
@@ -268,13 +269,10 @@ int energymon_finish_osp(energymon* impl) {
 }
 
 char* energymon_get_source_osp(char* buffer, size_t n) {
-  if (buffer == NULL) {
-    return NULL;
-  }
 #ifdef ENERGYMON_OSP_USE_POLLING
-  return strcpy(buffer, "ODROID Smart Power with Polling");
+  return energymon_strencpy(buffer, "ODROID Smart Power with Polling", n);
 #else
-  return strncpy(buffer, "ODROID Smart Power", n);
+  return energymon_strencpy(buffer, "ODROID Smart Power", n);
 #endif
 }
 

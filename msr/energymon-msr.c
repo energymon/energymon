@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include "energymon.h"
 #include "energymon-msr.h"
+#include "energymon-util.h"
 
 #ifdef ENERGYMON_DEFAULT
 #include "energymon-default.h"
@@ -256,10 +257,7 @@ int energymon_finish_msr(energymon* impl) {
 }
 
 char* energymon_get_source_msr(char* buffer, size_t n) {
-  if (buffer == NULL) {
-    return NULL;
-  }
-  return strncpy(buffer, "X86 MSR", n);
+  return energymon_strencpy(buffer, "X86 MSR", n);
 }
 
 unsigned long long energymon_get_interval_msr(const energymon* em) {

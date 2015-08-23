@@ -1,17 +1,18 @@
 set(LNAME energymon-odroid)
+set(SOURCES ${LNAME}.c;../src/energymon-util.c)
 
 # Libraries
 
-add_library(${LNAME} SHARED ${LNAME}.c)
+add_library(${LNAME} SHARED ${SOURCES})
 target_link_libraries(${LNAME} pthread)
 SET_FPIC(${LNAME})
 
-add_library(${LNAME}-static STATIC ${LNAME}.c)
+add_library(${LNAME}-static STATIC ${SOURCES})
 target_link_libraries(${LNAME}-static pthread)
 SET_FPIC(${LNAME}-static)
 
 if(DEFAULT STREQUAL "odroid")
-  BUILD_DEFAULT("${LNAME}.c" "pthread" "")
+  BUILD_DEFAULT("${SOURCES}" "pthread" "")
 endif()
 
 # pkg-config

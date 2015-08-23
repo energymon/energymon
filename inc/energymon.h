@@ -48,7 +48,8 @@ typedef unsigned long long (*energymon_read_total) (const energymon*);
 typedef int (*energymon_finish) (energymon*);
 
 /**
- * Get a human-readable description of the energy calculation source.
+ * Get a human-readable description of the energy monitoring source.
+ * Implementations should ensure that the buffer is null-terminated.
  *
  * @param pointer to a buffer
  * @param the maximum number of bytes to write

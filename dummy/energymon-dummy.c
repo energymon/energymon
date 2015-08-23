@@ -8,6 +8,7 @@
 #include <string.h>
 #include "energymon.h"
 #include "energymon-dummy.h"
+#include "energymon-util.h"
 
 #ifdef ENERGYMON_DEFAULT
 #include "energymon-default.h"
@@ -29,10 +30,7 @@ int energymon_finish_dummy(energymon* impl) {
 }
 
 char* energymon_get_source_dummy(char* buffer, size_t n) {
-  if (buffer == NULL) {
-    return NULL;
-  }
-  return strncpy(buffer, "Dummy Source", n);
+  return energymon_strencpy(buffer, "Dummy Source", n);
 }
 
 unsigned long long energymon_get_interval_dummy(const energymon* em) {

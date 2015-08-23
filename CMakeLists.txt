@@ -13,6 +13,7 @@ set(PKG_CONFIG_INCLUDEDIR "\${prefix}/include/energymon")
 set(PKG_CONFIG_CFLAGS "-I\${includedir}")
 
 include_directories(${PROJECT_SOURCE_DIR}/inc)
+include_directories(${PROJECT_SOURCE_DIR}/src)
 
 macro(SET_FPIC target)
   # Required to force fPIC on static libs

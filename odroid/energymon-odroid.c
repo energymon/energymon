@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include "energymon.h"
 #include "energymon-odroid.h"
+#include "energymon-util.h"
 
 #ifdef ENERGYMON_DEFAULT
 #include "energymon-default.h"
@@ -349,10 +350,7 @@ unsigned long long energymon_read_total_odroid(const energymon* impl) {
 }
 
 char* energymon_get_source_odroid(char* buffer, size_t n) {
-  if (buffer == NULL) {
-    return NULL;
-  }
-  return strncpy(buffer, "ODROID INA231 Power Sensors", n);
+  return energymon_strencpy(buffer, "ODROID INA231 Power Sensors", n);
 }
 
 unsigned long long energymon_get_interval_odroid(const energymon* em) {
