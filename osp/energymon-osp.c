@@ -9,14 +9,14 @@
  * @date 2015-01-27
  */
 
-#include "energymon.h"
-#include "energymon-osp.h"
 #include <hidapi/hidapi.h>
-#include <stdlib.h>
+#include <pthread.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <pthread.h>
+#include "energymon.h"
+#include "energymon-osp.h"
 
 #ifdef ENERGYMON_DEFAULT
 #include "energymon-default.h"
@@ -96,7 +96,8 @@ static inline int em_osp_request_data(energymon_osp* em) {
   em->buf[1] = OSP_REQUEST_DATA;
   if (hid_write(em->device, em->buf, sizeof(em->buf)) == -1 ||
       hid_read(em->device, em->buf, sizeof(em->buf)) == -1) {
-    fprintf(stderr, "Failed to request data from ODROID Smart Power\n");
+    fprintf(stderr,"em_osp_request_data: Failed to request data from ODROID "
+            "Smart Power\n");
     return -1;
   }
   return 0;
@@ -145,14 +146,15 @@ int energymon_init_osp(energymon* impl) {
 
   // initialize
   if(hid_init()) {
-    fprintf(stderr, "Failed to initialize ODROID Smart Power\n");
+    fprintf(stderr,
+            "energymon_init_osp: Failed to initialize ODROID Smart Power\n");
     return -1;
   }
 
   // get the device
   em->device = hid_open(OSP_VENDOR_ID, OSP_PRODUCT_ID, NULL);
   if (em->device == NULL) {
-    fprintf(stderr, "Failed to open ODROID Smart Power\n");
+    fprintf(stderr, "energymon_init_osp: Failed to open ODROID Smart Power\n");
     return -1;
   }
 
@@ -174,7 +176,8 @@ int energymon_init_osp(energymon* impl) {
 
   // do an initial couple of reads
   if (em_osp_request_data(em) || em_osp_request_data(em)) {
-    fprintf(stderr, "Failed initial write/read of ODROID Smart Power\n");
+    fprintf(stderr, "energymon_init_osp: Failed initial write/read of ODROID "
+            "Smart Power\n");
     energymon_finish_osp(impl);
     return -1;
   }
@@ -184,7 +187,8 @@ int energymon_init_osp(energymon* impl) {
   em->osp_total_energy = 0;
   em->osp_do_polling = 1;
   if (pthread_create(&em->osp_polling_thread, NULL, osp_poll_device, em)) {
-    fprintf(stderr, "Failed to start ODROID Smart Power thread.\n");
+    fprintf(stderr,
+            "energymon_init_osp: Failed to start ODROID Smart Power thread\n");
     energymon_finish_osp(impl);
     return -1;
   }
@@ -216,7 +220,6 @@ unsigned long long energymon_read_total_osp(const energymon* impl) {
   } else if(em->buf[0] == OSP_REQUEST_DATA) {
     strncpy(wh, (char*) &em->buf[26], 5);
     ujoules = atof(wh) * UJOULES_PER_WATTHOUR;
-    // printf("energymon_read_total_osp: %s Watt-Hours = %llu uJoules\n", wh, ujoules);
   } else {
     fprintf(stderr, "energymon_read_total_osp: Did not get data\n");
   }
@@ -241,7 +244,8 @@ int energymon_finish_osp(energymon* impl) {
   // stop sensors polling thread and cleanup
   em->osp_do_polling = 0;
   if(pthread_join(em->osp_polling_thread, NULL)) {
-    fprintf(stderr, "Error joining ODROID Smart Power polling thread.\n");
+    fprintf(stderr, "energymon_finish_osp: Error joining ODROID Smart Power "
+            "polling thread\n");
   }
 #endif
 

@@ -5,9 +5,9 @@
  * @date 2014-07-30
  */
 
+#include <string.h>
 #include "energymon.h"
 #include "energymon-dummy.h"
-#include <string.h>
 
 #ifdef ENERGYMON_DEFAULT
 #include "energymon-default.h"

@@ -5,14 +5,15 @@
  * @date 2015-08-04
  */
 
-#include "energymon.h"
-#include "energymon-rapl.h"
 #include <dirent.h>
+#include <errno.h>
 #include <fcntl.h>
-#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
+#include "energymon.h"
+#include "energymon-rapl.h"
 
 #ifdef ENERGYMON_DEFAULT
 #include "energymon-default.h"
@@ -89,17 +90,15 @@ static inline int rapl_open_file(unsigned int zone,
                                  int subzone,
                                  const char* file) {
   char filename[96];
-  int fd;
   if (subzone >= 0) {
     sprintf(filename, RAPL_BASE_DIR"/intel-rapl:%u/intel-rapl:%u:%d/%s",
             zone, zone, subzone, file);
   } else {
     sprintf(filename, "/sys/class/powercap/intel-rapl:%u/%s", zone, file);
   }
-  fd = open(filename, O_RDONLY);
+  int fd = open(filename, O_RDONLY);
   if (fd < 0) {
-    perror("Opening RAPL");
-    fprintf(stderr, "Trying to open %s\n", filename);
+    fprintf(stderr, "rapl_open_file:open: %s: %s\n", filename, strerror(errno));
   }
   return fd;
 }
