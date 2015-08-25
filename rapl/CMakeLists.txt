@@ -1,5 +1,6 @@
 set(LNAME energymon-rapl)
 set(SOURCES ${LNAME}.c;../src/energymon-util.c)
+set(DESCRIPTION "EnergyMon implementation for Intel RAPL")
 
 # Libraries
 
@@ -11,12 +12,16 @@ SET_FPIC(${LNAME}-static)
 
 if(DEFAULT STREQUAL "rapl")
   BUILD_DEFAULT("${SOURCES}" "" "")
+  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "")
+  PKG_CONFIG("energymon-default-static" "${DESCRIPTION}" "")
+  install(TARGETS energymon-default energymon-default-static DESTINATION lib)
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/ DESTINATION lib/pkgconfig)
 endif()
 
 # pkg-config
 
-PKG_CONFIG("${LNAME}" "EnergyMon implementation for Intel RAPL" "")
-PKG_CONFIG("${LNAME}-static" "EnergyMon implementation for Intel RAPL" "")
+PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "")
+PKG_CONFIG("${LNAME}-static" "${DESCRIPTION}" "")
 
 # Install
 

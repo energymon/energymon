@@ -1,5 +1,6 @@
 set(LNAME energymon-odroid)
 set(SOURCES ${LNAME}.c;../src/energymon-util.c)
+set(DESCRIPTION "EnergyMon implementation for ODROID systems")
 
 # Libraries
 
@@ -13,12 +14,16 @@ SET_FPIC(${LNAME}-static)
 
 if(DEFAULT STREQUAL "odroid")
   BUILD_DEFAULT("${SOURCES}" "pthread" "")
+  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "")
+  PKG_CONFIG("energymon-default-static" "${DESCRIPTION}" "")
+  install(TARGETS energymon-default energymon-default-static DESTINATION lib)
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/ DESTINATION lib/pkgconfig)
 endif()
 
 # pkg-config
 
-PKG_CONFIG("${LNAME}" "EnergyMon implementation for ODROID systems" "-lpthread")
-PKG_CONFIG("${LNAME}-static" "EnergyMon implementation for ODROID systems" "-lpthread")
+PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "-lpthread")
+PKG_CONFIG("${LNAME}-static" "${DESCRIPTION}" "-lpthread")
 
 # Install
 

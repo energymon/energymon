@@ -1,5 +1,6 @@
 set(LNAME energymon-msr)
 set(SOURCES ${LNAME}.c;../src/energymon-util.c)
+set(DESCRIPTION "EnergyMon implementation for Intel Model Specific Register")
 
 # Libraries
 
@@ -13,12 +14,16 @@ SET_FPIC(${LNAME}-static)
 
 if(DEFAULT STREQUAL "msr")
   BUILD_DEFAULT("${SOURCES}" "m" "")
+  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "")
+  PKG_CONFIG("energymon-default-static" "${DESCRIPTION}" "")
+  install(TARGETS energymon-default energymon-default-static DESTINATION lib)
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/ DESTINATION lib/pkgconfig)
 endif()
 
 # pkg-config
 
-PKG_CONFIG("${LNAME}" "EnergyMon implementation for Intel Model Specific Register" "-lm")
-PKG_CONFIG("${LNAME}-static" "EnergyMon implementation for Intel Model Specific Register" "-lm")
+PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "-lm")
+PKG_CONFIG("${LNAME}-static" "${DESCRIPTION}" "-lm")
 
 # Install
 

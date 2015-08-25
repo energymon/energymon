@@ -1,5 +1,6 @@
 set(LNAME energymon-dummy)
 set(SOURCES ${LNAME}.c;../src/energymon-util.c)
+set(DESCRIPTION "Dummy EnergyMon implementation")
 
 # Libraries
 
@@ -11,12 +12,16 @@ SET_FPIC(${LNAME}-static)
 
 if(DEFAULT STREQUAL "dummy")
   BUILD_DEFAULT("${SOURCES}" "" "")
+  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "")
+  PKG_CONFIG("energymon-default-static" "${DESCRIPTION}" "")
+  install(TARGETS energymon-default energymon-default-static DESTINATION lib)
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/ DESTINATION lib/pkgconfig)
 endif()
 
 # pkg-config
 
-PKG_CONFIG("${LNAME}" "Dummy EnergyMon implementation" "")
-PKG_CONFIG("${LNAME}-static" "Dummy EnergyMon implementation" "")
+PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "")
+PKG_CONFIG("${LNAME}-static" "${DESCRIPTION}" "")
 
 # Install
 
