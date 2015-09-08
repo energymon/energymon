@@ -29,4 +29,4 @@ PKG_CONFIG("${LNAME}-static" "${DESCRIPTION}" "-lpthread")
 
 install(TARGETS ${LNAME} ${LNAME}-static DESTINATION lib)
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${LNAME}.h DESTINATION include/${PROJECT_NAME})
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/ DESTINATION lib/pkgconfig)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/${LNAME}.pc ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/${LNAME}-static.pc DESTINATION lib/pkgconfig)
