@@ -17,7 +17,7 @@ if(DEFAULT STREQUAL "msr")
   PKG_CONFIG("energymon-default" "${DESCRIPTION}" "")
   PKG_CONFIG("energymon-default-static" "${DESCRIPTION}" "")
   install(TARGETS energymon-default energymon-default-static DESTINATION lib)
-  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/ DESTINATION lib/pkgconfig)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/energymon-default.pc ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/energymon-default-static.pc DESTINATION lib/pkgconfig)
 endif()
 
 # pkg-config
