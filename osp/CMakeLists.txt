@@ -59,5 +59,6 @@ PKG_CONFIG("${LNAME}-polling-static" "${DESCRIPTION_POLLING}" "-lhidapi-libusb -
 install(TARGETS ${LNAME} ${LNAME}-static DESTINATION lib)
 install(TARGETS ${LNAME}-polling ${LNAME}-polling-static DESTINATION lib)
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${LNAME}.h DESTINATION include/${PROJECT_NAME})
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${LNAME}-polling.h DESTINATION include/${PROJECT_NAME})
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/${LNAME}.pc ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/${LNAME}-static.pc DESTINATION lib/pkgconfig)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/${LNAME}-polling.pc ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/${LNAME}-polling-static.pc DESTINATION lib/pkgconfig)

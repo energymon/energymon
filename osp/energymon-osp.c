@@ -16,7 +16,11 @@
 #include <string.h>
 #include <unistd.h>
 #include "energymon.h"
+#ifdef ENERGYMON_OSP_USE_POLLING
+#include "energymon-osp-polling.h"
+#else
 #include "energymon-osp.h"
+#endif
 #include "energymon-util.h"
 
 #ifdef ENERGYMON_DEFAULT
@@ -104,6 +108,46 @@ static inline int em_osp_request_data(energymon_osp* em) {
   return 0;
 }
 
+static int energymon_finish_osp_local(energymon* impl) {
+  if (impl == NULL || impl->state == NULL) {
+    return -1;
+  }
+
+  energymon_osp* em = (energymon_osp*) impl->state;
+
+  if (em->device == NULL) {
+    // nothing to do
+    return 0;
+  }
+
+#ifdef ENERGYMON_OSP_USE_POLLING
+  // stop sensors polling thread and cleanup
+  em->osp_do_polling = 0;
+  if(pthread_join(em->osp_polling_thread, NULL)) {
+    fprintf(stderr, "energymon_finish_osp_local: Error joining ODROID Smart "
+            "Power polling thread\n");
+  }
+#endif
+
+  em->buf[0] = 0x00;
+  memset((void*) &em->buf[2], 0x00, sizeof(em->buf) - 2);
+#ifdef ENERGYMON_OSP_STOP_ON_FINISH
+  em->buf[1] = OSP_REQUEST_STARTSTOP;
+  if (hid_write(em->device, em->buf, sizeof(em->buf)) == -1) {
+    fprintf(stderr,
+            "energymon_finish_osp_local: Failed to request start/stop\n");
+  }
+  usleep(ENERGYMON_OSP_SLEEP_TIME_US);
+#endif
+  hid_close(em->device);
+  em->device = NULL;
+  if(hid_exit()) {
+    fprintf(stderr, "energymon_finish_osp_local: Failed to exit\n");
+  }
+  free(impl->state);
+  return 0;
+}
+
 #ifdef ENERGYMON_OSP_USE_POLLING
 /**
  * pthread function to poll the device at regular intervals
@@ -129,7 +173,11 @@ static void* osp_poll_device(void* args) {
 }
 #endif
 
+#ifdef ENERGYMON_OSP_USE_POLLING
+int energymon_init_osp_polling(energymon* impl) {
+#else
 int energymon_init_osp(energymon* impl) {
+#endif
   if (impl == NULL || impl->state != NULL) {
     return -1;
   }
@@ -164,14 +212,14 @@ int energymon_init_osp(energymon* impl) {
 
   // get the status
   if(em_osp_request_status(em)) {
-    energymon_finish_osp(impl);
+    energymon_finish_osp_local(impl);
     return -1;
   }
 
   // TODO: This doesn't seem to be accurate
   started = (em->buf[1] == 0x01) ? 1 : 0;
   if (em_osp_request_start_stop(em, started)) {
-    energymon_finish_osp(impl);
+    energymon_finish_osp_local(impl);
     return -1;
   }
 
@@ -179,7 +227,7 @@ int energymon_init_osp(energymon* impl) {
   if (em_osp_request_data(em) || em_osp_request_data(em)) {
     fprintf(stderr, "energymon_init_osp: Failed initial write/read of ODROID "
             "Smart Power\n");
-    energymon_finish_osp(impl);
+    energymon_finish_osp_local(impl);
     return -1;
   }
 
@@ -190,7 +238,7 @@ int energymon_init_osp(energymon* impl) {
   if (pthread_create(&em->osp_polling_thread, NULL, osp_poll_device, em)) {
     fprintf(stderr,
             "energymon_init_osp: Failed to start ODROID Smart Power thread\n");
-    energymon_finish_osp(impl);
+    energymon_finish_osp_local(impl);
     return -1;
   }
 #endif
@@ -198,7 +246,11 @@ int energymon_init_osp(energymon* impl) {
   return 0;
 }
 
+#ifdef ENERGYMON_OSP_USE_POLLING
+unsigned long long energymon_read_total_osp_polling(const energymon* impl) {
+#else
 unsigned long long energymon_read_total_osp(const energymon* impl) {
+#endif
   if (impl == NULL || impl->state == NULL) {
     return 0;
   }
@@ -229,57 +281,46 @@ unsigned long long energymon_read_total_osp(const energymon* impl) {
   return ujoules;
 }
 
-int energymon_finish_osp(energymon* impl) {
-  if (impl == NULL || impl->state == NULL) {
-    return -1;
-  }
-
-  energymon_osp* em = (energymon_osp*) impl->state;
-
-  if (em->device == NULL) {
-    // nothing to do
-    return 0;
-  }
-
 #ifdef ENERGYMON_OSP_USE_POLLING
-  // stop sensors polling thread and cleanup
-  em->osp_do_polling = 0;
-  if(pthread_join(em->osp_polling_thread, NULL)) {
-    fprintf(stderr, "energymon_finish_osp: Error joining ODROID Smart Power "
-            "polling thread\n");
-  }
-#endif
-
-  em->buf[0] = 0x00;
-  memset((void*) &em->buf[2], 0x00, sizeof(em->buf) - 2);
-#ifdef ENERGYMON_OSP_STOP_ON_FINISH
-  em->buf[1] = OSP_REQUEST_STARTSTOP;
-  if (hid_write(em->device, em->buf, sizeof(em->buf)) == -1) {
-    fprintf(stderr, "energymon_finish_osp: Failed to request start/stop\n");
-  }
-  usleep(ENERGYMON_OSP_SLEEP_TIME_US);
-#endif
-  hid_close(em->device);
-  em->device = NULL;
-  if(hid_exit()) {
-    fprintf(stderr, "energymon_finish_osp: Failed to exit\n");
-  }
-  free(impl->state);
-  return 0;
-}
-
-char* energymon_get_source_osp(char* buffer, size_t n) {
-#ifdef ENERGYMON_OSP_USE_POLLING
-  return energymon_strencpy(buffer, "ODROID Smart Power with Polling", n);
+int energymon_finish_osp_polling(energymon* impl) {
 #else
-  return energymon_strencpy(buffer, "ODROID Smart Power", n);
+int energymon_finish_osp(energymon* impl) {
 #endif
+  return energymon_finish_osp_local(impl);
 }
 
+#ifdef ENERGYMON_OSP_USE_POLLING
+char* energymon_get_source_osp_polling(char* buffer, size_t n) {
+  return energymon_strencpy(buffer, "ODROID Smart Power with Polling", n);
+}
+#else
+char* energymon_get_source_osp(char* buffer, size_t n) {
+  return energymon_strencpy(buffer, "ODROID Smart Power", n);
+}
+#endif
+
+#ifdef ENERGYMON_OSP_USE_POLLING
+unsigned long long energymon_get_interval_osp_polling(const energymon* em) {
+#else
 unsigned long long energymon_get_interval_osp(const energymon* em) {
+#endif
   return ENERGYMON_OSP_POLL_DELAY_US;
 }
 
+#ifdef ENERGYMON_OSP_USE_POLLING
+int energymon_get_osp_polling(energymon* impl) {
+  if (impl == NULL) {
+    return -1;
+  }
+  impl->finit = &energymon_init_osp_polling;
+  impl->fread = &energymon_read_total_osp_polling;
+  impl->ffinish = &energymon_finish_osp_polling;
+  impl->fsource = &energymon_get_source_osp_polling;
+  impl->finterval = &energymon_get_interval_osp_polling;
+  impl->state = NULL;
+  return 0;
+}
+#else
 int energymon_get_osp(energymon* impl) {
   if (impl == NULL) {
     return -1;
@@ -292,3 +333,4 @@ int energymon_get_osp(energymon* impl) {
   impl->state = NULL;
   return 0;
 }
+#endif
