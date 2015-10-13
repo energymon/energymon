@@ -6,11 +6,9 @@ set(DESCRIPTION "EnergyMon implementation for ODROID systems")
 
 add_library(${LNAME} SHARED ${SOURCES})
 target_link_libraries(${LNAME} pthread)
-SET_FPIC(${LNAME})
 
 add_library(${LNAME}-static STATIC ${SOURCES})
 target_link_libraries(${LNAME}-static pthread)
-SET_FPIC(${LNAME}-static)
 
 if(DEFAULT STREQUAL "odroid")
   BUILD_DEFAULT("${SOURCES}" "pthread" "")
