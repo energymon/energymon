@@ -5,10 +5,7 @@ set(DESCRIPTION "EnergyMon implementation for Intel RAPL")
 # Libraries
 
 add_library(${LNAME} SHARED ${SOURCES})
-SET_FPIC(${LNAME})
-
 add_library(${LNAME}-static STATIC ${SOURCES})
-SET_FPIC(${LNAME}-static)
 
 if(DEFAULT STREQUAL "rapl")
   BUILD_DEFAULT("${SOURCES}" "" "")

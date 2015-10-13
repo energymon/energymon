@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.9)
 
 project(energymon)
 set(PROJECT_VERSION 0.1.0)
@@ -12,25 +12,18 @@ set(PKG_CONFIG_LIBDIR "\${prefix}/lib")
 set(PKG_CONFIG_INCLUDEDIR "\${prefix}/include/energymon")
 set(PKG_CONFIG_CFLAGS "-I\${includedir}")
 
+# force fPIC on static libs
+set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
+
 include_directories(${PROJECT_SOURCE_DIR}/inc)
 include_directories(${PROJECT_SOURCE_DIR}/src)
-
-macro(SET_FPIC target)
-  # Required to force fPIC on static libs
-  # 'set (CMAKE_POSITION_INDEPENDENT_CODE TRUE)' not supported until cmake 2.8.9
-  IF(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-    SET_TARGET_PROPERTIES(${target} PROPERTIES COMPILE_FLAGS "-fPIC")
-  ENDIF(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-endmacro(SET_FPIC)
 
 macro(BUILD_DEFAULT source deplibs definitions)
   add_library(energymon-default SHARED ${source})
   target_link_libraries(energymon-default ${deplibs})
-  SET_FPIC(energymon-default)
 
   add_library(energymon-default-static STATIC ${source})
   target_link_libraries(energymon-default-static ${deplibs})
-  SET_FPIC(energymon-default-static)
 
   set_target_properties(energymon-default energymon-default-static PROPERTIES COMPILE_DEFINITIONS "ENERGYMON_DEFAULT;${definitions}")
 endmacro(BUILD_DEFAULT)

@@ -16,19 +16,15 @@ endif(NOT ${HIDAPIUSB_FOUND})
 
 add_library(${LNAME} SHARED ${SOURCES})
 target_link_libraries(${LNAME} hidapi-libusb)
-SET_FPIC(${LNAME})
 
 add_library(${LNAME}-static STATIC ${SOURCES})
 target_link_libraries(${LNAME}-static hidapi-libusb)
-SET_FPIC(${LNAME}-static)
 
 add_library(${LNAME}-polling SHARED ${SOURCES})
 target_link_libraries(${LNAME}-polling hidapi-libusb pthread)
-SET_FPIC(${LNAME}-polling)
 
 add_library(${LNAME}-polling-static STATIC ${SOURCES})
 target_link_libraries(${LNAME}-polling-static hidapi-libusb pthread)
-SET_FPIC(${LNAME}-polling-static)
 
 if(DEFAULT STREQUAL "osp")
   BUILD_DEFAULT("${SOURCES}" "hidapi-libusb" "")

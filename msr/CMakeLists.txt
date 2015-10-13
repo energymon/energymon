@@ -6,11 +6,9 @@ set(DESCRIPTION "EnergyMon implementation for Intel Model Specific Register")
 
 add_library(${LNAME} SHARED ${SOURCES})
 target_link_libraries(${LNAME} m)
-SET_FPIC(${LNAME})
 
 add_library(${LNAME}-static STATIC ${SOURCES})
 target_link_libraries(${LNAME}-static m)
-SET_FPIC(${LNAME}-static)
 
 if(DEFAULT STREQUAL "msr")
   BUILD_DEFAULT("${SOURCES}" "m" "")

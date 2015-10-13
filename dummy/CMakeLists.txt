@@ -5,10 +5,7 @@ set(DESCRIPTION "Dummy EnergyMon implementation")
 # Libraries
 
 add_library(${LNAME} SHARED ${SOURCES})
-SET_FPIC(${LNAME})
-
 add_library(${LNAME}-static STATIC ${SOURCES})
-SET_FPIC(${LNAME}-static)
 
 if(DEFAULT STREQUAL "dummy")
   BUILD_DEFAULT("${SOURCES}" "" "")
