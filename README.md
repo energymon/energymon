@@ -33,6 +33,7 @@ Current implementation options are:
 * dummy [default]
 * msr
 * odroid
+* odroid-ioctl
 * osp
 * osp-polling
 * rapl
