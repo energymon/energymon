@@ -26,7 +26,11 @@
 #ifdef ENERGYMON_DEFAULT
 #include "energymon-default.h"
 int energymon_get_default(energymon* impl) {
+#ifdef ENERGYMON_OSP_USE_POLLING
+  return energymon_get_osp_polling(impl);
+#else
   return energymon_get_osp(impl);
+#endif
 }
 #endif
 
