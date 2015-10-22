@@ -1,12 +1,15 @@
 # ODROID Smart Power Energy Monitor
 
-This implementation of the `energymon` interface reads from an ODROID Smart
+These implementations of the `energymon` interface read from an ODROID Smart
 Power USB device.
 
-Two different library implementations are created.
-The first reads energy data direct from the device on-demand.
+Two different library implementations are available.
+The first reads energy data directly from the device.
 The second polls the device for power data to estimate energy consumption.
-Developer tests have found the polling implementation to be more reliable.
+
+The first implementation converts energy data from Watt-Hours at 2 decimal
+places of precision, which is a little imprecise in low-power scenarios.
+However, it has less runtime overhead than the polling implementation.
 
 ## Prerequisites
 
