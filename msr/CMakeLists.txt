@@ -5,13 +5,10 @@ set(DESCRIPTION "EnergyMon implementation for Intel Model Specific Register")
 # Libraries
 
 add_library(${LNAME} SHARED ${SOURCES})
-target_link_libraries(${LNAME} m)
-
 add_library(${LNAME}-static STATIC ${SOURCES})
-target_link_libraries(${LNAME}-static m)
 
 if(DEFAULT STREQUAL "msr")
-  BUILD_DEFAULT("${SOURCES}" "m" "")
+  BUILD_DEFAULT("${SOURCES}" "" "")
   PKG_CONFIG("energymon-default" "${DESCRIPTION}" "")
   PKG_CONFIG("energymon-default-static" "${DESCRIPTION}" "")
   install(TARGETS energymon-default energymon-default-static DESTINATION lib)
@@ -20,8 +17,8 @@ endif()
 
 # pkg-config
 
-PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "-lm")
-PKG_CONFIG("${LNAME}-static" "${DESCRIPTION}" "-lm")
+PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "")
+PKG_CONFIG("${LNAME}-static" "${DESCRIPTION}" "")
 
 # Install
 

@@ -13,7 +13,6 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -75,7 +74,7 @@ typedef struct msr_info {
 } msr_info;
 
 typedef struct energymon_msr {
-  int msr_count;
+  unsigned int msr_count;
   msr_info* msrs;
 } energymon_msr;
 
@@ -89,13 +88,12 @@ static inline int open_msr(unsigned int core) {
   return fd;
 }
 
-static inline long long read_msr(int fd, int which) {
-  uint64_t data = 0;
-  if (pread(fd, &data, sizeof(data), which) != sizeof(data)) {
+static inline int read_msr(int fd, int which, uint64_t* data) {
+  if (pread(fd, data, sizeof(uint64_t), which) != sizeof(uint64_t)) {
     perror("read_msr:pread");
     return -1;
   }
-  return (long long) data;
+  return 0;
 }
 
 static inline unsigned int msr_count(char* env_cores) {
@@ -133,16 +131,21 @@ static inline int msr_core_ids(char* env_cores,
 }
 
 static inline int msr_info_init(msr_info* m, unsigned int id) {
+  uint64_t msr_val;
   m->fd = open_msr(id);
   if (m->fd < 0) {
     return -1;
   }
-  long long power_unit_data_ll = read_msr(m->fd, MSR_RAPL_POWER_UNIT);
-  if (power_unit_data_ll < 0) {
+  if (read_msr(m->fd, MSR_RAPL_POWER_UNIT, &msr_val)) {
     return -1;
   }
-  double power_unit_data = (double) ((power_unit_data_ll >> 8) & 0x1f);
-  m->energy_units = pow(0.5, power_unit_data);
+  // Energy related information (in Joules) is based on the multiplier,
+  // 1/2^ESU; where ESU is an unsigned integer represented by bits 12:8.
+  unsigned int energy_status_units = ((msr_val >> 8) & 0x1f);
+  // At 5 bits only, 0 <= energy_status_units < 32, so bit shift instead,
+  // no need to use "pow" and require linking to math library
+  // m->energy_units = pow(0.5, energy_status_units);
+  m->energy_units = 1.0 / (1 << energy_status_units);
   return 0;
 }
 
@@ -217,13 +220,12 @@ unsigned long long energymon_read_total_msr(const energymon* impl) {
     return 0;
   }
 
-  int i;
-  long long msr_val;
+  unsigned int i;
+  uint64_t msr_val;
   unsigned long long total = 0;
   energymon_msr* em = impl->state;
   for (i = 0; i < em->msr_count; i++) {
-    msr_val = read_msr(em->msrs[i].fd, MSR_PKG_ENERGY_STATUS);
-    if (msr_val < 0) {
+    if (read_msr(em->msrs[i].fd, MSR_PKG_ENERGY_STATUS, &msr_val)) {
       fprintf(stderr,
               "energymon_read_total_msr: got bad energy value from MSR\n");
       return 0;
@@ -241,7 +243,7 @@ int energymon_finish_msr(energymon* impl) {
   int ret = 0;
   energymon_msr* em = impl->state;
   if (em->msrs != NULL) {
-    int i;
+    unsigned int i;
     for (i = 0; i < em->msr_count; i++) {
       if (em->msrs[i].fd >= 0) {
         ret += close(em->msrs[i].fd);

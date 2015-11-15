@@ -37,11 +37,11 @@ export ENERGYMON_MSRS=0,4,8,12
 To link with the shared object library:
 
 ```
--lenergymon-msr -lm
+-lenergymon-msr
 ```
 
 To link with the static library version:
 
 ```
--lenergymon-msr-static -lm
+-lenergymon-msr-static
 ```
