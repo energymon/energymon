@@ -226,29 +226,26 @@ static inline char** odroid_get_sensor_directories(unsigned int* count) {
 void* odroid_poll_sensors(void* args) {
   energymon_odroid* em = (energymon_odroid*) args;
   double sum;
-  double readings[em->odroid_pwr_id_count];
+  double reading;
   unsigned int i;
-  int bad_reading;
   struct timespec ts_interval;
   ts_interval.tv_sec = em->odroid_read_delay_us / (1000 * 1000);
   ts_interval.tv_nsec = (em->odroid_read_delay_us % (1000 * 1000) * 1000);
-  while(em->odroid_read_sensors > 0) {
-    bad_reading = 0;
+  while (em->odroid_read_sensors) {
     sum = 0;
     // read individual sensors
     for (i = 0; i < em->odroid_pwr_id_count; i++) {
-      readings[i] = odroid_read_pwr(em->odroid_pwr_ids[i]);
-      if (readings[i] < 0) {
+      reading = odroid_read_pwr(em->odroid_pwr_ids[i]);
+      if (reading < 0) {
         fprintf(stderr, "odroid_poll_sensors: At least one ODROID power sensor"
                 " returned bad value - skipping this reading\n");
-        bad_reading = 1;
         break;
       } else {
         // sum the power values
-        sum += readings[i];
+        sum += reading;
       }
     }
-    if (bad_reading == 0) {
+    if (reading >= 0) {
       em->odroid_total_energy += sum * to_usec(&ts_interval);
     }
     // sleep for the update interval of the sensors
