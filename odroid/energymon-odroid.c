@@ -8,6 +8,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <inttypes.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,7 +45,7 @@ typedef struct energymon_odroid {
   pthread_t odroid_sensor_thread;
   int odroid_read_sensors;
 
-  unsigned long long odroid_total_energy;
+  uint64_t odroid_total_energy;
 } energymon_odroid;
 
 /**
@@ -142,7 +143,7 @@ int energymon_finish_odroid(energymon* impl) {
   }
 
   int ret = 0;
-  int i;
+  unsigned int i;
   energymon_odroid* em = (energymon_odroid*) impl->state;
   // stop sensors polling thread and cleanup
   em->odroid_read_sensors = 0;
@@ -172,7 +173,7 @@ int energymon_finish_odroid(energymon* impl) {
 static inline double odroid_read_pwr(int fd) {
   double val;
   char cdata[sizeof(double)];
-  int data_size = pread(fd, cdata, sizeof(cdata), 0);
+  ssize_t data_size = pread(fd, cdata, sizeof(cdata), 0);
   if (data_size != sizeof(cdata)) {
     perror("odroid_read_pwr");
     return -1;
@@ -226,7 +227,7 @@ void* odroid_poll_sensors(void* args) {
   energymon_odroid* em = (energymon_odroid*) args;
   double sum;
   double readings[em->odroid_pwr_id_count];
-  int i;
+  unsigned int i;
   int bad_reading;
   struct timespec ts_interval;
   ts_interval.tv_sec = em->odroid_read_delay_us / (1000 * 1000);
@@ -266,8 +267,9 @@ int energymon_init_odroid(energymon* impl) {
   }
 
   int ret = 0;
-  int i;
+  unsigned int i;
   char odroid_pwr_filename[64];
+  char** sensor_dirs;
 
   energymon_odroid* em = malloc(sizeof(energymon_odroid));
   if (em == NULL) {
@@ -280,7 +282,7 @@ int energymon_init_odroid(energymon* impl) {
 
   // find the sensors
   em->odroid_pwr_id_count = 0;
-  char** sensor_dirs = odroid_get_sensor_directories(&em->odroid_pwr_id_count);
+  sensor_dirs = odroid_get_sensor_directories(&em->odroid_pwr_id_count);
   if (em->odroid_pwr_id_count == 0) {
     fprintf(stderr, "energymon_init_odroid: Failed to find power sensors\n");
     return -1;
@@ -303,7 +305,7 @@ int energymon_init_odroid(energymon* impl) {
   }
 
   // open individual sensor files
-  em->odroid_pwr_ids = malloc(em->odroid_pwr_id_count * sizeof(int));
+  em->odroid_pwr_ids = malloc(em->odroid_pwr_id_count * sizeof(unsigned int));
   if (em->odroid_pwr_ids == NULL) {
     free(impl->state);
     impl->state = NULL;
@@ -342,7 +344,7 @@ int energymon_init_odroid(energymon* impl) {
   return ret;
 }
 
-unsigned long long energymon_read_total_odroid(const energymon* impl) {
+uint64_t energymon_read_total_odroid(const energymon* impl) {
   if (impl == NULL || impl->state == NULL) {
     return -1;
   }
@@ -353,7 +355,7 @@ char* energymon_get_source_odroid(char* buffer, size_t n) {
   return energymon_strencpy(buffer, "ODROID INA231 Power Sensors", n);
 }
 
-unsigned long long energymon_get_interval_odroid(const energymon* em) {
+uint64_t energymon_get_interval_odroid(const energymon* em) {
   return ((energymon_odroid*) em->state)->odroid_read_delay_us;
 }
 

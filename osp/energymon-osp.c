@@ -9,6 +9,7 @@
  * @date 2015-01-27
  */
 
+#include <inttypes.h>
 #include <hidapi/hidapi.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -64,7 +65,7 @@ typedef struct energymon_osp {
   unsigned char buf[OSP_BUF_SIZE];
 
 #ifdef ENERGYMON_OSP_USE_POLLING
-  unsigned long long osp_total_energy;
+  uint64_t osp_total_energy;
   // thread variables
   pthread_t osp_polling_thread;
   int osp_do_polling;
@@ -268,15 +269,15 @@ int energymon_init_osp(energymon* impl) {
 }
 
 #ifdef ENERGYMON_OSP_USE_POLLING
-unsigned long long energymon_read_total_osp_polling(const energymon* impl) {
+uint64_t energymon_read_total_osp_polling(const energymon* impl) {
 #else
-unsigned long long energymon_read_total_osp(const energymon* impl) {
+uint64_t energymon_read_total_osp(const energymon* impl) {
 #endif
   if (impl == NULL || impl->state == NULL) {
     return 0;
   }
 
-  unsigned long long ujoules = 0;
+  uint64_t ujoules = 0;
   energymon_osp* em = (energymon_osp*) impl->state;
 
   if (em->device == NULL) {
@@ -318,9 +319,9 @@ char* energymon_get_source_osp(char* buffer, size_t n) {
 #endif
 
 #ifdef ENERGYMON_OSP_USE_POLLING
-unsigned long long energymon_get_interval_osp_polling(const energymon* em) {
+uint64_t energymon_get_interval_osp_polling(const energymon* em) {
 #else
-unsigned long long energymon_get_interval_osp(const energymon* em) {
+uint64_t energymon_get_interval_osp(const energymon* em) {
 #endif
   return ENERGYMON_OSP_POLL_DELAY_US;
 }
