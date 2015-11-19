@@ -16,6 +16,7 @@
 extern "C" {
 #endif
 
+#include <inttypes.h>
 #include <stddef.h>
 #include "energymon.h"
 
@@ -25,13 +26,13 @@ extern "C" {
 
 int energymon_init_msr(energymon* impl);
 
-unsigned long long energymon_read_total_msr(const energymon* impl);
+uint64_t energymon_read_total_msr(const energymon* impl);
 
 int energymon_finish_msr(energymon* impl);
 
 char* energymon_get_source_msr(char* buffer, size_t n);
 
-unsigned long long energymon_get_interval_msr(const energymon* em);
+uint64_t energymon_get_interval_msr(const energymon* em);
 
 int energymon_get_msr(energymon* impl);
 

@@ -8,6 +8,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,8 +34,8 @@ typedef struct rapl_zone {
   int energy_supported;
   int energy_fd;
 #ifdef ENERGYMON_RAPL_OVERFLOW
-  unsigned long long max_energy_range_uj;
-  unsigned long long energy_last;
+  uint64_t max_energy_range_uj;
+  uint64_t energy_last;
   unsigned int energy_overflow_count;
 #endif
 } rapl_zone;
@@ -106,27 +107,30 @@ static inline int rapl_open_file(unsigned int zone,
   return fd;
 }
 
-static inline long long rapl_read_value(int fd) {
-  unsigned long long val;
+static inline uint64_t rapl_read_value(int fd, int* error) {
+  uint64_t val = 0;
   char buf[30];
   if (pread(fd, buf, sizeof(buf), 0) <= 0) {
     perror("rapl_read_value");
-    return -1;
+    *error = 1;
+    return 0;
   }
   val = strtoull(buf, NULL, 0);
   return val;
 }
 
 #ifdef ENERGYMON_RAPL_OVERFLOW
-static inline unsigned long long rapl_read_max_energy(unsigned int zone,
-                                                      int subzone) {
+static inline uint64_t rapl_read_max_energy(unsigned int zone,
+                                            int subzone,
+                                            int* error) {
   int fd = rapl_open_file(zone, subzone, RAPL_MAX_ENERGY_FILE);
   if (fd < 0) {
+    *error = 1;
     return 0;
   }
-  long long ret = rapl_read_value(fd);
+  uint64_t ret = rapl_read_value(fd, error);
   close(fd);
-  if (ret < 0) {
+  if (*error) {
     return 0;
   }
   return ret;
@@ -213,12 +217,12 @@ int energymon_init_rapl(energymon* em) {
   return ret;
 }
 
-static inline long long rapl_zone_read(rapl_zone* z) {
-  long long val = 0;
+static inline uint64_t rapl_zone_read(rapl_zone* z, int* error) {
+  uint64_t val = 0;
   if (z->energy_supported) {
-    val = rapl_read_value(z->energy_fd);
-    if (val < 0) {
-      return -1;
+    val = rapl_read_value(z->energy_fd, error);
+    if (error) {
+      return 0;
     }
 #ifdef ENERGYMON_RAPL_OVERFLOW
     // attempt to detect overflow of counter
@@ -232,13 +236,14 @@ static inline long long rapl_zone_read(rapl_zone* z) {
   return val;
 }
 
-static inline unsigned long long rapl_read_total_energy_uj(energymon_rapl* em) {
-  long long val;
-  unsigned long long total = 0;
+static inline uint64_t rapl_read_total_energy_uj(energymon_rapl* em) {
+  uint64_t val = 0;
+  uint64_t total = 0;
+  int error = 0;
   unsigned int i;
   for (i = 0; i < em->count; i++) {
-    val = rapl_zone_read(&em->zones[i]);
-    if (val < 0) {
+    val = rapl_zone_read(&em->zones[i], &error);
+    if (error) {
       return 0;
     }
     total += val;
@@ -246,7 +251,7 @@ static inline unsigned long long rapl_read_total_energy_uj(energymon_rapl* em) {
   return total;
 }
 
-unsigned long long energymon_read_total_rapl(const energymon* em) {
+uint64_t energymon_read_total_rapl(const energymon* em) {
   if (em == NULL || em->state == NULL) {
     return 0;
   }
@@ -267,7 +272,7 @@ char* energymon_get_source_rapl(char* buffer, size_t n) {
   return energymon_strencpy(buffer, "Intel RAPL", n);
 }
 
-unsigned long long energymon_get_interval_rapl(const energymon* em) {
+uint64_t energymon_get_interval_rapl(const energymon* em) {
   return 1000;
 }
 

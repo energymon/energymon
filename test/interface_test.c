@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include "energymon-default.h"
 
@@ -10,9 +11,9 @@ int main() {
   impl.fsource(source, sizeof(source));
   printf("Initializing reading from %s\n", source);
   assert(impl.finit(&impl) == 0);
-  unsigned long long result = impl.fread(&impl);
+  uint64_t result = impl.fread(&impl);
   assert(result >= 0);
-  printf("Got reading: %lld\n", result);
+  printf("Got reading: %"PRIu64"\n", result);
   assert(impl.ffinish(&impl) == 0);
   printf("Finished reading from %s\n", source);
 

@@ -5,6 +5,7 @@
  * @date 2014-07-30
  */
 
+#include <inttypes.h>
 #include <string.h>
 #include "energymon.h"
 #include "energymon-dummy.h"
@@ -21,7 +22,7 @@ int energymon_init_dummy(energymon* impl) {
   return 0;
 }
 
-unsigned long long energymon_read_total_dummy(const energymon* impl) {
+uint64_t energymon_read_total_dummy(const energymon* impl) {
   return 0;
 }
 
@@ -33,7 +34,7 @@ char* energymon_get_source_dummy(char* buffer, size_t n) {
   return energymon_strencpy(buffer, "Dummy Source", n);
 }
 
-unsigned long long energymon_get_interval_dummy(const energymon* em) {
+uint64_t energymon_get_interval_dummy(const energymon* em) {
   return 1;
 }
 

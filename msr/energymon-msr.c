@@ -215,14 +215,14 @@ int energymon_init_msr(energymon* impl) {
   return 0;
 }
 
-unsigned long long energymon_read_total_msr(const energymon* impl) {
+uint64_t energymon_read_total_msr(const energymon* impl) {
   if (impl == NULL || impl->state == NULL) {
     return 0;
   }
 
   unsigned int i;
   uint64_t msr_val;
-  unsigned long long total = 0;
+  uint64_t total = 0;
   energymon_msr* em = impl->state;
   for (i = 0; i < em->msr_count; i++) {
     if (read_msr(em->msrs[i].fd, MSR_PKG_ENERGY_STATUS, &msr_val)) {
@@ -262,7 +262,7 @@ char* energymon_get_source_msr(char* buffer, size_t n) {
   return energymon_strencpy(buffer, "X86 MSR", n);
 }
 
-unsigned long long energymon_get_interval_msr(const energymon* em) {
+uint64_t energymon_get_interval_msr(const energymon* em) {
   return 1000;
 }
 

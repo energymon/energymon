@@ -17,13 +17,13 @@ extern "C" {
 
 int energymon_init_odroid_ioctl(energymon* em);
 
-unsigned long long energymon_read_total_odroid_ioctl(const energymon* em);
+uint64_t energymon_read_total_odroid_ioctl(const energymon* em);
 
 int energymon_finish_odroid_ioctl(energymon* em);
 
 char* energymon_get_source_odroid_ioctl(char* buffer, size_t n);
 
-unsigned long long energymon_get_interval_odroid_ioctl(const energymon* em);
+uint64_t energymon_get_interval_odroid_ioctl(const energymon* em);
 
 int energymon_get_odroid_ioctl(energymon* impl);
 

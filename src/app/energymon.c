@@ -6,6 +6,7 @@
  * @date 2015-07-09
  */
 #include <errno.h>
+#include <inttypes.h>
 #include <limits.h>
 #include <signal.h>
 #include <stdio.h>
@@ -31,9 +32,9 @@ void shandle(int dummy) {
 
 int main(int argc, char** argv) {
   energymon impl;
-  unsigned long long us;
+  uint64_t us;
   struct timespec ts;
-  unsigned long long energy;
+  uint64_t energy;
   FILE* fout;
   int ret = 0;
   if (argc < 2) {
@@ -69,7 +70,7 @@ int main(int argc, char** argv) {
   while (running) {
     energy = impl.fread(&impl);
     rewind(fout);
-    if(fprintf(fout, "%llu\n", energy) < 0) {
+    if(fprintf(fout, "%"PRIu64"\n", energy) < 0) {
       ret = 1;
       perror("Writing to output file");
       break;

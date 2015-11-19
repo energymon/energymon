@@ -17,6 +17,7 @@
 extern "C" {
 #endif
 
+#include <inttypes.h>
 #include <stddef.h>
 
 typedef struct energymon energymon;
@@ -36,7 +37,7 @@ typedef int (*energymon_init) (energymon*);
  * @param pointer to an energymon
  * @return energy (in uJ)
  */
-typedef unsigned long long (*energymon_read_total) (const energymon*);
+typedef uint64_t (*energymon_read_total) (const energymon*);
 
 /**
  * Stop background tasks, close open file(s), free memory allocations, etc.
@@ -63,7 +64,7 @@ typedef char* (*energymon_get_source) (char* buffer, size_t n);
  * @param pointer to an energymon
  * @return the refresh interval
  */
-typedef unsigned long long (*energymon_get_interval) (const energymon*);
+typedef uint64_t (*energymon_get_interval) (const energymon*);
 
 /**
  * A structure to encapsulate a complete implementation. The first five fields

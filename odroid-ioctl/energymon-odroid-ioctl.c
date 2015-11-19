@@ -9,6 +9,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <inttypes.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -70,7 +71,7 @@ typedef struct energymon_odroid_ioctl {
   // sensor update interval in microseconds
   unsigned long poll_delay_us;
   // total energy estimate
-  unsigned long long total_uj;
+  uint64_t total_uj;
   // thread variables
   pthread_t sensor_thread;
   int poll_sensors;
@@ -144,7 +145,7 @@ static inline int read_sensor(ina231_sensor_t* sensor) {
  */
 static inline int close_all_sensors(energymon_odroid_ioctl* em) {
   int ret = 0;
-  int i = 0;
+  unsigned int i;
 #ifdef ODROID_IOCTL_DISABLE_ON_CLOSE
   for (i = 0; i < SENSOR_MAX; i++) {
     if (em->sensor[i].data.enable) {
@@ -163,7 +164,7 @@ static inline int close_all_sensors(energymon_odroid_ioctl* em) {
  */
 static inline int open_all_sensors(energymon_odroid_ioctl* em) {
   int ret = 0;
-  int i;
+  unsigned int i;
 
   if (open_sensor_file(DEV_SENSOR_ARM, &em->sensor[SENSOR_ARM]) ||
       open_sensor_file(DEV_SENSOR_KFC, &em->sensor[SENSOR_KFC]) ||
@@ -215,8 +216,8 @@ int energymon_finish_odroid_ioctl(energymon* impl) {
  */
 void* odroid_ioctl_poll_sensors(void* args) {
   int bad_reading = 0;
-  unsigned long long sum_uw = 0;
-  int i = 0;
+  uint64_t sum_uw = 0;
+  unsigned int i = 0;
   energymon_odroid_ioctl* em = (energymon_odroid_ioctl*) args;
   struct timespec ts_interval;
   ts_interval.tv_sec = em->poll_delay_us / (1000 * 1000);
@@ -287,7 +288,7 @@ int energymon_init_odroid_ioctl(energymon* impl) {
   return 0;
 }
 
-unsigned long long energymon_read_total_odroid_ioctl(const energymon* impl) {
+uint64_t energymon_read_total_odroid_ioctl(const energymon* impl) {
   if (impl == NULL || impl->state == NULL) {
     return -1;
   }
@@ -298,7 +299,7 @@ char* energymon_get_source_odroid_ioctl(char* buffer, size_t n) {
   return energymon_strencpy(buffer, "ODROID INA231 Power Sensors via ioctl", n);
 }
 
-unsigned long long energymon_get_interval_odroid_ioctl(const energymon* em) {
+uint64_t energymon_get_interval_odroid_ioctl(const energymon* em) {
   return ((energymon_odroid_ioctl*) em->state)->poll_delay_us;
 }
 
