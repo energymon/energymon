@@ -60,9 +60,11 @@ typedef char* (*energymon_get_source) (char* buffer, size_t n);
 
 /**
  * Get the refresh interval in microseconds of the underlying sensor(s).
+ * This value should be greater than 0 except in error cases.
+ * If there is no minimum interval, return 1.
  *
  * @param pointer to an energymon
- * @return the refresh interval
+ * @return the refresh interval, or 0 on error
  */
 typedef uint64_t (*energymon_get_interval) (const energymon*);
 
