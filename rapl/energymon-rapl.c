@@ -221,7 +221,7 @@ static inline uint64_t rapl_zone_read(rapl_zone* z, int* error) {
   uint64_t val = 0;
   if (z->energy_supported) {
     val = rapl_read_value(z->energy_fd, error);
-    if (error) {
+    if (*error) {
       return 0;
     }
 #ifdef ENERGYMON_RAPL_OVERFLOW
