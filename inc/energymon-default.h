@@ -13,7 +13,7 @@ extern "C" {
 
 #include "energymon.h"
 
-int energymon_get_default(energymon* impl);
+int energymon_get_default(energymon* em);
 
 #ifdef __cplusplus
 }

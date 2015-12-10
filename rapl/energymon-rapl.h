@@ -15,17 +15,17 @@ extern "C" {
 #include <stddef.h>
 #include "energymon.h"
 
-int energymon_init_rapl(energymon* impl);
+int energymon_init_rapl(energymon* em);
 
-uint64_t energymon_read_total_rapl(const energymon* impl);
+uint64_t energymon_read_total_rapl(const energymon* em);
 
-int energymon_finish_rapl(energymon* impl);
+int energymon_finish_rapl(energymon* em);
 
 char* energymon_get_source_rapl(char* buffer, size_t n);
 
 uint64_t energymon_get_interval_rapl(const energymon* em);
 
-int energymon_get_rapl(energymon* impl);
+int energymon_get_rapl(energymon* em);
 
 #ifdef __cplusplus
 }

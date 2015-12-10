@@ -25,7 +25,7 @@ char* energymon_get_source_odroid(char* buffer, size_t n);
 
 uint64_t energymon_get_interval_odroid(const energymon* em);
 
-int energymon_get_odroid(energymon* impl);
+int energymon_get_odroid(energymon* em);
 
 #ifdef __cplusplus
 }

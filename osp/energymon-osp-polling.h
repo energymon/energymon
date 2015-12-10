@@ -24,7 +24,7 @@ char* energymon_get_source_osp_polling(char* buffer, size_t n);
 
 uint64_t energymon_get_interval_osp_polling(const energymon* em);
 
-int energymon_get_osp_polling(energymon* impl);
+int energymon_get_osp_polling(energymon* em);
 
 #ifdef __cplusplus
 }

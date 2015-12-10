@@ -24,17 +24,17 @@ extern "C" {
 #define ENERGYMON_MSR_ENV_VAR "ENERGYMON_MSRS"
 #define ENERGYMON_MSRS_DELIMS ", :;|"
 
-int energymon_init_msr(energymon* impl);
+int energymon_init_msr(energymon* em);
 
-uint64_t energymon_read_total_msr(const energymon* impl);
+uint64_t energymon_read_total_msr(const energymon* em);
 
-int energymon_finish_msr(energymon* impl);
+int energymon_finish_msr(energymon* em);
 
 char* energymon_get_source_msr(char* buffer, size_t n);
 
 uint64_t energymon_get_interval_msr(const energymon* em);
 
-int energymon_get_msr(energymon* impl);
+int energymon_get_msr(energymon* em);
 
 #ifdef __cplusplus
 }

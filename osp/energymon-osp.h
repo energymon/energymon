@@ -24,7 +24,7 @@ char* energymon_get_source_osp(char* buffer, size_t n);
 
 uint64_t energymon_get_interval_osp(const energymon* em);
 
-int energymon_get_osp(energymon* impl);
+int energymon_get_osp(energymon* em);
 
 #ifdef __cplusplus
 }

@@ -25,7 +25,7 @@ char* energymon_get_source_dummy(char* buffer, size_t n);
 
 uint64_t energymon_get_interval_dummy(const energymon* em);
 
-int energymon_get_dummy(energymon* impl);
+int energymon_get_dummy(energymon* em);
 
 #ifdef __cplusplus
 }
