@@ -13,8 +13,8 @@ However, it has less runtime overhead than the polling implementation.
 
 ## Prerequisites
 
-The library `libhidapi-libusb` must be installed on the system to compile and
-run these libraries.
+This implementation depends on [hidapi](https://github.com/signal11/hidapi/).
+On Ubuntu 14.04 LTS and newer, just install `libhidapi-dev`.
 
 ## Usage
 
