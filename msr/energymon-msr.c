@@ -6,8 +6,8 @@
  * e.g.:
  *   export ENERGYMON_MSRS=0,4,8,12
  *
- * @author Hank Hoffmann
  * @author Connor Imes
+ * @author Hank Hoffmann
  */
 
 #include <errno.h>
@@ -23,8 +23,8 @@
 
 #ifdef ENERGYMON_DEFAULT
 #include "energymon-default.h"
-int energymon_get_default(energymon* impl) {
-  return energymon_get_msr(impl);
+int energymon_get_default(energymon* em) {
+  return energymon_get_msr(em);
 }
 #endif
 
@@ -75,187 +75,138 @@ typedef struct msr_info {
 
 typedef struct energymon_msr {
   unsigned int msr_count;
-  msr_info* msrs;
+  msr_info msrs[];
 } energymon_msr;
 
-static inline int open_msr(unsigned int core) {
-  char filename[24];
-  sprintf(filename, "/dev/cpu/%u/msr", core);
-  int fd = open(filename, O_RDONLY);
-  if (fd < 0) {
-    fprintf(stderr, "open_msr:open: %s: %s\n", filename, strerror(errno));
-  }
-  return fd;
-}
-
-static inline int read_msr(int fd, int which, uint64_t* data) {
-  if (pread(fd, data, sizeof(uint64_t), which) != sizeof(uint64_t)) {
-    perror("read_msr:pread");
-    return -1;
-  }
-  return 0;
-}
-
-static inline unsigned int msr_count(char* env_cores) {
-  unsigned int ncores = 0;
+/**
+ * env_cores is consumed by strtok_r, so cannot be reused after this function.
+ */
+static inline unsigned int count_msrs(char* env_cores) {
+  unsigned int ncores;
   char* saveptr;
-  char* env_cores_tmp = strdup(env_cores);
-  if (env_cores_tmp == NULL) {
-    return 0;
-  }
-  char* tok = strtok_r(env_cores_tmp, ENERGYMON_MSRS_DELIMS, &saveptr);
-  while (tok) {
-    ncores++;
+  char* tok = strtok_r(env_cores, ENERGYMON_MSRS_DELIMS, &saveptr);
+  for (ncores = 0; tok; ncores++) {
     tok = strtok_r(NULL, ENERGYMON_MSRS_DELIMS, &saveptr);
   }
-  free(env_cores_tmp);
   return ncores;
 }
 
-static inline int msr_core_ids(char* env_cores,
-                               unsigned int* core_ids,
-                               unsigned int ncores) {
-  unsigned int i;
-  char* saveptr;
-  char* env_cores_tmp = strdup(env_cores);
-  if (env_cores_tmp == NULL) {
-    return -1;
-  }
-  char* tok = strtok_r(env_cores_tmp, ENERGYMON_MSRS_DELIMS, &saveptr);
-  for (i = 0; tok != NULL && i < ncores; i++) {
-    core_ids[i] = strtoul(tok, NULL, 0);
-    tok = strtok_r(NULL, ENERGYMON_MSRS_DELIMS, &saveptr);
-  }
-  free(env_cores_tmp);
-  return 0;
-}
-
-static inline int msr_info_init(msr_info* m, unsigned int id) {
+/**
+ * env_cores is consumed by strtok_r, so cannot be reused after this function.
+ * Returns the errno (if any)
+ */
+static inline int msr_info_init(msr_info* m, unsigned int n, char* env_cores) {
   uint64_t msr_val;
-  m->fd = open_msr(id);
-  if (m->fd < 0) {
-    return -1;
+  unsigned int i;
+  unsigned int energy_status_units;
+  char filename[24];
+  char* saveptr;
+  char* tok = env_cores == NULL ? "0" :
+    strtok_r(env_cores, ENERGYMON_MSRS_DELIMS, &saveptr);
+  errno = 0;
+  for (i = 0; tok && i < n && !errno; i++) {
+    snprintf(filename, sizeof(filename), "/dev/cpu/%s/msr", tok);
+    if ((m[i].fd = open(filename, O_RDONLY)) <= 0 ||
+        pread(m[i].fd, &msr_val, sizeof(msr_val), MSR_RAPL_POWER_UNIT) < 0) {
+      perror(filename);
+      return errno;
+    }
+    // Energy related information (in Joules) is based on the multiplier,
+    // 1/2^ESU; where ESU is an unsigned integer represented by bits 12:8.
+    energy_status_units = ((msr_val >> 8) & 0x1f);
+    // At 5 bits only, 0 <= energy_status_units < 32, so bit shift instead,
+    // no need to use "pow" and require linking to math library
+    // m[i].energy_units = pow(0.5, energy_status_units);
+    m[i].energy_units = 1.0 / (1 << energy_status_units);
+    tok = env_cores == NULL ? NULL :
+      strtok_r(NULL, ENERGYMON_MSRS_DELIMS, &saveptr);
   }
-  if (read_msr(m->fd, MSR_RAPL_POWER_UNIT, &msr_val)) {
-    return -1;
-  }
-  // Energy related information (in Joules) is based on the multiplier,
-  // 1/2^ESU; where ESU is an unsigned integer represented by bits 12:8.
-  unsigned int energy_status_units = ((msr_val >> 8) & 0x1f);
-  // At 5 bits only, 0 <= energy_status_units < 32, so bit shift instead,
-  // no need to use "pow" and require linking to math library
-  // m->energy_units = pow(0.5, energy_status_units);
-  m->energy_units = 1.0 / (1 << energy_status_units);
   return 0;
 }
 
-int energymon_init_msr(energymon* impl) {
-  if (impl == NULL || impl->state != NULL) {
+int energymon_init_msr(energymon* em) {
+  if (em == NULL || em->state != NULL) {
+    errno = EINVAL;
     return -1;
   }
 
-  unsigned int i;
-  unsigned int ncores;
-  unsigned int* core_ids;
+  unsigned int ncores = 1;
+  char* tmp = NULL;
   // get a delimited list of cores with MSRs to read from
-  char* env_cores = getenv(ENERGYMON_MSR_ENV_VAR);
-  if (env_cores == NULL) {
-    // default to using core 0
-    ncores = 1;
-    core_ids = malloc(sizeof(unsigned int));
-    if (core_ids == NULL) {
+  const char* env_cores = getenv(ENERGYMON_MSR_ENV_VAR);
+  if (env_cores != NULL) {
+    if ((tmp = strdup(env_cores)) == NULL) {
       return -1;
     }
-    core_ids[0] = 0;
-  } else {
-    ncores = msr_count(env_cores);
+    ncores = count_msrs(tmp);
+    free(tmp);
     if (ncores == 0) {
-      fprintf(stderr, "energymon_init_msr: Failed to parse core numbers from "
-              ENERGYMON_MSR_ENV_VAR " environment variable.\n");
+      errno = EINVAL;
+      perror("Parsing number of cores from " ENERGYMON_MSR_ENV_VAR " env var");
       return -1;
     }
-    // Now determine which cores' MSRs will be accessed
-    core_ids = malloc(ncores * sizeof(unsigned int));
-    if (core_ids == NULL) {
-      return -1;
-    }
-    if(msr_core_ids(env_cores, core_ids, ncores)) {
-      free(core_ids);
+    if ((tmp = strdup(env_cores)) == NULL) {
       return -1;
     }
   }
 
-  energymon_msr* em = malloc(sizeof(energymon_msr));
-  if (em == NULL) {
-    free(core_ids);
+  size_t size = sizeof(energymon_msr) + ncores * sizeof(msr_info);
+  energymon_msr* state = calloc(1, size);
+  if (state == NULL) {
     return -1;
   }
-  impl->state = em;
-
-  // allocate shared variables
-  em->msrs = (msr_info*) malloc(ncores * sizeof(msr_info));
-  if (em->msrs == NULL) {
-    free(impl->state);
-    free(core_ids);
-    impl->state = NULL;
-    return -1;
-  }
+  state->msr_count = ncores;
 
   // open the MSR files
-  for (i = 0; i < ncores; i++) {
-    if(msr_info_init(&em->msrs[i], core_ids[i])) {
-      energymon_finish_msr(impl);
-      free(core_ids);
-      return -1;
-    }
+  em->state = state;
+  int save_err = msr_info_init(state->msrs, ncores, tmp);
+  free(tmp);
+  if (save_err) {
+    energymon_finish_msr(em);
+    errno = save_err;
+    return -1;
   }
-  free(core_ids);
 
-  em->msr_count = ncores;
   return 0;
 }
 
-uint64_t energymon_read_total_msr(const energymon* impl) {
-  if (impl == NULL || impl->state == NULL) {
+uint64_t energymon_read_total_msr(const energymon* em) {
+  if (em == NULL || em->state == NULL) {
+    errno = EINVAL;
     return 0;
   }
 
   unsigned int i;
   uint64_t msr_val;
   uint64_t total = 0;
-  energymon_msr* em = impl->state;
-  for (i = 0; i < em->msr_count; i++) {
-    if (read_msr(em->msrs[i].fd, MSR_PKG_ENERGY_STATUS, &msr_val)) {
-      fprintf(stderr,
-              "energymon_read_total_msr: got bad energy value from MSR\n");
-      return 0;
+  energymon_msr* state = (energymon_msr*) em->state;
+  for (errno = 0, i = 0; i < state->msr_count && !errno; i++) {
+    if (pread(state->msrs[i].fd, &msr_val, sizeof(uint64_t),
+              MSR_PKG_ENERGY_STATUS) == sizeof(uint64_t)) {
+      total += msr_val * state->msrs[i].energy_units * 1000000;
     }
-    total += msr_val * em->msrs[i].energy_units * 1000000;
   }
-  return total;
+  return errno ? 0 : total;
 }
 
-int energymon_finish_msr(energymon* impl) {
-  if (impl == NULL || impl->state == NULL) {
+int energymon_finish_msr(energymon* em) {
+  if (em == NULL || em->state == NULL) {
+    errno = EINVAL;
     return -1;
   }
 
-  int ret = 0;
-  energymon_msr* em = impl->state;
-  if (em->msrs != NULL) {
-    unsigned int i;
-    for (i = 0; i < em->msr_count; i++) {
-      if (em->msrs[i].fd >= 0) {
-        ret += close(em->msrs[i].fd);
-      }
+  int err_save = 0;
+  unsigned int i;
+  energymon_msr* state = em->state;
+  for (i = 0; i < state->msr_count; i++) {
+    if (state->msrs[i].fd > 0 && close(state->msrs[i].fd)) {
+      err_save = errno;
     }
   }
-  free(em->msrs);
-  em->msrs = NULL;
-  em->msr_count = 0;
-  free(impl->state);
-  impl->state = NULL;
-  return ret;
+  free(em->state);
+  em->state = NULL;
+  errno = err_save;
+  return errno ? -1 : 0;
 }
 
 char* energymon_get_source_msr(char* buffer, size_t n) {
@@ -263,18 +214,24 @@ char* energymon_get_source_msr(char* buffer, size_t n) {
 }
 
 uint64_t energymon_get_interval_msr(const energymon* em) {
+  if (em == NULL) {
+    // we don't need to access em, but it's still a programming error
+    errno = EINVAL;
+    return 0;
+  }
   return 1000;
 }
 
-int energymon_get_msr(energymon* impl) {
-  if (impl == NULL) {
+int energymon_get_msr(energymon* em) {
+  if (em == NULL) {
+    errno = EINVAL;
     return -1;
   }
-  impl->finit = &energymon_init_msr;
-  impl->fread = &energymon_read_total_msr;
-  impl->ffinish = &energymon_finish_msr;
-  impl->fsource = &energymon_get_source_msr;
-  impl->finterval = &energymon_get_interval_msr;
-  impl->state = NULL;
+  em->finit = &energymon_init_msr;
+  em->fread = &energymon_read_total_msr;
+  em->ffinish = &energymon_finish_msr;
+  em->fsource = &energymon_get_source_msr;
+  em->finterval = &energymon_get_interval_msr;
+  em->state = NULL;
   return 0;
 }

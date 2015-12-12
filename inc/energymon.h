@@ -7,6 +7,10 @@
  * Pointers to implementations of the typedef'd functions below are included
  * in the energymon struct for encapsulation.
  *
+ * Implementations should set (or preserve) errno on failure. Additionally,
+ * they may preemptively print error messages if too much context would be lost
+ * otherwise.
+ *
  * @author Connor Imes
  * @date 2014-06-30
  */

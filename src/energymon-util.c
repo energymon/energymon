@@ -5,11 +5,13 @@
  * @date 2015-08-23
  */
 
+#include <errno.h>
 #include <stddef.h>
 
 /**
  * Efficient bounded string copy.
  * The dest buffer will be null-terminated after the last char in src.
+ * Only fails if dest or src are null - errno will be set to EINVAL.
  *
  * @param dest
  *  the destination buffer
@@ -17,9 +19,11 @@
  *  the source buffer
  * @param n
  *  the maximum number of chars to write
+ * @return pointer to dest, or NULL on failure
  */
 char* energymon_strencpy(char* dest, const char* src, size_t n) {
   if (dest == NULL || src == NULL) {
+    errno = EINVAL;
     return NULL;
   }
   size_t i;
