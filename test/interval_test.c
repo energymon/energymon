@@ -16,21 +16,21 @@ int main(int argc, char** argv) {
   usec = strtol(argv[1], NULL, 0);
   assert(usec > 0);
 
-  energymon impl;
-  energymon_get_default(&impl);
+  energymon em;
+  energymon_get_default(&em);
 
-  impl.fsource(source, sizeof(source));
+  em.fsource(source, sizeof(source));
   printf("Initializing reading from %s\n", source);
-  assert(impl.finit(&impl) == 0);
+  assert(em.finit(&em) == 0);
 
-  start = impl.fread(&impl);
+  start = em.fread(&em);
   usleep(usec);
-  end = impl.fread(&impl);
+  end = em.fread(&em);
   uj = end - start;
 
   printf("Total energy: %"PRIu64" uJ\n", uj);
   printf("Average power: %f W\n", (double) uj / (double) usec);
-  assert(impl.ffinish(&impl) == 0);
+  assert(em.ffinish(&em) == 0);
   printf("Finished reading from %s\n", source);
 
   return 0;

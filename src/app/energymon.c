@@ -31,7 +31,7 @@ void shandle(int dummy) {
 }
 
 int main(int argc, char** argv) {
-  energymon impl;
+  energymon em;
   uint64_t us;
   struct timespec ts;
   uint64_t energy;
@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
   signal(SIGINT, shandle);
 
   // initialize the energy monitor
-  if (energymon_get_default(&impl) || impl.finit(&impl)) {
+  if (energymon_get_default(&em) || em.finit(&em)) {
     return 1;
   }
 
@@ -54,12 +54,12 @@ int main(int argc, char** argv) {
   fout = fopen(argv[1], "wb");
   if (fout == NULL) {
     perror("Failed to open output file");
-    impl.ffinish(&impl);
+    em.ffinish(&em);
     return 1;
   }
 
   // get the update interval
-  us = impl.finterval(&impl);
+  us = em.finterval(&em);
   if (us < ENERGYMON_MIN_INTERVAL_US) {
     us = ENERGYMON_MIN_INTERVAL_US;
   }
@@ -68,9 +68,9 @@ int main(int argc, char** argv) {
 
   // update file at regular intervals
   while (running) {
-    energy = impl.fread(&impl);
+    energy = em.fread(&em);
     rewind(fout);
-    if(fprintf(fout, "%"PRIu64"\n", energy) < 0) {
+    if (fprintf(fout, "%"PRIu64"\n", energy) < 0) {
       ret = 1;
       perror("Writing to output file");
       break;
@@ -80,10 +80,10 @@ int main(int argc, char** argv) {
   }
 
   // cleanup
-  if(fclose(fout)) {
+  if (fclose(fout)) {
     ret = 1;
   }
-  if (impl.ffinish(&impl)) {
+  if (em.ffinish(&em)) {
     ret = 1;
   }
 

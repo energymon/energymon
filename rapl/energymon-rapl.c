@@ -31,7 +31,6 @@ int energymon_get_default(energymon* em) {
 // Add power polling support for zones that don't support energy readings?
 
 typedef struct rapl_zone {
-  int energy_supported;
   int energy_fd;
 #ifdef ENERGYMON_RAPL_OVERFLOW
   uint64_t max_energy_range_uj;
@@ -42,208 +41,157 @@ typedef struct rapl_zone {
 
 typedef struct energymon_rapl {
   int count;
-  rapl_zone* zones;
+  rapl_zone zones[];
 } energymon_rapl;
 
-static inline int rapl_is_energy_supported(unsigned int zone) {
+/**
+ * Count the number of RAPL zones (does not include subzones).
+ * Returns 0 on error (check errno) or if no RAPL zones found.
+ */
+static inline unsigned int rapl_zone_count() {
+  unsigned int count = 0;
+  int err_save;
   struct dirent* entry;
-  char buf[64];
-  snprintf(buf, sizeof(buf), RAPL_BASE_DIR"/intel-rapl:%u", zone);
-  DIR* dir = opendir(buf);
-  int ret = 0;
-  if (dir != NULL) {
-    entry = readdir(dir);
-    while (entry != NULL) {
-      if (!strncmp(entry->d_name, RAPL_ENERGY_FILE, strlen(RAPL_ENERGY_FILE))) {
-        ret = 1;
-        break;
-      }
-      entry = readdir(dir);
-    }
-    closedir(dir);
+  char buf[24];
+  DIR* dir = opendir(RAPL_BASE_DIR);
+  for (errno = 0; dir != NULL && (entry = readdir(dir)) != NULL;) {
+    snprintf(buf, sizeof(buf), "intel-rapl:%u", count);
+    count += strncmp(entry->d_name, buf, strlen(buf)) ? 0 : 1;
   }
-  return ret;
+  err_save = errno; // from opendir or readdir
+  if (closedir(dir)) {
+    perror(RAPL_BASE_DIR);
+  }
+  errno = err_save;
+  return errno ? 0 : count;
 }
 
 /**
- * Count the number of zones - does not include subzones.
+ * Returns 0 on error (check errno), otherwise the max energy.
  */
-static inline unsigned int rapl_get_count() {
-  unsigned int count = 0;
-  struct dirent* entry;
-  DIR* dir = opendir(RAPL_BASE_DIR);
-  char buf[24];
-
-  if (dir != NULL) {
-    snprintf(buf, sizeof(buf), "intel-rapl:%u", count);
-    entry = readdir(dir);
-    while (entry != NULL) {
-      if (!strncmp(entry->d_name, buf, strlen(buf))) {
-        count++;
-        break;
-      }
-      entry = readdir(dir);
+static inline uint64_t rapl_read_max_energy(unsigned int zone) {
+  uint64_t ret = 0;
+  int err_save;
+  char buf[96];
+  char data[30];
+  snprintf(buf, sizeof(buf), RAPL_BASE_DIR"/intel-rapl:%u/%s",
+           zone, RAPL_MAX_ENERGY_FILE);
+  int fd = open(buf, O_RDONLY);
+  if (fd > 0) {
+    if (pread(fd, data, sizeof(data), 0) > 0) {
+      ret = strtoull(data, NULL, 0);
     }
-    closedir(dir);
+    err_save = errno;
+    if (close(fd)) {
+      perror(buf);
+    }
+    errno = err_save;
   }
-
-  return count;
-}
-
-static inline int rapl_open_file(unsigned int zone,
-                                 int subzone,
-                                 const char* file) {
-  char filename[96];
-  if (subzone >= 0) {
-    sprintf(filename, RAPL_BASE_DIR"/intel-rapl:%u/intel-rapl:%u:%d/%s",
-            zone, zone, subzone, file);
-  } else {
-    sprintf(filename, "/sys/class/powercap/intel-rapl:%u/%s", zone, file);
-  }
-  int fd = open(filename, O_RDONLY);
-  if (fd < 0) {
-    fprintf(stderr, "rapl_open_file:open: %s: %s\n", filename, strerror(errno));
-  }
-  return fd;
-}
-
-static inline uint64_t rapl_read_value(int fd, int* error) {
-  uint64_t val = 0;
-  char buf[30];
-  if (pread(fd, buf, sizeof(buf), 0) <= 0) {
-    perror("rapl_read_value");
-    *error = 1;
-    return 0;
-  }
-  val = strtoull(buf, NULL, 0);
-  return val;
-}
-
-#ifdef ENERGYMON_RAPL_OVERFLOW
-static inline uint64_t rapl_read_max_energy(unsigned int zone,
-                                            int subzone,
-                                            int* error) {
-  int fd = rapl_open_file(zone, subzone, RAPL_MAX_ENERGY_FILE);
-  if (fd < 0) {
-    *error = 1;
-    return 0;
-  }
-  uint64_t ret = rapl_read_value(fd, error);
-  close(fd);
-  if (*error) {
-    return 0;
+  if (errno) {
+    perror(buf);
   }
   return ret;
 }
-#endif
 
-static inline int rapl_cleanup(energymon_rapl* em) {
-  if (em == NULL) {
-    return -1;
-  }
-
-  int ret = 0;
-  unsigned int i = 0;
-  if (em->zones != NULL) {
-    for (i = 0; i < em->count; i++) {
-      if (em->zones[i].energy_supported && em->zones[i].energy_fd >= 0) {
-        ret += close(em->zones[i].energy_fd);
-      }
-    }
-  }
-  free(em->zones);
-  em->zones = NULL;
-  em->count = 0;
-  return ret;
-}
-
-static inline int rapl_zone_init(rapl_zone* z, unsigned int zone, int subzone) {
-  z->energy_supported = rapl_is_energy_supported(zone);
-  if (z->energy_supported) {
-#ifdef ENERGYMON_RAPL_OVERFLOW
-    z->max_energy_range_uj = rapl_read_max_energy(zone, subzone);
-#endif
-    z->energy_fd = rapl_open_file(zone, subzone, RAPL_ENERGY_FILE);
-    if (z->energy_fd < 0) {
-      return -1;
-    }
-  } else {
-#ifdef ENERGYMON_RAPL_OVERFLOW
-    z->max_energy_range_uj = 0;
-#endif
-    z->energy_fd = -1;
-  }
-  return 0;
-}
-
-static inline int rapl_init(energymon_rapl* em) {
+static inline int rapl_cleanup(const energymon_rapl* state) {
+  int err_save = 0;
   unsigned int i;
-
-  em->zones = NULL;
-  em->count = rapl_get_count();
-  if (em->count == 0) {
-    fprintf(stderr, "rapl_init: No RAPL zones found!\n");
-    return -1;
+  for (i = 0; i < state->count; i++) {
+    if (state->zones[i].energy_fd > 0 && close(state->zones[i].energy_fd)) {
+      err_save = errno;
+    }
   }
+  errno = err_save;
+  return errno ? -1 : 0;
+}
 
-  em->zones = calloc(em->count, sizeof(rapl_zone));
-  if (em->zones == NULL) {
-    em->count = 0;
-    return -1;
-  }
-
-  for (i = 0; i < em->count; i++) {
-    if (rapl_zone_init(&em->zones[i], i, -1)) {
-      rapl_cleanup(em);
+static inline int rapl_init(energymon_rapl* state, unsigned int count) {
+  unsigned int i;
+  int err_save;
+  char buf[96];
+  state->count = count;
+  for (i = 0; i < state->count; i++) {
+    snprintf(buf, sizeof(buf), RAPL_BASE_DIR"/intel-rapl:%u/%s",
+             i, RAPL_ENERGY_FILE);
+    state->zones[i].energy_fd = open(buf, O_RDONLY);
+    if (state->zones[i].energy_fd <= 0) {
+      perror(buf);
+      err_save = errno;
+      rapl_cleanup(state);
+      errno = err_save;
       return -1;
     }
+#ifdef ENERGYMON_RAPL_OVERFLOW
+    state->zones[i].max_energy_range_uj = rapl_read_max_energy(zone);
+#endif
   }
   return 0;
 }
 
 int energymon_init_rapl(energymon* em) {
-  int ret;
   if (em == NULL || em->state != NULL) {
+    errno = EINVAL;
     return -1;
   }
-  em->state = malloc(sizeof(energymon_rapl));
-  if (em->state == NULL) {
+
+  unsigned int count = rapl_zone_count();
+  if (count == 0) {
+    if (errno) {
+      perror(RAPL_BASE_DIR);
+    } else {
+      fprintf(stderr, "energymon_init_rapl: No RAPL zones found!\n");
+    }
     return -1;
-  };
-  ret = rapl_init(em->state);
-  if (ret) {
-    energymon_finish_rapl(em);
   }
-  return ret;
+
+  size_t size = sizeof(energymon_rapl) + count * sizeof(rapl_zone);
+  energymon_rapl* state = calloc(1, size);
+  if (state == NULL) {
+    return -1;
+  }
+
+  if (rapl_init(state, count)) {
+    free(state);
+    return -1;
+  }
+
+  em->state = state;
+  return 0;
 }
 
-static inline uint64_t rapl_zone_read(rapl_zone* z, int* error) {
+/**
+ * Returns 0 on error (check errno), otherwise the zone's energy value.
+ */
+static inline uint64_t rapl_zone_read(const rapl_zone* z) {
   uint64_t val = 0;
-  if (z->energy_supported) {
-    val = rapl_read_value(z->energy_fd, error);
-    if (*error) {
-      return 0;
-    }
-#ifdef ENERGYMON_RAPL_OVERFLOW
-    // attempt to detect overflow of counter
-    if (val < z->energy_last) {
-      z->energy_overflow_count++;
-    }
-    z->energy_last = val;
-    val += z->energy_overflow_count * z->max_energy_range_uj;
-#endif
+  char buf[30];
+  if (pread(z->energy_fd, buf, sizeof(buf), 0) > 0) {
+    val = strtoull(buf, NULL, 0);
   }
+  if (errno) { // from pread or strtoull
+    return 0;
+  }
+#ifdef ENERGYMON_RAPL_OVERFLOW
+  // attempt to detect overflow of counter
+  if (val < z->energy_last) {
+    z->energy_overflow_count++;
+  }
+  z->energy_last = val;
+  val += z->energy_overflow_count * z->max_energy_range_uj;
+#endif
   return val;
 }
 
-static inline uint64_t rapl_read_total_energy_uj(energymon_rapl* em) {
+/**
+ * Returns 0 on error (check errno), otherwise the total energy across zones.
+ */
+static inline uint64_t rapl_read_total_energy_uj(const energymon_rapl* em) {
   uint64_t val = 0;
   uint64_t total = 0;
-  int error = 0;
   unsigned int i;
   for (i = 0; i < em->count; i++) {
-    val = rapl_zone_read(&em->zones[i], &error);
-    if (error) {
+    val = rapl_zone_read(&em->zones[i]);
+    if (val == 0 && errno) {
       return 0;
     }
     total += val;
@@ -253,6 +201,7 @@ static inline uint64_t rapl_read_total_energy_uj(energymon_rapl* em) {
 
 uint64_t energymon_read_total_rapl(const energymon* em) {
   if (em == NULL || em->state == NULL) {
+    errno = EINVAL;
     return 0;
   }
   return rapl_read_total_energy_uj(em->state);
@@ -260,9 +209,10 @@ uint64_t energymon_read_total_rapl(const energymon* em) {
 
 int energymon_finish_rapl(energymon* em) {
   if (em == NULL || em->state == NULL) {
+    errno = EINVAL;
     return -1;
   }
-  int ret = rapl_cleanup(em->state);
+  int ret = rapl_cleanup((energymon_rapl*) em->state);
   free(em->state);
   em->state = NULL;
   return ret;
@@ -273,11 +223,17 @@ char* energymon_get_source_rapl(char* buffer, size_t n) {
 }
 
 uint64_t energymon_get_interval_rapl(const energymon* em) {
+  if (em == NULL) {
+    // we don't need to access em, but it's still a programming error
+    errno = EINVAL;
+    return 0;
+  }
   return 1000;
 }
 
 int energymon_get_rapl(energymon* em) {
   if (em == NULL) {
+    errno = EINVAL;
     return -1;
   }
   em->finit = &energymon_init_rapl;

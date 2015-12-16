@@ -5,6 +5,7 @@
  * @date 2014-07-30
  */
 
+#include <errno.h>
 #include <inttypes.h>
 #include <string.h>
 #include "energymon.h"
@@ -13,20 +14,32 @@
 
 #ifdef ENERGYMON_DEFAULT
 #include "energymon-default.h"
-int energymon_get_default(energymon* impl) {
-  return energymon_get_dummy(impl);
+int energymon_get_default(energymon* em) {
+  return energymon_get_dummy(em);
 }
 #endif
 
-int energymon_init_dummy(energymon* impl) {
+int energymon_init_dummy(energymon* em) {
+  if (em == NULL) {
+    errno = EINVAL;
+    return -1;
+  }
   return 0;
 }
 
-uint64_t energymon_read_total_dummy(const energymon* impl) {
+uint64_t energymon_read_total_dummy(const energymon* em) {
+  if (em == NULL) {
+    errno = EINVAL;
+    return 0;
+  }
   return 0;
 }
 
-int energymon_finish_dummy(energymon* impl) {
+int energymon_finish_dummy(energymon* em) {
+  if (em == NULL) {
+    errno = EINVAL;
+    return -1;
+  }
   return 0;
 }
 
@@ -35,18 +48,23 @@ char* energymon_get_source_dummy(char* buffer, size_t n) {
 }
 
 uint64_t energymon_get_interval_dummy(const energymon* em) {
+  if (em == NULL) {
+    errno = EINVAL;
+    return 0;
+  }
   return 1;
 }
 
-int energymon_get_dummy(energymon* impl) {
-  if (impl == NULL) {
+int energymon_get_dummy(energymon* em) {
+  if (em == NULL) {
+    errno = EINVAL;
     return -1;
   }
-  impl->finit = &energymon_init_dummy;
-  impl->fread = &energymon_read_total_dummy;
-  impl->ffinish = &energymon_finish_dummy;
-  impl->fsource = &energymon_get_source_dummy;
-  impl->finterval = &energymon_get_interval_dummy;
-  impl->state = NULL;
+  em->finit = &energymon_init_dummy;
+  em->fread = &energymon_read_total_dummy;
+  em->ffinish = &energymon_finish_dummy;
+  em->fsource = &energymon_get_source_dummy;
+  em->finterval = &energymon_get_interval_dummy;
+  em->state = NULL;
   return 0;
 }

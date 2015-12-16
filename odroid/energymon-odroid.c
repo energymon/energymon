@@ -20,166 +20,117 @@
 
 #ifdef ENERGYMON_DEFAULT
 #include "energymon-default.h"
-int energymon_get_default(energymon* impl) {
-  return energymon_get_odroid(impl);
+int energymon_get_default(energymon* em) {
+  return energymon_get_odroid(em);
 }
 #endif
 
-// sensor files
-#define ODROID_INA231_DIR "/sys/bus/i2c/drivers/INA231"
-#define ODROID_PWR_FILENAME_TEMPLATE ODROID_INA231_DIR"/%s/sensor_W"
-#define ODROID_SENSOR_ENABLE_FILENAME_TEMPLATE ODROID_INA231_DIR"/%s/enable"
-#define ODROID_SENSOR_UPDATE_INTERVAL_FILENAME_TEMPLATE ODROID_INA231_DIR"/%s/update_period"
-
-#define ODROID_SENSOR_READ_DELAY_US_DEFAULT 263808
+#define INA231_DIR "/sys/bus/i2c/drivers/INA231"
+#define INA231_FILE_TEMPLATE_POWER INA231_DIR"/%s/sensor_W"
+#define INA231_FILE_TEMPLATE_ENABLE INA231_DIR"/%s/enable"
+#define INA231_FILE_TEMPLATE_UPDATE_PERIOD INA231_DIR"/%s/update_period"
+#define INA231_DEFAULT_UPDATE_INTERVAL_US 263808
 
 typedef struct energymon_odroid {
   // sensor update interval in microseconds
-  unsigned long odroid_read_delay_us;
-
-  // sensor file descriptors
-  int* odroid_pwr_ids;
-  unsigned int odroid_pwr_id_count;
-
+  unsigned long read_delay_us;
   // thread variables
-  pthread_t odroid_sensor_thread;
-  int odroid_read_sensors;
-
-  uint64_t odroid_total_energy;
+  pthread_t thread;
+  int poll_sensors;
+  // total energy estimate
+  uint64_t total_uj;
+  // sensor file descriptors
+  unsigned int count;
+  int fds[];
 } energymon_odroid;
 
-/**
- * Convert a timespec struct into a microsecond value.
- */
 static inline int64_t to_usec(struct timespec* ts) {
   return ts->tv_sec * 1000000 + (ts->tv_nsec / 1000);
 }
 
-static inline int odroid_open_file(char* filename) {
-  int fd = open(filename, O_RDONLY);
-  if (fd < 0) {
-    fprintf(stderr, "odroid_open_file:open: %s: %s\n",
-            filename, strerror(errno));
-  }
-  return fd;
-}
-
-static inline unsigned long get_sensor_update_interval(char* sensor) {
-  char ui_filename[64];
-  int fd;
-  char cdata[24];
-  unsigned long val;
-  int read_ret;
-
-  sprintf(ui_filename,
-          ODROID_SENSOR_UPDATE_INTERVAL_FILENAME_TEMPLATE,
-          sensor);
-  fd = odroid_open_file(ui_filename);
-  if (fd < 0) {
-    return 0;
-  }
-  read_ret = read(fd, cdata, sizeof(cdata));
-  close(fd);
-  if (read_ret < 0) {
-    return 0;
-  }
-  val = strtoul(cdata, NULL, 0);
-  return val;
-}
-
 /**
- * Return 0 if the sensor is enabled, 1 if not, -1 on error.
+ * Returns 0 if sensor is disabled or on I/O failure (check errno).
  */
-static inline int odroid_check_sensor_enabled(char* sensor) {
-  char enable_filename[64];
+static inline int is_sensor_enabled(const char* file) {
   int fd;
   char cdata[24];
-  int val;
-  int read_ret;
-
-  sprintf(enable_filename, ODROID_SENSOR_ENABLE_FILENAME_TEMPLATE, sensor);
-  fd = odroid_open_file(enable_filename);
-  if (fd < 0) {
-    return -1;
+  int err_save = 0;
+  if ((fd = open(file, O_RDONLY)) > 0) {
+    if (read(fd, cdata, sizeof(cdata)) < 0) {
+      err_save = errno;
+    }
+    if (close(fd)) {
+      perror(file);
+    }
+    errno = err_save;
   }
-  read_ret = read(fd, cdata, sizeof(cdata));
-  close(fd);
-  if (read_ret < 0) {
-    return -1;
-  }
-  val = atoi(cdata);
-  return val == 0 ? 1 : 0;
+  return errno ? 0 : atoi(cdata);
 }
 
 static inline long get_update_interval(char** sensors, unsigned int num) {
   unsigned long ret = 0;
-  unsigned long tmp = 0;
+  unsigned long tmp;
   unsigned int i;
+  char file[64];
+  int fd;
+  char cdata[24];
+  int read_ret;
 
   for (i = 0; i < num; i++) {
-    tmp = get_sensor_update_interval(sensors[i]);
-    if (tmp == 0) {
-      fprintf(stderr, "get_update_interval: Warning: could not read update "
-              "interval from sensor %s\n", sensors[i]);
+    snprintf(file, sizeof(file), INA231_FILE_TEMPLATE_UPDATE_PERIOD, sensors[i]);
+    if ((fd = open(file, O_RDONLY)) <= 0) {
+      perror(file);
+      continue;
     }
-    // keep the largest update_interval
-    ret = tmp > ret ? tmp : ret;
-  }
-
-  if (ret == 0) {
-    // failed to read values - use default
-    ret = ODROID_SENSOR_READ_DELAY_US_DEFAULT;
-    fprintf(stderr, "get_update_interval: Using default value: %ld us\n", ret);
-  }
-  return ret;
-}
-
-/**
- * Stop the sensors polling pthread, cleanup, and close sensor files.
- */
-int energymon_finish_odroid(energymon* impl) {
-  if (impl == NULL || impl->state == NULL) {
-    return -1;
-  }
-
-  int ret = 0;
-  unsigned int i;
-  energymon_odroid* em = (energymon_odroid*) impl->state;
-  // stop sensors polling thread and cleanup
-  em->odroid_read_sensors = 0;
-  if(pthread_join(em->odroid_sensor_thread, NULL)) {
-    fprintf(stderr, "energymon_finish_odroid: Error joining ODROID sensor "
-            "polling thread\n");
-    ret -= 1;
-  }
-
-  if (em->odroid_pwr_ids != NULL) {
-    // close individual sensor files
-    for (i = 0; i < em->odroid_pwr_id_count; i++) {
-      if (em->odroid_pwr_ids[i] > 0) {
-        ret += close(em->odroid_pwr_ids[i]);
+    if ((read_ret = read(fd, cdata, sizeof(cdata))) <= 0) {
+      perror(file);
+    }
+    if (close(fd)) {
+      perror(file);
+    }
+    if (!read_ret) {
+      errno = 0;
+      tmp = strtoul(cdata, NULL, 0);
+      if (errno) {
+        perror(file);
+      } else {
+        // keep the largest update_interval
+        ret = tmp > ret ? tmp : ret;
       }
     }
-    free(em->odroid_pwr_ids);
-    free(impl->state);
-    impl->state = NULL;
+  }
+  if (!ret) {
+    ret = INA231_DEFAULT_UPDATE_INTERVAL_US;
+#ifdef ENERGYMON_DEBUG
+    fprintf(stderr, "get_update_interval: Using default value: %lu us\n", ret);
+#endif
   }
   return ret;
 }
 
-/**
- * Read power from a sensor file
- */
-static inline double odroid_read_pwr(int fd) {
-  double val;
-  char cdata[sizeof(double)];
-  ssize_t data_size = pread(fd, cdata, sizeof(cdata), 0);
-  if (data_size != sizeof(cdata)) {
-    perror("odroid_read_pwr");
+int energymon_finish_odroid(energymon* em) {
+  if (em == NULL || em->state == NULL) {
+    errno = EINVAL;
     return -1;
   }
-  val = strtod(cdata, NULL);
-  return val;
+
+  int err_save;
+  unsigned int i;
+  energymon_odroid* state = (energymon_odroid*) em->state;
+  // stop sensors polling thread and cleanup
+  state->poll_sensors = 0;
+  err_save = pthread_join(state->thread, NULL);
+
+  // close individual sensor files
+  for (i = 0; i < state->count; i++) {
+    if (state->fds[i] > 0 && close(state->fds[i])) {
+      err_save = err_save ? err_save : errno;
+    }
+  }
+  free(em->state);
+  em->state = NULL;
+  errno = err_save;
+  return errno ? -1 : 0;
 }
 
 /**
@@ -192,64 +143,87 @@ static inline int is_sensor_dir(struct dirent* entry) {
           && entry->d_name[1] == '-';
 }
 
-static inline char** odroid_get_sensor_directories(unsigned int* count) {
-  unsigned int i = 0;
-  DIR* sensors_dir;
+static inline void free_sensor_directories(char** dirs, unsigned int n) {
+  while (n > 0) {
+    free(dirs[--n]);
+  }
+  free(dirs);
+}
+
+/**
+ * Set the count value to the number of sensors found.
+ * Returns a list of directories of size 'count', or NULL on failure.
+ */
+static inline char** get_sensor_directories(unsigned int* count) {
+  unsigned int i;
+  int err_save;
   struct dirent* entry;
-  char** directories = NULL;
+  char** directories;
   *count = 0;
-  if ((sensors_dir = opendir(ODROID_INA231_DIR)) != NULL) {
-    while ((entry = readdir(sensors_dir)) != NULL) {
-      if (is_sensor_dir(entry)) {
-        (*count)++;
-      }
-    }
-    rewinddir(sensors_dir);
-    if (*count > 0) {
-      directories = malloc(*count * sizeof(char*));
-      while ((entry = readdir(sensors_dir)) != NULL && i < *count) {
+  errno = 0;
+  DIR* sensors_dir = opendir(INA231_DIR);
+  if (sensors_dir == NULL) {
+    return NULL;
+  }
+  while ((entry = readdir(sensors_dir)) != NULL) {
+    (*count) += is_sensor_dir(entry) ? 1 : 0;
+  }
+  if (errno) { // from readdir
+    *count = 0;
+  } else if (*count > 0) {
+    directories = calloc(*count, sizeof(char*));
+    if (directories != NULL) {
+      rewinddir(sensors_dir);
+      for (i = 0; (entry = readdir(sensors_dir)) != NULL && i < *count;) {
         if (is_sensor_dir(entry)) {
-          directories[i++] = entry->d_name;
+          directories[i] = strdup(entry->d_name);
+          if (directories[i] == NULL) {
+            break; // strdup failed
+          }
+          i++;
         }
       }
+      if (errno) { // from readdir or strdup
+        free_sensor_directories(directories, i);
+        directories = NULL;
+        *count = 0;
+      }
     }
-    closedir(sensors_dir);
-  } else {
-    perror("get_sensors");
   }
+  err_save = errno;
+  if (closedir(sensors_dir)) {
+    perror(INA231_DIR);
+  }
+  // ENOENT if no error but didn't find any sensor directories
+  errno = (!err_save && *count == 0) ? ENOENT : err_save;
   return directories;
 }
 
 /**
  * pthread function to poll the sensors at regular intervals.
  */
-void* odroid_poll_sensors(void* args) {
-  energymon_odroid* em = (energymon_odroid*) args;
-  double sum;
-  double reading;
+static void* odroid_poll_sensors(void* args) {
+  energymon_odroid* state = (energymon_odroid*) args;
+  char cdata[8];
+  double sum_w;
   unsigned int i;
   struct timespec ts_interval;
-  ts_interval.tv_sec = em->odroid_read_delay_us / (1000 * 1000);
-  ts_interval.tv_nsec = (em->odroid_read_delay_us % (1000 * 1000) * 1000);
-  while (em->odroid_read_sensors) {
-    sum = 0;
+  ts_interval.tv_sec = state->read_delay_us / (1000 * 1000);
+  ts_interval.tv_nsec = (state->read_delay_us % (1000 * 1000) * 1000);
+  nanosleep(&ts_interval, NULL);
+  while (state->poll_sensors) {
     // read individual sensors
-    for (i = 0; i < em->odroid_pwr_id_count; i++) {
-      reading = odroid_read_pwr(em->odroid_pwr_ids[i]);
-      if (reading < 0) {
-        fprintf(stderr, "odroid_poll_sensors: At least one ODROID power sensor"
-                " returned bad value - skipping this reading\n");
-        break;
-      } else {
-        // sum the power values
-        sum += reading;
+    for (sum_w = 0, errno = 0, i = 0; i < state->count && !errno; i++) {
+      if (pread(state->fds[i], cdata, sizeof(cdata), 0) > 0) {
+        sum_w += strtod(cdata, NULL);
       }
     }
-    if (reading >= 0) {
-      em->odroid_total_energy += sum * to_usec(&ts_interval);
+    if (errno) {
+      perror("odroid_poll_sensors: skipping power sensor reading");
+    } else {
+      state->total_uj += sum_w * to_usec(&ts_interval);
     }
     // sleep for the update interval of the sensors
-    // TODO: use conditional here so thread can be woken up to end immediately
     nanosleep(&ts_interval, NULL);
   }
   return (void*) NULL;
@@ -258,94 +232,81 @@ void* odroid_poll_sensors(void* args) {
 /**
  * Open all sensor files and start the thread to poll the sensors.
  */
-int energymon_init_odroid(energymon* impl) {
-  if (impl == NULL || impl->state != NULL) {
+int energymon_init_odroid(energymon* em) {
+  if (em == NULL || em->state != NULL) {
+    errno = EINVAL;
     return -1;
   }
 
-  int ret = 0;
   unsigned int i;
-  char odroid_pwr_filename[64];
-  char** sensor_dirs;
-
-  energymon_odroid* em = malloc(sizeof(energymon_odroid));
-  if (em == NULL) {
-    return -1;
-  }
-  impl->state = em;
-
-  // reset the total energy reading
-  em->odroid_total_energy = 0;
+  char file[64];
+  unsigned int count;
 
   // find the sensors
-  em->odroid_pwr_id_count = 0;
-  sensor_dirs = odroid_get_sensor_directories(&em->odroid_pwr_id_count);
-  if (em->odroid_pwr_id_count == 0) {
-    fprintf(stderr, "energymon_init_odroid: Failed to find power sensors\n");
+  char** sensor_dirs = get_sensor_directories(&count);
+  if (count == 0) {
+    perror("energymon_init_odroid: Failed to find power sensors: "INA231_DIR);
     return -1;
   }
-  printf("energymon_init_odroid: Found %u INA231 sensors:",
-         em->odroid_pwr_id_count);
-  for (i = 0; i < em->odroid_pwr_id_count; i++) {
-    printf(" %s", sensor_dirs[i]);
-  }
-  printf("\n");
 
   // ensure that the sensors are enabled
-  for (i = 0; i < em->odroid_pwr_id_count; i++) {
-    if (odroid_check_sensor_enabled(sensor_dirs[i])) {
-      fprintf(stderr, "energymon_init_odroid: power sensor not enabled: %s\n",
-              sensor_dirs[i]);
-      free(sensor_dirs);
+  for (i = 0; i < count; i++) {
+    snprintf(file, sizeof(file), INA231_FILE_TEMPLATE_ENABLE, sensor_dirs[i]);
+    if (!is_sensor_enabled(file)) {
+      if (errno) {
+        perror(file);
+      } else {
+        fprintf(stderr, "energymon_init_odroid: sensor not enabled: %s\n",
+                sensor_dirs[i]);
+      }
+      free_sensor_directories(sensor_dirs, count);
       return -1;
     }
   }
 
-  // open individual sensor files
-  em->odroid_pwr_ids = malloc(em->odroid_pwr_id_count * sizeof(unsigned int));
-  if (em->odroid_pwr_ids == NULL) {
-    free(impl->state);
-    impl->state = NULL;
+  size_t size = sizeof(energymon_odroid) + count * sizeof(int);
+  energymon_odroid* state = calloc(1, size);
+  if (state == NULL) {
     return -1;
   }
-  for (i = 0; i < em->odroid_pwr_id_count; i++) {
-    sprintf(odroid_pwr_filename, ODROID_PWR_FILENAME_TEMPLATE, sensor_dirs[i]);
-    em->odroid_pwr_ids[i] = odroid_open_file(odroid_pwr_filename);
-    if (em->odroid_pwr_ids[i] < 0) {
-      free(sensor_dirs);
-      energymon_finish_odroid(impl);
+  state->count = count;
+
+  // open individual sensor files
+  em->state = state;
+  for (i = 0; i < state->count; i++) {
+    snprintf(file, sizeof(file), INA231_FILE_TEMPLATE_POWER, sensor_dirs[i]);
+    state->fds[i] = open(file, O_RDONLY);
+    if (state->fds[i] < 0) {
+      perror(file);
+      free_sensor_directories(sensor_dirs, state->count);
+      energymon_finish_odroid(em);
       return -1;
     }
   }
 
   // get the delay time between reads
-  em->odroid_read_delay_us = get_update_interval(sensor_dirs,
-                                                 em->odroid_pwr_id_count);
+  state->read_delay_us = get_update_interval(sensor_dirs, state->count);
 
   // we're finished with this variable
-  free(sensor_dirs);
+  free_sensor_directories(sensor_dirs, state->count);
 
   // start sensors polling thread
-  em->odroid_read_sensors = 1;
-  ret = pthread_create(&em->odroid_sensor_thread,
-                       NULL,
-                       odroid_poll_sensors,
-                       em);
-  if (ret) {
-    fprintf(stderr,
-            "energymon_init_odroid: Failed to start ODROID sensors thread\n");
-    energymon_finish_odroid(impl);
-    return ret;
-  }
-
-  return ret;
-}
-
-uint64_t energymon_read_total_odroid(const energymon* impl) {
-  if (impl == NULL || impl->state == NULL) {
+  state->poll_sensors = 1;
+  errno = pthread_create(&state->thread, NULL, odroid_poll_sensors, state);
+  if (errno) {
+    energymon_finish_odroid(em);
     return -1;
   }
-  return ((energymon_odroid*) impl->state)->odroid_total_energy;
+
+  return 0;
+}
+
+uint64_t energymon_read_total_odroid(const energymon* em) {
+  if (em == NULL || em->state == NULL) {
+    errno = EINVAL;
+    return 0;
+  }
+  return ((energymon_odroid*) em->state)->total_uj;
 }
 
 char* energymon_get_source_odroid(char* buffer, size_t n) {
@@ -353,18 +314,23 @@ char* energymon_get_source_odroid(char* buffer, size_t n) {
 }
 
 uint64_t energymon_get_interval_odroid(const energymon* em) {
-  return ((energymon_odroid*) em->state)->odroid_read_delay_us;
+  if (em == NULL || em->state == NULL) {
+    errno = EINVAL;
+    return 0;
+  }
+  return ((energymon_odroid*) em->state)->read_delay_us;
 }
 
-int energymon_get_odroid(energymon* impl) {
-  if (impl == NULL) {
+int energymon_get_odroid(energymon* em) {
+  if (em == NULL) {
+    errno = EINVAL;
     return -1;
   }
-  impl->finit = &energymon_init_odroid;
-  impl->fread = &energymon_read_total_odroid;
-  impl->ffinish = &energymon_finish_odroid;
-  impl->fsource = &energymon_get_source_odroid;
-  impl->finterval = &energymon_get_interval_odroid;
-  impl->state = NULL;
+  em->finit = &energymon_init_odroid;
+  em->fread = &energymon_read_total_odroid;
+  em->ffinish = &energymon_finish_odroid;
+  em->fsource = &energymon_get_source_odroid;
+  em->finterval = &energymon_get_interval_odroid;
+  em->state = NULL;
   return 0;
 }
