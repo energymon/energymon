@@ -1,25 +1,33 @@
-sudo: required
+os:
+  - linux
 
-language: c
+addons:
+  apt:
+    sources:
+      - kubuntu-backports
+    packages:
+      - cmake
+      - libudev-dev
+      - libusb-1.0-0-dev
+      - autotools-dev
+      - autoconf
+      - automake
+      - libtool
 
 before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install libudev-dev libusb-1.0-0-dev autotools-dev autoconf automake libtool
   - wget https://github.com/signal11/hidapi/archive/master.zip -O /tmp/hidapi.zip
   - unzip /tmp/hidapi.zip -d /tmp
   - cd /tmp/hidapi-master
   - ./bootstrap
   - ./configure
   - make
-  - sudo make install
-  - sudo ldconfig
   - cd -
-  - sudo add-apt-repository ppa:kubuntu-ppa/backports -y
-  - sudo apt-get update
-  - sudo apt-get install --only-upgrade cmake
+
+language: c
 
 script:
   - mkdir _build
   - cd _build
-  - cmake ..
+  - cmake .. -DCMAKE_C_FLAGS="-I/tmp/hidapi-master -L/tmp/hidapi-master/libusb/.libs/"
+  - export
   - make
