@@ -1,7 +1,7 @@
 /**
  * Internal utility functions.
  */
- #include <stddef.h>
+#include <stddef.h>
 
 /**
  * Efficient bounded string copy.
@@ -13,5 +13,6 @@
  *  the source buffer
  * @param n
  *  the maximum number of chars to write
+ * @return pointer to dest, or NULL on failure
  */
 char* energymon_strencpy(char* dest, const char* src, size_t n);
