@@ -20,6 +20,7 @@
 #include "energymon.h"
 #ifdef ENERGYMON_OSP_USE_POLLING
 #include "energymon-osp-polling.h"
+#include "energymon-time-util.h"
 #else
 #include "energymon-osp.h"
 #endif
@@ -155,20 +156,36 @@ static void* osp_poll_device(void* args) {
   energymon_osp* state = (energymon_osp*) args;
   double watts;
   char w[8];
-  usleep(ENERGYMON_OSP_POLL_DELAY_US);
+  int64_t exec_us = 0;
+  int err_save;
+  struct timespec ts;
+  if (clock_gettime(CLOCK_MONOTONIC, &ts)) {
+    // must be that CLOCK_MONOTONIC is not supported
+    perror("osp_poll_device");
+    return (void*) NULL;
+  }
+  energymon_sleep_us(ENERGYMON_OSP_POLL_DELAY_US);
   while (state->poll_sensors) {
     w[0] = '\0';
-    if (em_osp_request_data_retry(state, ENERGYMON_OSP_RETRIES)) {
-      perror("osp_poll_device: Data request failed");
-    } else if (state->buf[0] == OSP_REQUEST_DATA) {
+    errno = 0;
+    if (em_osp_request_data_retry(state, ENERGYMON_OSP_RETRIES) == 0 &&
+        state->buf[0] == OSP_REQUEST_DATA) {
       strncpy(w, (char*) &state->buf[17], 6);
-      watts = atof(w);
-      state->total_uj += watts * ENERGYMON_OSP_POLL_DELAY_US;
-    } else {
-      perror("osp_poll_device: Did not get data");
+      watts = strtod(w, NULL);
+    } else if (!errno) {
+      // hidapi not guaranteed to set errno, so we should set it to something
+      errno = EIO;
     }
-    // sleep for the polling delay
-    usleep(ENERGYMON_OSP_POLL_DELAY_US);
+    err_save = errno;
+    exec_us = energymon_gettime_us(CLOCK_MONOTONIC, &ts);
+    errno = err_save;
+    if (errno) {
+      perror("osp_poll_device: Did not get data");
+    } else {
+      state->total_uj += watts * exec_us;
+    }
+    // sleep for the polling delay (minus most overhead)
+    energymon_sleep_us(2 * ENERGYMON_OSP_POLL_DELAY_US - exec_us);
   }
   return (void*) NULL;
 }

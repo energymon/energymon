@@ -1,5 +1,6 @@
 set(LNAME energymon-osp)
 set(SOURCES ${LNAME}.c;../src/energymon-util.c)
+set(SOURCES_POLLING ${SOURCES};../src/energymon-time-util.c)
 set(DESCRIPTION "EnergyMon implementation for ODROID Smart Power")
 set(DESCRIPTION_POLLING "EnergyMon implementation for ODROID Smart Power with Polling")
 
@@ -20,11 +21,11 @@ target_link_libraries(${LNAME} hidapi-libusb)
 add_library(${LNAME}-static STATIC ${SOURCES})
 target_link_libraries(${LNAME}-static hidapi-libusb)
 
-add_library(${LNAME}-polling SHARED ${SOURCES})
-target_link_libraries(${LNAME}-polling hidapi-libusb pthread)
+add_library(${LNAME}-polling SHARED ${SOURCES_POLLING})
+target_link_libraries(${LNAME}-polling hidapi-libusb pthread rt)
 
-add_library(${LNAME}-polling-static STATIC ${SOURCES})
-target_link_libraries(${LNAME}-polling-static hidapi-libusb pthread)
+add_library(${LNAME}-polling-static STATIC ${SOURCES_POLLING})
+target_link_libraries(${LNAME}-polling-static hidapi-libusb pthread rt)
 
 if(DEFAULT STREQUAL "osp")
   BUILD_DEFAULT("${SOURCES}" "hidapi-libusb" "")
@@ -33,9 +34,9 @@ if(DEFAULT STREQUAL "osp")
   install(TARGETS energymon-default energymon-default-static DESTINATION lib)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/energymon-default.pc ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/energymon-default-static.pc DESTINATION lib/pkgconfig)
 elseif(DEFAULT STREQUAL "osp-polling")
-  BUILD_DEFAULT("${SOURCES}" "hidapi-libusb;pthread" "ENERGYMON_OSP_USE_POLLING")
-  PKG_CONFIG("energymon-default" "${DESCRIPTION_POLLING}" "-lhidapi-libusb -lpthread")
-  PKG_CONFIG("energymon-default-static" "${DESCRIPTION_POLLING}" "-lhidapi-libusb -lpthread")
+  BUILD_DEFAULT("${SOURCES_POLLING}" "hidapi-libusb;pthread;rt" "ENERGYMON_OSP_USE_POLLING")
+  PKG_CONFIG("energymon-default" "${DESCRIPTION_POLLING}" "-lhidapi-libusb -lpthread -lrt")
+  PKG_CONFIG("energymon-default-static" "${DESCRIPTION_POLLING}" "-lhidapi-libusb -lpthread -lrt")
   install(TARGETS energymon-default energymon-default-static DESTINATION lib)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/energymon-default.pc ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/energymon-default-static.pc DESTINATION lib/pkgconfig)
 endif()
@@ -47,8 +48,8 @@ set_target_properties (${LNAME}-polling ${LNAME}-polling-static PROPERTIES COMPI
 PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "-lhidapi-libusb")
 PKG_CONFIG("${LNAME}-static" "${DESCRIPTION}" "-lhidapi-libusb")
 
-PKG_CONFIG("${LNAME}-polling" "${DESCRIPTION_POLLING}" "-lhidapi-libusb -lpthread")
-PKG_CONFIG("${LNAME}-polling-static" "${DESCRIPTION_POLLING}" "-lhidapi-libusb -lpthread")
+PKG_CONFIG("${LNAME}-polling" "${DESCRIPTION_POLLING}" "-lhidapi-libusb -lpthread -lrt")
+PKG_CONFIG("${LNAME}-polling-static" "${DESCRIPTION_POLLING}" "-lhidapi-libusb -lpthread -lrt")
 
 # Install
 

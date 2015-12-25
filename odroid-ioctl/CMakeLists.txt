@@ -1,27 +1,27 @@
 set(LNAME energymon-odroid-ioctl)
-set(SOURCES ${LNAME}.c;../src/energymon-util.c)
+set(SOURCES ${LNAME}.c;../src/energymon-util.c;../src/energymon-time-util.c)
 set(DESCRIPTION "EnergyMon implementation for ODROID systems using ioctl")
 
 # Libraries
 
 add_library(${LNAME} SHARED ${SOURCES})
-target_link_libraries(${LNAME} pthread)
+target_link_libraries(${LNAME} pthread rt)
 
 add_library(${LNAME}-static STATIC ${SOURCES})
-target_link_libraries(${LNAME}-static pthread)
+target_link_libraries(${LNAME}-static pthread rt)
 
 if(DEFAULT STREQUAL "odroid-ioctl")
-  BUILD_DEFAULT("${SOURCES}" "pthread" "")
-  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "")
-  PKG_CONFIG("energymon-default-static" "${DESCRIPTION}" "")
+  BUILD_DEFAULT("${SOURCES}" "pthread;rt" "")
+  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "-lrt")
+  PKG_CONFIG("energymon-default-static" "${DESCRIPTION}" "-lrt")
   install(TARGETS energymon-default energymon-default-static DESTINATION lib)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/energymon-default.pc ${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/energymon-default-static.pc DESTINATION lib/pkgconfig)
 endif()
 
 # pkg-config
 
-PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "-lpthread")
-PKG_CONFIG("${LNAME}-static" "${DESCRIPTION}" "-lpthread")
+PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "-lpthread -lrt")
+PKG_CONFIG("${LNAME}-static" "${DESCRIPTION}" "-lpthread -lrt")
 
 # Install
 

@@ -17,6 +17,7 @@
 #include <sys/ioctl.h>
 #include "energymon.h"
 #include "energymon-odroid-ioctl.h"
+#include "energymon-time-util.h"
 #include "energymon-util.h"
 
 #ifdef ENERGYMON_DEFAULT
@@ -147,10 +148,15 @@ static void* odroid_ioctl_poll_sensors(void* args) {
   energymon_odroid_ioctl* state = (energymon_odroid_ioctl*) args;
   uint64_t sum_uw;
   unsigned int i;
-  struct timespec ts_interval;
-  ts_interval.tv_sec = state->poll_delay_us / (1000 * 1000);
-  ts_interval.tv_nsec = (state->poll_delay_us % (1000 * 1000) * 1000);
-  nanosleep(&ts_interval, NULL);
+  int64_t exec_us;
+  int err_save;
+  struct timespec ts;
+  if (clock_gettime(CLOCK_MONOTONIC, &ts)) {
+    // must be that CLOCK_MONOTONIC is not supported
+    perror("odroid_ioctl_poll_sensors");
+    return (void*) NULL;
+  }
+  energymon_sleep_us(state->poll_delay_us);
   while (state->poll_sensors) {
     // read individual sensors
     for (errno = 0, sum_uw = 0, i = 0; i < SENSOR_COUNT && !errno; i++) {
@@ -158,13 +164,17 @@ static void* odroid_ioctl_poll_sensors(void* args) {
         sum_uw += state->sensor[i].data.cur_uW;
       }
     }
-    if (errno) {
+    err_save = errno;
+    exec_us = energymon_gettime_us(CLOCK_MONOTONIC, &ts);
+    if (err_save) {
+      errno = err_save;
       perror("odroid_ioctl_poll_sensors: skipping power sensor reading");
     } else {
-      state->total_uj += sum_uw * state->poll_delay_us / 1000000;
+      state->total_uj += sum_uw * exec_us / 1000000;
     }
-    // sleep for the update interval of the sensors
-    nanosleep(&ts_interval, NULL);
+    // sleep for the update interval of the sensors (minus most overhead)
+    energymon_sleep_us(2 * state->poll_delay_us - exec_us);
+    errno = 0;
   }
   return (void*) NULL;
 }

@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include "energymon.h"
 #include "energymon-odroid.h"
+#include "energymon-time-util.h"
 #include "energymon-util.h"
 
 #ifdef ENERGYMON_DEFAULT
@@ -207,10 +208,15 @@ static void* odroid_poll_sensors(void* args) {
   char cdata[8];
   double sum_w;
   unsigned int i;
-  struct timespec ts_interval;
-  ts_interval.tv_sec = state->read_delay_us / (1000 * 1000);
-  ts_interval.tv_nsec = (state->read_delay_us % (1000 * 1000) * 1000);
-  nanosleep(&ts_interval, NULL);
+  int64_t exec_us;
+  int err_save;
+  struct timespec ts;
+  if (clock_gettime(CLOCK_MONOTONIC, &ts)) {
+    // must be that CLOCK_MONOTONIC is not supported
+    perror("odroid_poll_sensors");
+    return (void*) NULL;
+  }
+  energymon_sleep_us(state->read_delay_us);
   while (state->poll_sensors) {
     // read individual sensors
     for (sum_w = 0, errno = 0, i = 0; i < state->count && !errno; i++) {
@@ -218,13 +224,17 @@ static void* odroid_poll_sensors(void* args) {
         sum_w += strtod(cdata, NULL);
       }
     }
-    if (errno) {
+    err_save = errno;
+    exec_us = energymon_gettime_us(CLOCK_MONOTONIC, &ts);
+    if (err_save) {
+      errno = err_save;
       perror("odroid_poll_sensors: skipping power sensor reading");
     } else {
-      state->total_uj += sum_w * to_usec(&ts_interval);
+      state->total_uj += sum_w * exec_us;
     }
-    // sleep for the update interval of the sensors
-    nanosleep(&ts_interval, NULL);
+    // sleep for the update interval of the sensors (minus most overhead)
+    energymon_sleep_us(2 * state->read_delay_us - exec_us);
+    errno = 0;
   }
   return (void*) NULL;
 }
