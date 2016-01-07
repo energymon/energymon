@@ -85,8 +85,6 @@ static inline int em_osp_request_startstop(energymon_osp* em) {
   if (hid_write(em->device, em->buf, sizeof(em->buf)) == -1) {
     return -1;
   }
-  // let meter reset
-  usleep(ENERGYMON_OSP_SLEEP_TIME_US);
   return 0;
 }
 
@@ -102,6 +100,7 @@ static inline int em_osp_request_data_retry(energymon_osp* em,
   do {
     // always read twice - the first attempt often returns old data
     em_osp_request_data(em);
+    errno = 0;
     if (em_osp_request_data(em)) {
       return -1; // a HID error, we won't try to recover
     }
@@ -258,6 +257,9 @@ int energymon_init_osp(energymon* em) {
     energymon_finish_osp_local(em);
     return -1;
   }
+
+  // let meter reset
+  usleep(ENERGYMON_OSP_SLEEP_TIME_US);
 
 #ifdef ENERGYMON_OSP_USE_POLLING
   // start device polling thread
