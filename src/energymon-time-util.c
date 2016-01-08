@@ -21,8 +21,8 @@ int64_t energymon_gettime_us(clockid_t clk_id, struct timespec* ts) {
     // clk_id is not supported (errno will be EINVAL)
     return 0;
   }
-  result = (now.tv_sec - ts->tv_sec) * ONE_MILLION +
-           (now.tv_nsec - ts->tv_nsec) / ONE_THOUSAND;
+  result = (now.tv_sec - ts->tv_sec) * (int64_t) ONE_MILLION +
+           (now.tv_nsec - ts->tv_nsec) / (int64_t) ONE_THOUSAND;
   memcpy(ts, &now, sizeof(struct timespec));
   return result;
 }
@@ -37,10 +37,10 @@ int energymon_sleep_us(int64_t us) {
     // only happens if CLOCK_MONOTONIC isn't supported
     return errno;
   }
-  ts.tv_sec += us / ONE_MILLION;
-  ts.tv_nsec += (us % ONE_MILLION) * ONE_THOUSAND;
-  if (ts.tv_nsec >= ONE_BILLION) {
-    ts.tv_nsec -= ONE_BILLION;
+  ts.tv_sec += us / (time_t) ONE_MILLION;
+  ts.tv_nsec += (us % (long) ONE_MILLION) * (long) ONE_THOUSAND;
+  if (ts.tv_nsec >= (long) ONE_BILLION) {
+    ts.tv_nsec -= (long) ONE_BILLION;
     ts.tv_sec++;
   }
   // continue sleeping only if interrupted
