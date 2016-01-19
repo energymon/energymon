@@ -71,6 +71,7 @@ typedef struct energymon_odroid_ioctl {
 } energymon_odroid_ioctl;
 
 static inline int set_sensor_enable(ina231_sensor_t* sensor, int enable) {
+  sensor->data.enable = enable ? 1 : 0;
   return ioctl(sensor->fd, INA231_IOCSSTATUS, &sensor->data) < 0;
 }
 

@@ -26,8 +26,13 @@ static void print_usage(const char* app) {
   fprintf(stderr, "  %s <output_file>\n", app);
 }
 
-void shandle(int dummy) {
-  running = 0;
+void shandle(int sig) {
+  switch (sig) {
+    case SIGTERM:
+      running = 0;
+    default:
+      break;
+  }
 }
 
 int main(int argc, char** argv) {

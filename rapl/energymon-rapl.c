@@ -40,7 +40,7 @@ typedef struct rapl_zone {
 } rapl_zone;
 
 typedef struct energymon_rapl {
-  int count;
+  unsigned int count;
   rapl_zone zones[];
 } energymon_rapl;
 
