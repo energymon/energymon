@@ -31,7 +31,8 @@ endmacro(BUILD_DEFAULT)
 macro(PKG_CONFIG name description dependencies)
   set(PKG_CONFIG_NAME "${name}")
   set(PKG_CONFIG_DESCRIPTION "${description}")
-  set(PKG_CONFIG_LIBS "-L\${libdir} -l${name} ${dependencies}")
+  set(PKG_CONFIG_LIBS "-L\${libdir} -l${name}")
+  set(PKG_CONFIG_LIBS_PRIVATE "${dependencies}")
   configure_file(
     "${CMAKE_SOURCE_DIR}/pkgconfig.in"
     "${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/${name}.pc"

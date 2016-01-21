@@ -8,3 +8,4 @@ Description: ${PKG_CONFIG_DESCRIPTION}
 Version: ${PROJECT_VERSION}
 Cflags: ${PKG_CONFIG_CFLAGS}
 Libs: ${PKG_CONFIG_LIBS}
+Libs.private: ${PKG_CONFIG_LIBS_PRIVATE}
