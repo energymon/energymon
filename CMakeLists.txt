@@ -7,11 +7,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-unknown-pragmas -Wextra -pedantic
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
-set(PKG_CONFIG_EXEC_PREFIX "\${prefix}")
-set(PKG_CONFIG_LIBDIR "\${prefix}/lib")
-set(PKG_CONFIG_INCLUDEDIR "\${prefix}/include/energymon")
-set(PKG_CONFIG_CFLAGS "-I\${includedir}")
-
 # force fPIC on static libs
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
@@ -29,13 +24,30 @@ macro(BUILD_DEFAULT source deplibs definitions)
 endmacro(BUILD_DEFAULT)
 
 macro(PKG_CONFIG name description dependencies)
+  set(PKG_CONFIG_PREFIX "${CMAKE_INSTALL_PREFIX}")
+  set(PKG_CONFIG_EXEC_PREFIX "\${prefix}")
+  set(PKG_CONFIG_LIBDIR "\${prefix}/lib")
+  set(PKG_CONFIG_INCLUDEDIR "\${prefix}/include/energymon")
   set(PKG_CONFIG_NAME "${name}")
   set(PKG_CONFIG_DESCRIPTION "${description}")
+  set(PKG_CONFIG_CFLAGS "-I\${includedir}")
   set(PKG_CONFIG_LIBS "-L\${libdir} -l${name}")
   set(PKG_CONFIG_LIBS_PRIVATE "${dependencies}")
+  # The config file that will be installed
   configure_file(
     "${CMAKE_SOURCE_DIR}/pkgconfig.in"
     "${CMAKE_BINARY_DIR}/pkgconfig/${name}.pc"
+    @ONLY
+  )
+  install(FILES ${CMAKE_BINARY_DIR}/pkgconfig/${name}.pc DESTINATION lib/pkgconfig)
+  # The config file that points to the local build (without install)
+  set(PKG_CONFIG_PREFIX "${CMAKE_BINARY_DIR}")
+  set(PKG_CONFIG_INCLUDEDIR "${CMAKE_CURRENT_SOURCE_DIR}")
+  set(PKG_CONFIG_CFLAGS "-I${CMAKE_SOURCE_DIR}/inc -I\${includedir}")
+  configure_file(
+    "${CMAKE_SOURCE_DIR}/pkgconfig.in"
+    "${CMAKE_BINARY_DIR}/${name}.pc"
+    @ONLY
   )
 endmacro(PKG_CONFIG)
 
