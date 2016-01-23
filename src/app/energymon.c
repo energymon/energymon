@@ -16,7 +16,7 @@
 
 // set a minimum sleep time between polls
 #ifndef ENERGYMON_MIN_INTERVAL_US
-  #define ENERGYMON_MIN_INTERVAL_US 1000
+  #define ENERGYMON_MIN_INTERVAL_US 100000
 #endif
 
 static volatile int running = 1;
