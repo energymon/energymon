@@ -9,7 +9,7 @@
  * @date 2015-01-27
  */
 
-#include <hidapi/hidapi.h>
+#include <hidapi.h>
 #include <inttypes.h>
 #include <errno.h>
 #include <pthread.h>

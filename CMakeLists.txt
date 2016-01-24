@@ -23,16 +23,17 @@ macro(BUILD_DEFAULT source deplibs definitions)
   set_target_properties(energymon-default energymon-default-static PROPERTIES COMPILE_DEFINITIONS "ENERGYMON_DEFAULT;${definitions}")
 endmacro(BUILD_DEFAULT)
 
-macro(PKG_CONFIG name description dependencies)
+macro(PKG_CONFIG name description requires_private libs_private)
   set(PKG_CONFIG_PREFIX "${CMAKE_INSTALL_PREFIX}")
   set(PKG_CONFIG_EXEC_PREFIX "\${prefix}")
   set(PKG_CONFIG_LIBDIR "\${prefix}/lib")
   set(PKG_CONFIG_INCLUDEDIR "\${prefix}/include/energymon")
   set(PKG_CONFIG_NAME "${name}")
   set(PKG_CONFIG_DESCRIPTION "${description}")
+  set(PKG_CONFIG_REQUIRES_PRIVATE "${requires_private}")
   set(PKG_CONFIG_CFLAGS "-I\${includedir}")
   set(PKG_CONFIG_LIBS "-L\${libdir} -l${name}")
-  set(PKG_CONFIG_LIBS_PRIVATE "${dependencies}")
+  set(PKG_CONFIG_LIBS_PRIVATE "${libs_private}")
   # The config file that will be installed
   configure_file(
     "${CMAKE_SOURCE_DIR}/pkgconfig.in"

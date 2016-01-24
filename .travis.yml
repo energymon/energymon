@@ -19,8 +19,10 @@ before_install:
   - unzip /tmp/hidapi.zip -d /tmp
   - cd /tmp/hidapi-master
   - ./bootstrap
-  - ./configure
+  - ./configure --prefix=`pwd`/_local_install
   - make
+  - make install
+  - export PKG_CONFIG_PATH="`pwd`/_local_install/lib/pkgconfig:$PKG_CONFIG_PATH"
   - cd -
 
 language: c
@@ -28,6 +30,6 @@ language: c
 script:
   - mkdir _build
   - cd _build
-  - cmake .. -DCMAKE_C_FLAGS="-I/tmp/hidapi-master -L/tmp/hidapi-master/libusb/.libs/"
+  - cmake ..
   - export
   - make

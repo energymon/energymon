@@ -9,15 +9,15 @@ add_library(${LNAME}-static STATIC ${SOURCES})
 
 if(DEFAULT STREQUAL "dummy")
   BUILD_DEFAULT("${SOURCES}" "" "")
-  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "")
-  PKG_CONFIG("energymon-default-static" "${DESCRIPTION}" "")
+  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "")
+  PKG_CONFIG("energymon-default-static" "${DESCRIPTION}" "" "")
   install(TARGETS energymon-default energymon-default-static DESTINATION lib)
 endif()
 
 # pkg-config
 
-PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "")
-PKG_CONFIG("${LNAME}-static" "${DESCRIPTION}" "")
+PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "" "")
+PKG_CONFIG("${LNAME}-static" "${DESCRIPTION}" "" "")
 
 # Install
 
