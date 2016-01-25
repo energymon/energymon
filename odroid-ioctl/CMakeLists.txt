@@ -12,8 +12,8 @@ target_link_libraries(${LNAME}-static pthread rt)
 
 if(DEFAULT STREQUAL "odroid-ioctl")
   BUILD_DEFAULT("${SOURCES}" "pthread;rt" "")
-  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "-lrt")
-  PKG_CONFIG("energymon-default-static" "${DESCRIPTION}" "" "-lrt")
+  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "-lpthread -lrt")
+  PKG_CONFIG("energymon-default-static" "${DESCRIPTION}" "" "-lpthread -lrt")
   install(TARGETS energymon-default energymon-default-static DESTINATION lib)
 endif()
 
