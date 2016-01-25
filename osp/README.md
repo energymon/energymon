@@ -18,26 +18,14 @@ On Ubuntu 14.04 LTS and newer, just install `libhidapi-dev`.
 
 ## Usage
 
-To link with the shared object library:
+To link with the library:
 
 ```
 -lenergymon-osp -lhidapi-libusb
 ```
 
-To link with the static library version:
+To link with the polling version of the library:
 
 ```
--lenergymon-osp-static -lhidapi-libusb
-```
-
-To link with the shared object polling version of the library:
-
-```
--lenergymon-osp-polling -lhidapi-libusb -lpthread
-```
-
-To link with the static polling version of the library:
-
-```
--lenergymon-osp-polling-static -lhidapi-libusb -lpthread
+-lenergymon-osp-polling -lhidapi-libusb -lpthread -lrt
 ```

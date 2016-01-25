@@ -4,25 +4,20 @@ set(DESCRIPTION "EnergyMon implementation for ODROID systems")
 
 # Libraries
 
-add_library(${LNAME} SHARED ${SOURCES})
+add_library(${LNAME} ${SOURCES})
 target_link_libraries(${LNAME} pthread rt)
-
-add_library(${LNAME}-static STATIC ${SOURCES})
-target_link_libraries(${LNAME}-static pthread rt)
 
 if(DEFAULT STREQUAL "odroid")
   BUILD_DEFAULT("${SOURCES}" "pthread;rt" "")
   PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "-lpthread -lrt")
-  PKG_CONFIG("energymon-default-static" "${DESCRIPTION}" "" "-lpthread -lrt")
-  install(TARGETS energymon-default energymon-default-static DESTINATION lib)
+  install(TARGETS energymon-default DESTINATION lib)
 endif()
 
 # pkg-config
 
 PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "" "-lpthread -lrt")
-PKG_CONFIG("${LNAME}-static" "${DESCRIPTION}" "" "-lpthread -lrt")
 
 # Install
 
-install(TARGETS ${LNAME} ${LNAME}-static DESTINATION lib)
+install(TARGETS ${LNAME} DESTINATION lib)
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${LNAME}.h DESTINATION include/${PROJECT_NAME})

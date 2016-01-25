@@ -8,6 +8,16 @@ privileges.
 The following instructions are for Linux systems.
 If you are using a different platform, change the commands accordingly.
 
+Current EnergyMon implementation options are:
+
+* dummy [default]
+* msr
+* odroid
+* odroid-ioctl
+* osp
+* osp-polling
+* rapl
+
 ## Building
 
 This project uses CMake.
@@ -28,20 +38,10 @@ the `cmake` command to specify `DEFAULT`:
 cmake -DDEFAULT=rapl ..
 ```
 
-Current implementation options are:
-
-* dummy [default]
-* msr
-* odroid
-* odroid-ioctl
-* osp
-* osp-polling
-* rapl
-
-You may cleanup builds with:
+To build static libraries instead of shared objects, turn off `BUILD_SHARED_LIBS` when running `cmake`:
 
 ``` sh
-make clean
+cmake .. -DBUILD_SHARED_LIBS=false
 ```
 
 ## Installing
@@ -67,5 +67,23 @@ make uninstall
 
 ## Usage
 
-For instructions on linking with particular libraries, see the README files in
-the appropriate subprojects.
+The best approach for linking with any EnergyMon library is to use [pkg-config](http://www.freedesktop.org/wiki/Software/pkg-config/).
+This is especially useful if building and linking to static libraries to ensure that you link with transitive dependencies.
+
+For example, to link with `energymon-default`, whose implementation is not always known in advance:
+
+```
+pkg-config energymon-default --libs --static
+```
+
+If your project is using `CMake`, you can use pkg-config to find the library and necessary flags.
+For example, to find `energymon-default`, its headers, and to link with it and any transitive dependencies:
+
+``` cmake
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(ENERGYMON REQUIRED energymon-default)
+include_directories(${ENERGYMON_INCLUDE_DIRS})
+
+add_executable(hello_world hello_world.c)
+target_link_libraries(hello_world -L${ENERGYMON_LIBDIR} ${ENERGYMON_LIBRARIES})
+```

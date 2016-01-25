@@ -7,6 +7,11 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-unknown-pragmas -Wextra -pedantic
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
+# Build shared objects by default
+if(NOT DEFINED BUILD_SHARED_LIBS)
+  set(BUILD_SHARED_LIBS TRUE CACHE STRING "Whether to build shared or static libs")
+endif()
+
 # force fPIC on static libs
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
@@ -16,11 +21,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 macro(BUILD_DEFAULT source deplibs definitions)
   add_library(energymon-default SHARED ${source})
   target_link_libraries(energymon-default ${deplibs})
-
-  add_library(energymon-default-static STATIC ${source})
-  target_link_libraries(energymon-default-static ${deplibs})
-
-  set_target_properties(energymon-default energymon-default-static PROPERTIES COMPILE_DEFINITIONS "ENERGYMON_DEFAULT;${definitions}")
+  set_target_properties(energymon-default PROPERTIES COMPILE_DEFINITIONS "ENERGYMON_DEFAULT;${definitions}")
 endmacro(BUILD_DEFAULT)
 
 macro(PKG_CONFIG name description requires_private libs_private)

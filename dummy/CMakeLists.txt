@@ -4,22 +4,19 @@ set(DESCRIPTION "Dummy EnergyMon implementation")
 
 # Libraries
 
-add_library(${LNAME} SHARED ${SOURCES})
-add_library(${LNAME}-static STATIC ${SOURCES})
+add_library(${LNAME} ${SOURCES})
 
 if(DEFAULT STREQUAL "dummy")
   BUILD_DEFAULT("${SOURCES}" "" "")
   PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "")
-  PKG_CONFIG("energymon-default-static" "${DESCRIPTION}" "" "")
-  install(TARGETS energymon-default energymon-default-static DESTINATION lib)
+  install(TARGETS energymon-default DESTINATION lib)
 endif()
 
 # pkg-config
 
 PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "" "")
-PKG_CONFIG("${LNAME}-static" "${DESCRIPTION}" "" "")
 
 # Install
 
-install(TARGETS ${LNAME} ${LNAME}-static DESTINATION lib)
+install(TARGETS ${LNAME} DESTINATION lib)
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${LNAME}.h DESTINATION include/${PROJECT_NAME})

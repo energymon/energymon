@@ -22,14 +22,8 @@ echo 1 > /sys/bus/i2c/drivers/INA231/3-0045/enable
 
 ## Usage
 
-To link with the shared object library:
+To link with the library:
 
 ```
--lenergymon-odroid -lpthread
-```
-
-To link with the static library version:
-
-```
--lenergymon-odroid-static -lpthread
+-lenergymon-odroid -lpthread -lrt
 ```
