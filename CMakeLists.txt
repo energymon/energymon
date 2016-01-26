@@ -63,7 +63,15 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux|Android")
   add_subdirectory(msr)
   add_subdirectory(odroid)
   add_subdirectory(odroid-ioctl)
-  add_subdirectory(osp)
+
+  find_package(PkgConfig REQUIRED)
+  pkg_search_module(HIDAPIUSB hidapi-libusb)
+  if(${HIDAPIUSB_FOUND})
+    add_subdirectory(osp)
+  else()
+    message(STATUS "hidapi-libusb not found - skipping OSP implementation")
+  endif()
+
   add_subdirectory(rapl)
 endif()
 
