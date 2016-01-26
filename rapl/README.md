@@ -22,14 +22,8 @@ sudo modprobe intel_rapl
 
 ## Usage
 
-To link with the shared object library:
+To link with the library:
 
 ```
 -lenergymon-rapl
-```
-
-To link with the static library version:
-
-```
--lenergymon-rapl-static
 ```

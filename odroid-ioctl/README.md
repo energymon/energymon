@@ -12,14 +12,8 @@ This has been tested on the XU+E and XU3 models.
 
 ## Usage
 
-To link with the shared object library:
+To link with the library:
 
 ```
--lenergymon-odroid-ioctl -lpthread
-```
-
-To link with the static library version:
-
-```
--lenergymon-odroid-ioctl-static -lpthread
+-lenergymon-odroid-ioctl -lpthread -lrt
 ```

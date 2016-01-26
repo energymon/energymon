@@ -34,14 +34,8 @@ read from, e.g.:
 export ENERGYMON_MSRS=0,4,8,12
 ```
 
-To link with the shared object library:
+To link with the library:
 
 ```
 -lenergymon-msr
-```
-
-To link with the static library version:
-
-```
--lenergymon-msr-static
 ```

@@ -4,14 +4,8 @@ This is a dummy implementation of the `energymon` interface.
 
 ## Usage
 
-To link with the shared object library:
+To link with the library:
 
 ```
 -lenergymon-dummy
-```
-
-To link with the static library version:
-
-```
--lenergymon-dummy-static
 ```
