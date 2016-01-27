@@ -7,7 +7,7 @@ set(DESCRIPTION "EnergyMon implementation for ODROID systems")
 add_library(${LNAME} ${SOURCES})
 target_link_libraries(${LNAME} pthread rt)
 
-if(DEFAULT STREQUAL "odroid")
+if(DEFAULT MATCHES "odroid|energymon-odroid")
   BUILD_DEFAULT("${SOURCES}" "pthread;rt" "")
   PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "-lpthread -lrt")
   install(TARGETS energymon-default DESTINATION lib)

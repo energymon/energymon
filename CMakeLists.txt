@@ -37,8 +37,8 @@ macro(PKG_CONFIG name description requires_private libs_private)
   set(PKG_CONFIG_LIBS_PRIVATE "${libs_private}")
   # The config file that will be installed
   configure_file(
-    "${CMAKE_SOURCE_DIR}/pkgconfig.in"
-    "${CMAKE_BINARY_DIR}/pkgconfig/${name}.pc"
+    ${CMAKE_SOURCE_DIR}/pkgconfig.in
+    ${CMAKE_BINARY_DIR}/pkgconfig/${name}.pc
     @ONLY
   )
   install(FILES ${CMAKE_BINARY_DIR}/pkgconfig/${name}.pc DESTINATION lib/pkgconfig)
@@ -47,8 +47,8 @@ macro(PKG_CONFIG name description requires_private libs_private)
   set(PKG_CONFIG_INCLUDEDIR "${CMAKE_CURRENT_SOURCE_DIR}")
   set(PKG_CONFIG_CFLAGS "-I${CMAKE_SOURCE_DIR}/inc -I\${includedir}")
   configure_file(
-    "${CMAKE_SOURCE_DIR}/pkgconfig.in"
-    "${CMAKE_BINARY_DIR}/${name}.pc"
+    ${CMAKE_SOURCE_DIR}/pkgconfig.in
+    ${CMAKE_BINARY_DIR}/${name}.pc
     @ONLY
   )
 endmacro(PKG_CONFIG)
@@ -96,8 +96,9 @@ install(TARGETS energymon DESTINATION bin)
 # Uninstall
 
 configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-    IMMEDIATE @ONLY)
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
+  @ONLY
+)
 
 add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
