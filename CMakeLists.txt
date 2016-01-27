@@ -19,7 +19,7 @@ include_directories(${PROJECT_SOURCE_DIR}/inc)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
 macro(BUILD_DEFAULT source deplibs definitions)
-  add_library(energymon-default SHARED ${source})
+  add_library(energymon-default ${source})
   target_link_libraries(energymon-default ${deplibs})
   set_target_properties(energymon-default PROPERTIES COMPILE_DEFINITIONS "ENERGYMON_DEFAULT;${definitions}")
 endmacro(BUILD_DEFAULT)
