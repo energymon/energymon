@@ -6,8 +6,15 @@ set(DESCRIPTION_POLLING "EnergyMon implementation for ODROID Smart Power with Po
 
 # Dependencies
 
-find_package(PkgConfig REQUIRED)
-pkg_search_module(HIDAPIUSB REQUIRED hidapi-libusb)
+find_package(PkgConfig)
+if(${PKG_CONFIG_FOUND})
+  pkg_search_module(HIDAPIUSB hidapi-libusb)
+endif()
+if(NOT HIDAPIUSB_FOUND) # doesn't seem to work if we use ${} syntax...
+  # fail gracefully
+  message(WARNING "${LNAME}: Missing libhidapi-libusb - skipping this project")
+  return()
+endif()
 
 include_directories(${HIDAPIUSB_INCLUDE_DIRS})
 
