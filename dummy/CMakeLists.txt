@@ -6,7 +6,7 @@ set(DESCRIPTION "Dummy EnergyMon implementation")
 
 add_library(${LNAME} ${SOURCES})
 
-if(DEFAULT MATCHES "dummy|energymon-dummy")
+if(DEFAULT STREQUAL "dummy" OR DEFAULT STREQUAL "energymon-dummy")
   BUILD_DEFAULT("${SOURCES}" "" "")
   PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "")
   install(TARGETS energymon-default DESTINATION lib)

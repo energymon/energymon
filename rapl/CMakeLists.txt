@@ -6,7 +6,7 @@ set(DESCRIPTION "EnergyMon implementation for Intel RAPL")
 
 add_library(${LNAME} ${SOURCES})
 
-if(DEFAULT MATCHES "rapl|energymon-rapl")
+if(DEFAULT STREQUAL "rapl" OR DEFAULT STREQUAL "energymon-rapl")
   BUILD_DEFAULT("${SOURCES}" "" "")
   PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "")
   install(TARGETS energymon-default DESTINATION lib)
