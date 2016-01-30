@@ -6,7 +6,7 @@ set(DESCRIPTION "EnergyMon implementation for Intel Model Specific Register")
 
 add_library(${LNAME} ${SOURCES})
 
-if(DEFAULT STREQUAL "msr" OR DEFAULT STREQUAL "energymon-msr")
+if(DEFAULT STREQUAL "msr" OR DEFAULT STREQUAL LNAME)
   BUILD_DEFAULT("${SOURCES}" "" "")
   PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "")
   install(TARGETS energymon-default DESTINATION lib)

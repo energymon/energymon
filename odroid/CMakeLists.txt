@@ -8,25 +8,31 @@ set(DESCRIPTION_IOCTL "EnergyMon implementation for ODROID systems using ioctl")
 # Libraries
 
 add_library(${LNAME} ${SOURCES})
-target_link_libraries(${LNAME} pthread rt)
+target_link_libraries(${LNAME} pthread ${LIBRT})
 
 add_library(${LNAME_IOCTL} ${SOURCES_IOCTL})
-target_link_libraries(${LNAME_IOCTL} pthread rt)
+target_link_libraries(${LNAME_IOCTL} pthread ${LIBRT})
 
-if(DEFAULT STREQUAL "odroid" OR DEFAULT STREQUAL "energymon-odroid")
-  BUILD_DEFAULT("${SOURCES}" "pthread;rt" "")
-  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "-lpthread -lrt")
+if(LIBRT)
+  set(PKG_CONFIG_PRIVATE_LIBS "-lpthread -lrt")
+else()
+  set(PKG_CONFIG_PRIVATE_LIBS "-lpthread")
+endif()
+
+if(DEFAULT STREQUAL "odroid" OR DEFAULT STREQUAL LNAME)
+  BUILD_DEFAULT("${SOURCES}" "pthread;${LIBRT}" "")
+  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
   install(TARGETS energymon-default DESTINATION lib)
-elseif(DEFAULT STREQUAL "odroid-ioctl" OR DEFAULT STREQUAL "energymon-odroid-ioctl")
-  BUILD_DEFAULT("${SOURCES_IOCTL}" "pthread;rt" "")
-  PKG_CONFIG("energymon-default" "${DESCRIPTION_IOCTL}" "" "-lpthread -lrt")
+elseif(DEFAULT STREQUAL "odroid-ioctl" OR DEFAULT STREQUAL LNAME_IOCTL)
+  BUILD_DEFAULT("${SOURCES_IOCTL}" "pthread;${LIBRT}" "")
+  PKG_CONFIG("energymon-default" "${DESCRIPTION_IOCTL}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
   install(TARGETS energymon-default DESTINATION lib)
 endif()
 
 # pkg-config
 
-PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "" "-lpthread -lrt")
-PKG_CONFIG("${LNAME_IOCTL}" "${DESCRIPTION_IOCTL}" "" "-lpthread -lrt")
+PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
+PKG_CONFIG("${LNAME_IOCTL}" "${DESCRIPTION_IOCTL}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
 
 # Install
 

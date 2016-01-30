@@ -15,6 +15,13 @@ endif()
 # force fPIC on static libs
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
+# Determine if we should link with librt for libraries that use "clock_gettime"
+include(CheckFunctionExists)
+CHECK_FUNCTION_EXISTS(clock_gettime HAVE_CLOCK_GETTIME)
+if(NOT HAVE_CLOCK_GETTIME)
+  find_library(LIBRT NAMES rt)
+endif()
+
 include_directories(${PROJECT_SOURCE_DIR}/inc)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 

@@ -1,5 +1,6 @@
 os:
   - linux
+  - osx
 
 addons:
   apt:
@@ -31,5 +32,4 @@ script:
   - mkdir _build
   - cd _build
   - cmake ..
-  - export
   - make
