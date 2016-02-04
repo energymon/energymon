@@ -128,11 +128,13 @@ int energymon_finish_odroid_ioctl(energymon* em) {
     return -1;
   }
 
-  int err_save;
+  int err_save = 0;
   energymon_odroid_ioctl* state = (energymon_odroid_ioctl*) em->state;
-  // stop sensors polling thread and cleanup
-  state->poll_sensors = 0;
-  err_save = pthread_join(state->thread, NULL);
+  if (state->poll_sensors) {
+    // stop sensors polling thread and cleanup
+    state->poll_sensors = 0;
+    err_save = pthread_join(state->thread, NULL);
+  }
   if (close_all_sensors(state)) {
     err_save = err_save ? err_save : errno;
   }

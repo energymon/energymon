@@ -121,9 +121,11 @@ static int energymon_finish_osp_local(energymon* em) {
   energymon_osp* state = (energymon_osp*) em->state;
 
 #ifdef ENERGYMON_OSP_USE_POLLING
-  // stop sensors polling thread and cleanup
-  state->poll_sensors = 0;
-  err_save = pthread_join(state->thread, NULL);
+  if (state->poll_sensors) {
+    // stop sensors polling thread and cleanup
+    state->poll_sensors = 0;
+    err_save = pthread_join(state->thread, NULL);
+  }
 #endif
 #ifdef ENERGYMON_OSP_STOP_ON_FINISH
   if (em_osp_request_startstop(state)) {

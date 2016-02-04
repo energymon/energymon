@@ -115,12 +115,15 @@ int energymon_finish_odroid(energymon* em) {
     return -1;
   }
 
-  int err_save;
+  int err_save = 0;
   unsigned int i;
   energymon_odroid* state = (energymon_odroid*) em->state;
-  // stop sensors polling thread and cleanup
-  state->poll_sensors = 0;
-  err_save = pthread_join(state->thread, NULL);
+
+  if (state->poll_sensors) {
+    // stop sensors polling thread and cleanup
+    state->poll_sensors = 0;
+    err_save = pthread_join(state->thread, NULL);
+  }
 
   // close individual sensor files
   for (i = 0; i < state->count; i++) {
