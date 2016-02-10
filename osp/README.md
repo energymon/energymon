@@ -13,10 +13,12 @@ However, it has less runtime overhead than the polling implementation.
 
 ## Prerequisites
 
+You need an ODROID Smart Power device with a USB connection.
+
 This implementation depends on [hidapi](https://github.com/signal11/hidapi/).
 On Ubuntu 14.04 LTS and newer, just install `libhidapi-dev`.
 
-## Usage
+## Linking
 
 To link with the library:
 
@@ -27,5 +29,7 @@ To link with the library:
 To link with the polling version of the library:
 
 ```
--lenergymon-osp-polling -lhidapi-libusb -lpthread -lrt
+-lenergymon-osp-polling -lhidapi-libusb -lpthread
 ```
+
+For the polling version, also need `-lrt` for glibc versions before 2.17.

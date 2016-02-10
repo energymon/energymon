@@ -2,7 +2,7 @@
 
 This is a dummy implementation of the `energymon` interface.
 
-## Usage
+## Linking
 
 To link with the library:
 

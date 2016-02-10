@@ -34,6 +34,8 @@ read from, e.g.:
 export ENERGYMON_MSRS=0,4,8,12
 ```
 
+## Linking
+
 To link with the library:
 
 ```

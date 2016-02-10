@@ -11,6 +11,8 @@ One implementation uses `sysfs` and the other uses `ioctl`.
 You must be using an ODROID system with embedded power sensors.
 This has been tested on the XU+E and XU3 models.
 
+## Usage
+
 If using the `sysfs` implementation, the sensors must be enabled in advance.
 Sensors can be found in `/sys/bus/i2c/drivers/INA231/`.
 So for example, to enable the sensors:
@@ -22,16 +24,18 @@ echo 1 > /sys/bus/i2c/drivers/INA231/3-0044/enable
 echo 1 > /sys/bus/i2c/drivers/INA231/3-0045/enable
 ```
 
-## Usage
+## Linking
 
 To link with the `sysfs` implementation:
 
 ```
--lenergymon-odroid -lpthread -lrt
+-lenergymon-odroid -lpthread
 ```
 
 To link with the `ioctl` implementation:
 
 ```
--lenergymon-odroid-ioctl -lpthread -lrt
+-lenergymon-odroid-ioctl -lpthread
 ```
+
+For both implementations, also need `-lrt` for glibc versions before 2.17.

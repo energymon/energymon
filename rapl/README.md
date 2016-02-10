@@ -20,7 +20,7 @@ The `intel_rapl` kernel module must be loaded:
 sudo modprobe intel_rapl
 ```
 
-## Usage
+## Linking
 
 To link with the library:
 
