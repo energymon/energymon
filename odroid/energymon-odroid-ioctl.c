@@ -154,7 +154,7 @@ static void* odroid_ioctl_poll_sensors(void* args) {
   int64_t exec_us;
   int err_save;
   struct timespec ts;
-  if (clock_gettime(CLOCK_MONOTONIC, &ts)) {
+  if (energymon_clock_gettime(&ts)) {
     // must be that CLOCK_MONOTONIC is not supported
     perror("odroid_ioctl_poll_sensors");
     return (void*) NULL;
@@ -168,7 +168,7 @@ static void* odroid_ioctl_poll_sensors(void* args) {
       }
     }
     err_save = errno;
-    exec_us = energymon_gettime_us(CLOCK_MONOTONIC, &ts);
+    exec_us = energymon_gettime_us(&ts);
     if (err_save) {
       errno = err_save;
       perror("odroid_ioctl_poll_sensors: skipping power sensor reading");

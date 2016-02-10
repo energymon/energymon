@@ -160,7 +160,7 @@ static void* osp_poll_device(void* args) {
   int64_t exec_us = 0;
   int err_save;
   struct timespec ts;
-  if (clock_gettime(CLOCK_MONOTONIC, &ts)) {
+  if (energymon_clock_gettime(&ts)) {
     // must be that CLOCK_MONOTONIC is not supported
     perror("osp_poll_device");
     return (void*) NULL;
@@ -178,7 +178,7 @@ static void* osp_poll_device(void* args) {
       errno = EIO;
     }
     err_save = errno;
-    exec_us = energymon_gettime_us(CLOCK_MONOTONIC, &ts);
+    exec_us = energymon_gettime_us(&ts);
     errno = err_save;
     if (errno) {
       perror("osp_poll_device: Did not get data");

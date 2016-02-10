@@ -107,7 +107,7 @@ static void* wattsup_poll_sensors(void* args) {
   int ret;
 
   state->decawatts = 0;
-  if (clock_gettime(CLOCK_MONOTONIC, &state->ts)) {
+  if (energymon_clock_gettime(&state->ts)) {
     // must be that CLOCK_MONOTONIC is not supported
     perror("wattsup_poll_sensors");
     return (void*) NULL;
@@ -164,7 +164,7 @@ static void* wattsup_poll_sensors(void* args) {
         while (state->lock);
       }
     }
-    state->exec_us = energymon_gettime_us(CLOCK_MONOTONIC, &state->ts);
+    state->exec_us = energymon_gettime_us(&state->ts);
     state->total_uj += state->decawatts * state->exec_us / 10;
     energymon_sleep_us(WU_MIN_INTERVAL_US);
     if (state->use_estimates) {
@@ -373,7 +373,7 @@ uint64_t energymon_read_total_wattsup(const energymon* em) {
     while (__sync_lock_test_and_set(&state->lock, 1)) {
       while (state->lock);
     }
-    state->exec_us = energymon_gettime_us(CLOCK_MONOTONIC, &state->ts);
+    state->exec_us = energymon_gettime_us(&state->ts);
     state->total_uj += state->decawatts * state->exec_us / 10;
     __sync_lock_release(&state->lock);
   }

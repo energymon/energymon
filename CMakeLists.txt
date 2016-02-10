@@ -15,11 +15,13 @@ endif()
 # force fPIC on static libs
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
-# Determine if we should link with librt for libraries that use "clock_gettime"
-include(CheckFunctionExists)
-CHECK_FUNCTION_EXISTS(clock_gettime HAVE_CLOCK_GETTIME)
-if(UNIX AND NOT APPLE AND NOT HAVE_CLOCK_GETTIME)
-  find_library(LIBRT NAMES rt)
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  # Determine if we should link with librt for libraries that use "clock_gettime"
+  include(CheckFunctionExists)
+  CHECK_FUNCTION_EXISTS(clock_gettime HAVE_CLOCK_GETTIME)
+  if(NOT HAVE_CLOCK_GETTIME)
+    find_library(LIBRT NAMES rt)
+  endif()
 endif()
 
 include_directories(${PROJECT_SOURCE_DIR}/inc)

@@ -9,6 +9,10 @@
 #include <inttypes.h>
 #include <string.h>
 #include <time.h>
+#ifdef __MACH__
+#include <mach/clock.h>
+#include <mach/mach.h>
+#endif
 
 #define ONE_THOUSAND 1000
 #define ONE_MILLION  1000000
@@ -33,11 +37,39 @@ static const uint64_t ONE_BILLION_U64 = 1000000000;
 #endif
 }
 
-int64_t energymon_gettime_us(clockid_t clk_id, struct timespec* ts) {
+int energymon_clock_gettime(struct timespec* ts) {
+#ifdef __MACH__
+  clock_serv_t cclock;
+  mach_timespec_t mts;
+  host_get_clock_service(mach_host_self(), SYSTEM_CLOCK, &cclock);
+  clock_get_time(cclock, &mts);
+  mach_port_deallocate(mach_task_self(), cclock);
+  ts->tv_sec = mts.tv_sec;
+  ts->tv_nsec = mts.tv_nsec;
+  return 0;
+#else
+  return clock_gettime(CLOCK_MONOTONIC, ts);
+#endif
+}
+
+static inline int energymon_clock_nanosleep(struct timespec* ts) {
+#ifdef __MACH__
+  // TODO: Sleep for any remaining time if interrupted
+  return nanosleep(ts, NULL);
+#else
+  int ret;
+  // continue sleeping only if interrupted
+  while ((ret = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME,
+                                ts, NULL)) == EINTR);
+  return ret;
+#endif
+}
+
+int64_t energymon_gettime_us(struct timespec* ts) {
   struct timespec now;
   int64_t result;
-  if (clock_gettime(clk_id, &now)) {
-    // clk_id is not supported (errno will be EINVAL)
+  if (energymon_clock_gettime(&now)) {
+    // CLOCK_MONOTONIC is not supported (errno will be EINVAL)
     return 0;
   }
   result = (now.tv_sec - ts->tv_sec) * (int64_t) ONE_MILLION +
@@ -48,11 +80,10 @@ int64_t energymon_gettime_us(clockid_t clk_id, struct timespec* ts) {
 
 int energymon_sleep_us(int64_t us) {
   struct timespec ts;
-  int ret;
   if (us <= 0) {
     return 0;
   }
-  if (clock_gettime(CLOCK_MONOTONIC, &ts)) {
+  if (energymon_clock_gettime(&ts)) {
     // only happens if CLOCK_MONOTONIC isn't supported
     return errno;
   }
@@ -62,8 +93,5 @@ int energymon_sleep_us(int64_t us) {
     ts.tv_nsec -= (long) ONE_BILLION;
     ts.tv_sec++;
   }
-  // continue sleeping only if interrupted
-  while ((ret = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME,
-                                &ts, NULL)) == EINTR) {}
-  return ret;
+  return energymon_clock_nanosleep(&ts);
 }
