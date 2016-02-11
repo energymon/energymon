@@ -71,6 +71,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux|Android")
   add_subdirectory(odroid)
   add_subdirectory(osp)
   add_subdirectory(rapl)
+  add_subdirectory(shmem)
   add_subdirectory(wattsup)
 endif()
 
