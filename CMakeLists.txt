@@ -65,13 +65,13 @@ endmacro(PKG_CONFIG)
 set(DEFAULT "dummy" CACHE STRING "Default EnergyMon implementation")
 
 add_subdirectory(dummy)
+add_subdirectory(shmem)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux|Android")
   add_subdirectory(msr)
   add_subdirectory(odroid)
   add_subdirectory(osp)
   add_subdirectory(rapl)
-  add_subdirectory(shmem)
   add_subdirectory(wattsup)
 endif()
 

@@ -17,6 +17,7 @@ Current EnergyMon implementation options are:
 * osp
 * osp-polling
 * rapl
+* shmem
 * wattsup
 
 ## Building
