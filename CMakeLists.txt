@@ -18,7 +18,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 # Determine if we should link with librt for libraries that use "clock_gettime"
 include(CheckFunctionExists)
 CHECK_FUNCTION_EXISTS(clock_gettime HAVE_CLOCK_GETTIME)
-if(NOT HAVE_CLOCK_GETTIME)
+if(UNIX AND NOT APPLE AND NOT HAVE_CLOCK_GETTIME)
   find_library(LIBRT NAMES rt)
 endif()
 
@@ -80,6 +80,12 @@ endif()
 add_executable(energymon src/app/energymon.c)
 target_link_libraries(energymon energymon-default)
 
+add_executable(energymon-idle-power src/app/energymon-idle-power.c;src/energymon-time-util.c)
+target_link_libraries(energymon-idle-power energymon-default ${LIBRT})
+
+add_executable(energymon-overhead src/app/energymon-overhead.c;src/energymon-time-util.c)
+target_link_libraries(energymon-overhead energymon-default ${LIBRT})
+
 # Tests
 
 add_executable(interface-test test/interface_test.c)
@@ -91,7 +97,7 @@ target_link_libraries(interval-test energymon-default)
 # Install
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/inc/ DESTINATION include/${PROJECT_NAME})
-install(TARGETS energymon DESTINATION bin)
+install(TARGETS energymon energymon-idle-power energymon-overhead DESTINATION bin)
 
 # Uninstall
 

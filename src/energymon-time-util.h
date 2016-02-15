@@ -5,6 +5,13 @@
 #include <time.h>
 
 /**
+ * Get the real system time in nanoseconds.
+ *
+ * @return system clock in nanoseconds
+ */
+uint64_t energymon_gettime_ns(void);
+
+/**
  * Compute the elapsed time in microseconds since the given timespec.
  * If clk_id is supported, no errors should occur.
  * The given timespec will be updated with the current time.
