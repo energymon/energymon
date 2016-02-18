@@ -1,4 +1,5 @@
 set(LNAME energymon-wattsup)
+set(SHMEM_PROVIDER ${LNAME}-shmem-provider)
 set(SOURCES ${LNAME}.c;../src/energymon-util.c;../src/energymon-time-util.c)
 set(DESCRIPTION "EnergyMon implementation for WattsUp? Power meters")
 
@@ -29,7 +30,13 @@ endif()
 
 PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
 
+# Binaries
+
+add_executable(${SHMEM_PROVIDER} energymon-wattsup-shmem-provider.c)
+target_link_libraries(${SHMEM_PROVIDER} ${LNAME})
+
 # Install
 
 install(TARGETS ${LNAME} DESTINATION lib)
+install(TARGETS ${SHMEM_PROVIDER} DESTINATION bin)
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${LNAME}.h DESTINATION include/${PROJECT_NAME})
