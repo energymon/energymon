@@ -1,5 +1,6 @@
 set(LNAME energymon-osp)
 set(LNAME_POLLING energymon-osp-polling)
+set(SHMEM_PROVIDER ${LNAME_POLLING}-shmem-provider)
 set(SOURCES ${LNAME}.c;../src/energymon-util.c)
 set(SOURCES_POLLING ${SOURCES};../src/energymon-time-util.c)
 set(DESCRIPTION "EnergyMon implementation for ODROID Smart Power")
@@ -53,8 +54,14 @@ set_target_properties(${LNAME_POLLING} PROPERTIES COMPILE_DEFINITIONS "ENERGYMON
 PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "${HIDAPIUSB_LIBRARIES}" "")
 PKG_CONFIG("${LNAME_POLLING}" "${DESCRIPTION_POLLING}" "${HIDAPIUSB_LIBRARIES}" "${PKG_CONFIG_PRIVATE_LIBS}")
 
+# Binaries
+
+add_executable(${SHMEM_PROVIDER} energymon-osp-polling-shmem-provider.c)
+target_link_libraries(${SHMEM_PROVIDER} ${LNAME_POLLING})
+
 # Install
 
 install(TARGETS ${LNAME} ${LNAME_POLLING} DESTINATION lib)
+install(TARGETS ${SHMEM_PROVIDER} DESTINATION bin)
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${LNAME}.h ${CMAKE_CURRENT_SOURCE_DIR}/${LNAME_POLLING}.h
         DESTINATION include/${PROJECT_NAME})
