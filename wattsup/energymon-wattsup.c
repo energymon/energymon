@@ -166,10 +166,10 @@ static void* wattsup_poll_sensors(void* args) {
     }
     state->exec_us = energymon_gettime_us(&state->ts);
     state->total_uj += state->decawatts * state->exec_us / 10;
-    energymon_sleep_us(WU_MIN_INTERVAL_US);
     if (state->use_estimates) {
       __sync_lock_release(&state->lock);
     }
+    energymon_sleep_us(WU_MIN_INTERVAL_US);
   }
   return (void*) NULL;
 }
