@@ -32,6 +32,12 @@ int energymon_get_default(energymon* em) {
 }
 #endif
 
+// Environment variable to enable updating energy estimates b/w device reads.
+// This can provide faster energy data, but risks the total energy being more
+// inaccurate in the long run.
+// Keeping this as an undocumented feature for now.
+#define ENERGYMON_WATTSUP_ENABLE_ESTIMATES "ENERGYMON_WATTSUP_ENABLE_ESTIMATES"
+
 // must wait at least one second between WattsUp polls
 #define WU_MIN_INTERVAL_US 1000000
 #define WU_POWER_INDEX 3
@@ -320,7 +326,7 @@ int energymon_init_wattsup(energymon* em) {
 
   // set state properties
   state->fd = fd;
-  state->use_estimates = getenv(ENERGYMON_WATTSUP_DISABLE_ESTIMATES) == NULL;
+  state->use_estimates = getenv(ENERGYMON_WATTSUP_ENABLE_ESTIMATES) != NULL;
 
   // start polling thread
   state->poll = 1;

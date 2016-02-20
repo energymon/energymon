@@ -11,13 +11,10 @@ This has been tested on a `Watts up? PRO ES` device.
 ## Usage
 
 `Watts up?` devices refresh about once per second.
-To try and provide more accurate energy data, this implementation provides an
-energy estimate when energy is read based on the elapsed time since the last
-power reading from the device.
-This means that energy data is actually based on power readings from up to one
-second earlier.
-To disable this behavior and only update energy at the device refresh interval,
-set the environment variable `ENERGYMON_WATTSUP_DISABLE_ESTIMATES`.
+The documentation specifies that the device will respond to requests within 2
+seconds.
+As a result, it's possible that energy data could be delayed by up to 2-3
+seconds from the actual power behavior.
 
 By default, the implementation looks for the WattsUp device at `/dev/ttyUSB0`.
 To override, set the environment variable `ENERGYMON_WATTSUP_DEV_FILE` to the

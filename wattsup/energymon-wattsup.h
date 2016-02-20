@@ -19,9 +19,6 @@ extern "C" {
 #define ENERGYMON_WATTSUP_DEV_FILE "ENERGYMON_WATTSUP_DEV_FILE"
 #define ENERGYMON_WATTSUP_DEV_FILE_DEFAULT "/dev/ttyUSB0"
 
-// Environment variable to disable updating energy estimates b/w device reads
-#define ENERGYMON_WATTSUP_DISABLE_ESTIMATES "ENERGYMON_WATTSUP_DISABLE_ESTIMATES"
-
 int energymon_init_wattsup(energymon* em);
 
 uint64_t energymon_read_total_wattsup(const energymon* em);
