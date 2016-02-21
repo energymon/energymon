@@ -10,6 +10,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -19,7 +20,59 @@
 
 static volatile int running = 1;
 static energymon_shmem* ems;
+static const char* key_dir = NULL;
+static int key_proj_id = -1;
 static int shm_id;
+
+static inline void print_usage(const char* name, int exit_code) {
+  printf("Usage: %s [OPTIONS]\n", name);
+  printf("  -d --dir      The shared memory directory\n");
+  printf("                default = \"%s\"\n", ENERGYMON_SHMEM_DIR_DEFAULT);
+  printf("  -i --id       The shared memory identifier\n");
+  printf("                default = %d\n", ENERGYMON_SHMEM_ID_DEFAULT);
+  printf("  -h, --help    Print this message\n");
+  printf("\n");
+  exit(exit_code);
+}
+
+static inline void parse_args(int argc, char** argv) {
+  int i;
+  const char* key_proj_id_env;
+  for (i = 1; i < argc; i++) {
+    if (!strcmp("-h", argv[i]) || !strcmp("--help", argv[i])) {
+      print_usage(argv[0], 0);
+    } else if (!strcmp("-d", argv[i]) || !strcmp("--dir", argv[i])) {
+      if (++i == argc) {
+        print_usage(argv[0], EINVAL);
+      }
+      key_dir = argv[i];
+    } else if (!strcmp("-i", argv[i]) || !strcmp("--id", argv[i])) {
+      if (++i == argc) {
+        print_usage(argv[0], EINVAL);
+      }
+      key_proj_id = atoi(argv[i]);
+      if (key_proj_id < 0) {
+        print_usage(argv[0], EINVAL);
+      }
+    } else {
+      print_usage(argv[0], EINVAL);
+    }
+  }
+  if (key_dir == NULL) {
+    key_dir = getenv(ENERGYMON_SHMEM_DIR);
+    if (key_dir == NULL) {
+      key_dir = ENERGYMON_SHMEM_DIR_DEFAULT;
+    }
+  }
+  if (key_proj_id < 0) {
+    key_proj_id_env = getenv(ENERGYMON_SHMEM_ID);
+    if (key_proj_id_env == NULL) {
+      key_proj_id = ENERGYMON_SHMEM_ID_DEFAULT;
+    } else {
+      key_proj_id = atoi(key_proj_id_env);
+    }
+  }
+}
 
 void shandle(int sig) {
   switch (sig) {
@@ -54,25 +107,15 @@ int cleanup_shmem() {
   return 0;
 }
 
-int main() {
+int main(int argc, char** argv) {
   energymon em;
   struct timespec ts;
-  const char* key_proj_id_env;
-  const char* key_dir;
-  int key_proj_id = ENERGYMON_SHMEM_ID_DEFAULT;
   key_t mem_key;
 
   // register the signal handler
   signal(SIGINT, shandle);
 
-  key_dir = getenv(ENERGYMON_SHMEM_DIR);
-  if (key_dir == NULL) {
-    key_dir = ENERGYMON_SHMEM_DIR_DEFAULT;
-  }
-  key_proj_id_env = getenv(ENERGYMON_SHMEM_ID);
-  if (key_proj_id_env != NULL) {
-    key_proj_id = atoi(key_proj_id_env);
-  }
+  parse_args(argc, argv);
 
   // get the shared memory
   mem_key = ftok(key_dir, key_proj_id);
