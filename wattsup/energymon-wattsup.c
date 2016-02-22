@@ -354,6 +354,7 @@ int energymon_finish_wattsup(energymon* em) {
   // stop sensors polling thread and cleanup
   if (state->poll) {
     state->poll = 0;
+    pthread_cancel(state->thread);
     err_save = pthread_join(state->thread, NULL);
   }
 
