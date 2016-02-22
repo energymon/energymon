@@ -162,7 +162,7 @@ static inline char** get_sensor_directories(unsigned int* count) {
   unsigned int i;
   int err_save;
   struct dirent* entry;
-  char** directories;
+  char** directories = NULL;
   *count = 0;
   errno = 0;
   DIR* sensors_dir = opendir(INA231_DIR);
