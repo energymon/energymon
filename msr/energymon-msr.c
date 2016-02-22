@@ -70,6 +70,8 @@ int energymon_get_default(energymon* em) {
 
 typedef struct msr_info {
   int fd;
+  unsigned int n_overflow;
+  uint64_t energy_last;
   double energy_units;
 } msr_info;
 
@@ -105,6 +107,8 @@ static inline int msr_info_init(msr_info* m, unsigned int n, char* env_cores) {
     strtok_r(env_cores, ENERGYMON_MSRS_DELIMS, &saveptr);
   errno = 0;
   for (i = 0; tok && i < n && !errno; i++) {
+    m[i].n_overflow = 0;
+    m[i].energy_last = 0;
     snprintf(filename, sizeof(filename), "/dev/cpu/%s/msr", tok);
     if ((m[i].fd = open(filename, O_RDONLY)) <= 0 ||
         pread(m[i].fd, &msr_val, sizeof(msr_val), MSR_RAPL_POWER_UNIT) < 0) {
@@ -183,7 +187,13 @@ uint64_t energymon_read_total_msr(const energymon* em) {
   for (errno = 0, i = 0; i < state->msr_count && !errno; i++) {
     if (pread(state->msrs[i].fd, &msr_val, sizeof(uint64_t),
               MSR_PKG_ENERGY_STATUS) == sizeof(uint64_t)) {
-      total += msr_val * state->msrs[i].energy_units * 1000000;
+      // overflows at 32 bits
+      if (msr_val < state->msrs[i].energy_last) {
+        state->msrs[i].n_overflow++;
+      }
+      state->msrs[i].energy_last = msr_val;
+      total += (msr_val + state->msrs[i].n_overflow * UINT32_MAX)
+               * state->msrs[i].energy_units * 1000000;
     }
   }
   return errno ? 0 : total;
