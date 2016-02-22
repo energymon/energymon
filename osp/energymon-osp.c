@@ -47,11 +47,6 @@ int energymon_get_default(energymon* em) {
 // the maximum watt-hour count the device stores internally
 #define OSP_WATTHOUR_MAX 1000.0
 
-// how long to sleep for (in microseconds) after certain operations
-#ifndef ENERGYMON_OSP_SLEEP_TIME_US
-  #define ENERGYMON_OSP_SLEEP_TIME_US 200000
-#endif
-
 // sensor polling interval in microseconds
 #ifndef ENERGYMON_OSP_POLL_DELAY_US
   // default value determined experimentally
@@ -266,9 +261,6 @@ int energymon_init_osp(energymon* em) {
     energymon_finish_osp_local(em);
     return -1;
   }
-
-  // let meter reset
-  usleep(ENERGYMON_OSP_SLEEP_TIME_US);
 
 #ifdef ENERGYMON_OSP_USE_POLLING
   // start device polling thread
