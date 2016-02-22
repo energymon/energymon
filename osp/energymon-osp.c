@@ -44,6 +44,9 @@ int energymon_get_default(energymon* em) {
 #define OSP_REQUEST_STARTSTOP   0x80
 #define OSP_REQUEST_STATUS      0x81
 
+// the maximum watt-hour count the device stores internally
+#define OSP_WATTHOUR_MAX 1000.0
+
 // how long to sleep for (in microseconds) after certain operations
 #ifndef ENERGYMON_OSP_SLEEP_TIME_US
   #define ENERGYMON_OSP_SLEEP_TIME_US 200000
@@ -69,6 +72,9 @@ typedef struct energymon_osp {
   uint64_t total_uj;
   pthread_t thread;
   int poll_sensors;
+#else
+  unsigned int n_overflow;
+  double wh_last;
 #endif
 } energymon_osp;
 
@@ -208,7 +214,7 @@ int energymon_init_osp(energymon* em) {
     return -1;
   }
 
-  energymon_osp* state = malloc(sizeof(energymon_osp));
+  energymon_osp* state = calloc(1, sizeof(energymon_osp));
   if (state == NULL) {
     return -1;
   }
@@ -265,7 +271,6 @@ int energymon_init_osp(energymon* em) {
 
 #ifdef ENERGYMON_OSP_USE_POLLING
   // start device polling thread
-  state->total_uj = 0;
   state->poll_sensors = 1;
   errno = pthread_create(&state->thread, NULL, osp_poll_device, state);
   if (errno) {
@@ -290,13 +295,19 @@ uint64_t energymon_read_total_osp(const energymon* em) {
 #ifdef ENERGYMON_OSP_USE_POLLING
   return state->total_uj;
 #else
-  char wh[7] = {'\0'};
+  char wh[8] = {'\0'};
+  double wh_d;
   if (em_osp_request_data_retry(state, ENERGYMON_OSP_RETRIES)) {
     perror("energymon_read_total_osp: Data request failed");
     return 0;
   }
-  strncpy(wh, (char*) &state->buf[26], 5);
-  return atof(wh) * UJOULES_PER_WATTHOUR;
+  strncpy(wh, (char*) &state->buf[24], 7);
+  wh_d = atof(wh);
+  if (wh_d < state->wh_last) {
+    state->n_overflow++;
+  }
+  state->wh_last = wh_d;
+  return (wh_d + state->n_overflow * OSP_WATTHOUR_MAX) * UJOULES_PER_WATTHOUR;
 #endif
 }
 
