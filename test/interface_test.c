@@ -1,33 +1,38 @@
-#include <assert.h>
 #include <errno.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include "energymon-default.h"
 
 int main() {
-  int ret;
   energymon em;
   char source[100];
+  uint64_t result;
 
-  energymon_get_default(&em);
+  if (energymon_get_default(&em)) {
+    perror("energymon_get_default");
+    return 1;
+  }
 
   em.fsource(source, sizeof(source));
   printf("Initializing reading from %s\n", source);
-  ret = em.finit(&em);
-  if (ret) {
+
+  if (em.finit(&em)) {
     perror("finit");
+    return 1;
   }
-  assert(ret == 0);
-  uint64_t result = em.fread(&em);
+
+  errno = 0;
+  result = em.fread(&em);
   if (result == 0 && errno) {
     perror("fread");
+    return 1;
   }
   printf("Got reading: %"PRIu64"\n", result);
-  ret = em.ffinish(&em);
-  if (ret) {
+
+  if (em.ffinish(&em)) {
     perror("ffinish");
+    return 1;
   }
-  assert(ret == 0);
   printf("Finished reading from %s\n", source);
 
   return 0;
