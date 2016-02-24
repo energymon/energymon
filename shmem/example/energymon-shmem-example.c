@@ -96,6 +96,9 @@ int main() {
   ts.tv_sec = ems->interval_us / 1000000;
   ts.tv_nsec = (ems->interval_us % 1000000) * 1000;
 
+  // store the precision in shared memory
+  ems->precision_uj = em.fprecision(&em);
+
   while (running) {
     // update the energy in shared memory
     ems->energy_uj = em.fread(&em);

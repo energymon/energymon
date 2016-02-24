@@ -335,6 +335,20 @@ uint64_t energymon_get_interval_odroid(const energymon* em) {
   return ((energymon_odroid*) em->state)->read_delay_us;
 }
 
+uint64_t energymon_get_precision_odroid(const energymon* em) {
+  if (em == NULL || em->state == NULL) {
+    errno = EINVAL;
+    return 0;
+  }
+  // watts to 6 decimal places (microwatts) at refresh interval
+  uint64_t prec = energymon_get_interval_odroid(em) / 1000000;
+  return prec ? prec : 1;
+}
+
+int energymon_is_exclusive_odroid() {
+  return 0;
+}
+
 int energymon_get_odroid(energymon* em) {
   if (em == NULL) {
     errno = EINVAL;
@@ -345,6 +359,8 @@ int energymon_get_odroid(energymon* em) {
   em->ffinish = &energymon_finish_odroid;
   em->fsource = &energymon_get_source_odroid;
   em->finterval = &energymon_get_interval_odroid;
+  em->fprecision = &energymon_get_precision_odroid;
+  em->fexclusive = &energymon_is_exclusive_odroid;
   em->state = NULL;
   return 0;
 }

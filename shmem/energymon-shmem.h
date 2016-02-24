@@ -22,6 +22,7 @@ extern "C" {
 
 typedef struct energymon_shmem {
   volatile uint64_t interval_us;
+  volatile uint64_t precision_uj;
   volatile uint64_t energy_uj;
 } energymon_shmem;
 
@@ -34,6 +35,10 @@ int energymon_finish_shmem(energymon* em);
 char* energymon_get_source_shmem(char* buffer, size_t n);
 
 uint64_t energymon_get_interval_shmem(const energymon* em);
+
+uint64_t energymon_get_precision_shmem(const energymon* em);
+
+int energymon_is_exclusive_shmem();
 
 int energymon_get_shmem(energymon* em);
 

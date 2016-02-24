@@ -335,6 +335,32 @@ uint64_t energymon_get_interval_osp(const energymon* em) {
 }
 
 #ifdef ENERGYMON_OSP_USE_POLLING
+uint64_t energymon_get_precision_osp_polling(const energymon* em) {
+#else
+uint64_t energymon_get_precision_osp(const energymon* em) {
+#endif
+  if (em == NULL) {
+    errno = EINVAL;
+    return 0;
+  }
+#ifdef ENERGYMON_OSP_USE_POLLING
+  // watts to 3 decimal places (milliwatts) at refresh interval
+  return ENERGYMON_OSP_POLL_DELAY_US / 1000;
+#else
+  // watt-hours to 3 decimal places (milliwatt-hours)
+  return UJOULES_PER_WATTHOUR / 1000;
+#endif
+}
+
+#ifdef ENERGYMON_OSP_USE_POLLING
+int energymon_is_exclusive_osp_polling() {
+#else
+int energymon_is_exclusive_osp() {
+#endif
+  return 1;
+}
+
+#ifdef ENERGYMON_OSP_USE_POLLING
 int energymon_get_osp_polling(energymon* em) {
 #else
 int energymon_get_osp(energymon* em) {
@@ -349,12 +375,16 @@ int energymon_get_osp(energymon* em) {
   em->ffinish = &energymon_finish_osp_polling;
   em->fsource = &energymon_get_source_osp_polling;
   em->finterval = &energymon_get_interval_osp_polling;
+  em->fprecision = &energymon_get_precision_osp_polling;
+  em->fexclusive = &energymon_is_exclusive_osp_polling;
 #else
   em->finit = &energymon_init_osp;
   em->fread = &energymon_read_total_osp;
   em->ffinish = &energymon_finish_osp;
   em->fsource = &energymon_get_source_osp;
   em->finterval = &energymon_get_interval_osp;
+  em->fprecision = &energymon_get_precision_osp;
+  em->fexclusive = &energymon_is_exclusive_osp;
 #endif
   em->state = NULL;
   return 0;

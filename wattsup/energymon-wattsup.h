@@ -29,6 +29,10 @@ char* energymon_get_source_wattsup(char* buffer, size_t n);
 
 uint64_t energymon_get_interval_wattsup(const energymon* em);
 
+uint64_t energymon_get_precision_wattsup(const energymon* em);
+
+int energymon_is_exclusive_wattsup();
+
 int energymon_get_wattsup(energymon* em);
 
 #ifdef __cplusplus

@@ -25,6 +25,10 @@ char* energymon_get_source_rapl(char* buffer, size_t n);
 
 uint64_t energymon_get_interval_rapl(const energymon* em);
 
+uint64_t energymon_get_precision_rapl(const energymon* em);
+
+int energymon_is_exclusive_rapl();
+
 int energymon_get_rapl(energymon* em);
 
 #ifdef __cplusplus

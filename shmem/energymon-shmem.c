@@ -91,6 +91,18 @@ uint64_t energymon_get_interval_shmem(const energymon* em) {
   return ((energymon_shmem*) em->state)->interval_us;
 }
 
+uint64_t energymon_get_precision_shmem(const energymon* em) {
+  if (em == NULL || em->state == NULL) {
+    errno = EINVAL;
+    return 0;
+  }
+  return ((energymon_shmem*) em->state)->precision_uj;
+}
+
+int energymon_is_exclusive_shmem() {
+  return 0;
+}
+
 int energymon_get_shmem(energymon* em) {
   if (em == NULL) {
     errno = EINVAL;
@@ -101,6 +113,8 @@ int energymon_get_shmem(energymon* em) {
   em->ffinish = &energymon_finish_shmem;
   em->fsource = &energymon_get_source_shmem;
   em->finterval = &energymon_get_interval_shmem;
+  em->fprecision = &energymon_get_precision_shmem;
+  em->fexclusive = &energymon_is_exclusive_shmem;
   em->state = NULL;
   return 0;
 }

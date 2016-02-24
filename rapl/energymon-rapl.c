@@ -231,6 +231,19 @@ uint64_t energymon_get_interval_rapl(const energymon* em) {
   return 1000;
 }
 
+uint64_t energymon_get_precision_rapl(const energymon* em) {
+  if (em == NULL) {
+    errno = EINVAL;
+    return 0;
+  }
+  // 61 uJ by default, but no way to verify without reading MSR
+  return 0;
+}
+
+int energymon_is_exclusive_rapl() {
+  return 0;
+}
+
 int energymon_get_rapl(energymon* em) {
   if (em == NULL) {
     errno = EINVAL;
@@ -241,6 +254,8 @@ int energymon_get_rapl(energymon* em) {
   em->ffinish = &energymon_finish_rapl;
   em->fsource = &energymon_get_source_rapl;
   em->finterval = &energymon_get_interval_rapl;
+  em->fprecision = &energymon_get_precision_rapl;
+  em->fexclusive = &energymon_is_exclusive_rapl;
   em->state = NULL;
   return 0;
 }
