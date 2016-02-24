@@ -56,7 +56,7 @@ typedef struct energymon_wattsup {
 
   int64_t exec_us;
   struct timespec ts;
-  unsigned int decawatts;
+  unsigned int deciwatts;
   int lock;
   uint64_t total_uj;
 } energymon_wattsup;
@@ -112,7 +112,7 @@ static void* wattsup_poll_sensors(void* args) {
   char* tok;
   int ret;
 
-  state->decawatts = 0;
+  state->deciwatts = 0;
   if (energymon_clock_gettime(&state->ts)) {
     // must be that CLOCK_MONOTONIC is not supported
     perror("wattsup_poll_sensors");
@@ -147,10 +147,10 @@ static void* wattsup_poll_sensors(void* args) {
             errno = 0;
             tmp = strtoul(tok, NULL, 0);
             if (errno) {
-              // keep old value of decawatts
+              // keep old value of deciwatts
               perror("wattsup_poll_sensors:strtoul");
             } else {
-              state->decawatts = tmp;
+              state->deciwatts = tmp;
             }
             break;
           }
@@ -173,7 +173,7 @@ static void* wattsup_poll_sensors(void* args) {
       }
     }
     state->exec_us = energymon_gettime_us(&state->ts);
-    state->total_uj += state->decawatts * state->exec_us / 10;
+    state->total_uj += state->deciwatts * state->exec_us / 10;
     if (state->use_estimates) {
       __sync_lock_release(&state->lock);
       pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
@@ -384,7 +384,7 @@ uint64_t energymon_read_total_wattsup(const energymon* em) {
       while (state->lock);
     }
     state->exec_us = energymon_gettime_us(&state->ts);
-    state->total_uj += state->decawatts * state->exec_us / 10;
+    state->total_uj += state->deciwatts * state->exec_us / 10;
     __sync_lock_release(&state->lock);
   }
   return state->total_uj;
