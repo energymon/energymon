@@ -55,6 +55,18 @@ uint64_t energymon_get_interval_dummy(const energymon* em) {
   return 1;
 }
 
+uint64_t energymon_get_precision_dummy(const energymon* em) {
+  if (em == NULL) {
+    errno = EINVAL;
+    return 0;
+  }
+  return 1;
+}
+
+int energymon_is_exclusive_dummy() {
+  return 0;
+}
+
 int energymon_get_dummy(energymon* em) {
   if (em == NULL) {
     errno = EINVAL;
@@ -65,6 +77,8 @@ int energymon_get_dummy(energymon* em) {
   em->ffinish = &energymon_finish_dummy;
   em->fsource = &energymon_get_source_dummy;
   em->finterval = &energymon_get_interval_dummy;
+  em->fprecision = &energymon_get_precision_dummy;
+  em->fexclusive = &energymon_is_exclusive_dummy;
   em->state = NULL;
   return 0;
 }

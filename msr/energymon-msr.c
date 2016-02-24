@@ -232,6 +232,32 @@ uint64_t energymon_get_interval_msr(const energymon* em) {
   return 1000;
 }
 
+uint64_t energymon_get_precision_msr(const energymon* em) {
+  if (em == NULL || em->state == NULL) {
+    errno = EINVAL;
+    return 0;
+  }
+  energymon_msr* state = (energymon_msr*) em->state;
+  uint64_t prec;
+  unsigned int i;
+  if (state->msr_count == 0) {
+    prec = 1;
+  } else {
+    prec = UINT64_MAX;
+    for (i = 0; i < state->msr_count; i++) {
+      if (state->msrs[i].energy_units < prec) {
+        // 61 uJ by default
+        prec = (uint64_t) (state->msrs[i].energy_units * 1000000);
+      }
+    }
+  }
+  return prec ? prec : 1;
+}
+
+int energymon_is_exclusive_msr() {
+  return 0;
+}
+
 int energymon_get_msr(energymon* em) {
   if (em == NULL) {
     errno = EINVAL;
@@ -242,6 +268,8 @@ int energymon_get_msr(energymon* em) {
   em->ffinish = &energymon_finish_msr;
   em->fsource = &energymon_get_source_msr;
   em->finterval = &energymon_get_interval_msr;
+  em->fprecision = &energymon_get_precision_msr;
+  em->fexclusive = &energymon_is_exclusive_msr;
   em->state = NULL;
   return 0;
 }

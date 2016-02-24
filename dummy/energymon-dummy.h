@@ -25,6 +25,10 @@ char* energymon_get_source_dummy(char* buffer, size_t n);
 
 uint64_t energymon_get_interval_dummy(const energymon* em);
 
+uint64_t energymon_get_precision_dummy(const energymon* em);
+
+int energymon_is_exclusive_dummy();
+
 int energymon_get_dummy(energymon* em);
 
 #ifdef __cplusplus

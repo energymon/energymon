@@ -34,6 +34,10 @@ char* energymon_get_source_msr(char* buffer, size_t n);
 
 uint64_t energymon_get_interval_msr(const energymon* em);
 
+uint64_t energymon_get_precision_msr(const energymon* em);
+
+int energymon_is_exclusive_msr();
+
 int energymon_get_msr(energymon* em);
 
 #ifdef __cplusplus

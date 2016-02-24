@@ -403,6 +403,19 @@ uint64_t energymon_get_interval_wattsup(const energymon* em) {
   return WU_MIN_INTERVAL_US;
 }
 
+uint64_t energymon_get_precision_wattsup(const energymon* em) {
+  if (em == NULL) {
+    errno = EINVAL;
+    return 0;
+  }
+  // deciwatts at 1 second interval
+  return WU_MIN_INTERVAL_US / 10;
+}
+
+int energymon_is_exclusive_wattsup() {
+  return 1;
+}
+
 int energymon_get_wattsup(energymon* em) {
   if (em == NULL) {
     errno = EINVAL;
@@ -413,6 +426,8 @@ int energymon_get_wattsup(energymon* em) {
   em->ffinish = &energymon_finish_wattsup;
   em->fsource = &energymon_get_source_wattsup;
   em->finterval = &energymon_get_interval_wattsup;
+  em->fprecision = &energymon_get_precision_wattsup;
+  em->fexclusive = &energymon_is_exclusive_wattsup;
   em->state = NULL;
   return 0;
 }
