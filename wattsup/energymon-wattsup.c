@@ -166,6 +166,8 @@ static void* wattsup_poll_sensors(void* args) {
 
     // WattsUps are cranky - don't read for a whole second
     if (state->use_estimates) {
+      // disable thread cancel while we hold the lock
+      pthread_setcancelstate(PTHREAD_CANCEL_DEFERRED, NULL);
       while (__sync_lock_test_and_set(&state->lock, 1)) {
         while (state->lock);
       }
@@ -174,6 +176,7 @@ static void* wattsup_poll_sensors(void* args) {
     state->total_uj += state->decawatts * state->exec_us / 10;
     if (state->use_estimates) {
       __sync_lock_release(&state->lock);
+      pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     }
     energymon_sleep_us(WU_MIN_INTERVAL_US);
   }
