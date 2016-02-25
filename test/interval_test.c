@@ -2,7 +2,11 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef _WIN32
+#include <Windows.h>
+#else
 #include <unistd.h>
+#endif
 #include "energymon-default.h"
 
 int main(int argc, char** argv) {
@@ -41,7 +45,11 @@ int main(int argc, char** argv) {
     perror("fread");
     return 1;
   }
+#ifdef _WIN32
+  Sleep(usec / 1000);
+#else
   usleep(usec);
+#endif
   errno = 0;
   end = em.fread(&em);
   if (end == 0 && errno) {

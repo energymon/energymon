@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include "energymon-default.h"
+#include "energymon-time-util.h"
 
 // set a minimum sleep time between polls
 #ifndef ENERGYMON_MIN_INTERVAL_US
@@ -48,7 +49,6 @@ void shandle(int sig) {
 int main(int argc, char** argv) {
   energymon em;
   uint64_t us;
-  struct timespec ts;
   uint64_t energy;
   FILE* fout;
   int ret = 0;
@@ -78,8 +78,6 @@ int main(int argc, char** argv) {
   if (us < ENERGYMON_MIN_INTERVAL_US) {
     us = ENERGYMON_MIN_INTERVAL_US;
   }
-  ts.tv_sec = us / 1000000;
-  ts.tv_nsec = (us % 1000000) * 1000;
 
   // update file at regular intervals
   while (running) {
@@ -91,7 +89,7 @@ int main(int argc, char** argv) {
       break;
     }
     fflush(fout);
-    nanosleep(&ts, NULL);
+    energymon_sleep_us(us);
   }
 
   // cleanup
