@@ -82,10 +82,14 @@ endif()
 
 # Binaries
 
+
 add_executable(energymon-info src/app/energymon-info.c)
 target_link_libraries(energymon-info energymon-default)
 
 if(UNIX)
+  add_executable(energymon-cmd-profile src/app/energymon-cmd-profile.c;src/energymon-time-util.c)
+  target_link_libraries(energymon-cmd-profile energymon-default ${LIBRT})
+
   add_executable(energymon-file-provider src/app/energymon-file-provider.c;src/energymon-time-util.c)
   target_link_libraries(energymon-file-provider energymon-default ${LIBRT})
 
@@ -95,7 +99,7 @@ if(UNIX)
   add_executable(energymon-overhead src/app/energymon-overhead.c;src/energymon-time-util.c)
   target_link_libraries(energymon-overhead energymon-default ${LIBRT})
 
-  install(TARGETS energymon-file-provider energymon-idle-power energymon-overhead DESTINATION bin)
+  install(TARGETS energymon-cmd-profile energymon-file-provider energymon-idle-power energymon-overhead DESTINATION bin)
 endif()
 
 # Tests
