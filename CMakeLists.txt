@@ -82,6 +82,9 @@ endif()
 
 # Binaries
 
+add_executable(energymon-info src/app/energymon-info.c)
+target_link_libraries(energymon-info energymon-default)
+
 if(UNIX)
   add_executable(energymon-file-provider src/app/energymon-file-provider.c;src/energymon-time-util.c)
   target_link_libraries(energymon-file-provider energymon-default ${LIBRT})
@@ -105,6 +108,7 @@ target_link_libraries(interval-test energymon-default)
 
 # Install
 
+install(TARGETS energymon-info DESTINATION bin)
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/inc/ DESTINATION include/${PROJECT_NAME})
 
 # Uninstall
