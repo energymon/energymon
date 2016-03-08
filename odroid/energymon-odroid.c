@@ -122,7 +122,9 @@ int energymon_finish_odroid(energymon* em) {
   if (state->poll_sensors) {
     // stop sensors polling thread and cleanup
     state->poll_sensors = 0;
+#ifndef __ANDROID__
     pthread_cancel(state->thread);
+#endif
     err_save = pthread_join(state->thread, NULL);
   }
 

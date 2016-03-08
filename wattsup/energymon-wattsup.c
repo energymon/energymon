@@ -166,8 +166,10 @@ static void* wattsup_poll_sensors(void* args) {
 
     // WattsUps are cranky - don't read for a whole second
     if (state->use_estimates) {
+#ifndef __ANDROID__
       // disable thread cancel while we hold the lock
       pthread_setcancelstate(PTHREAD_CANCEL_DEFERRED, NULL);
+#endif
       while (__sync_lock_test_and_set(&state->lock, 1)) {
         while (state->lock);
       }
@@ -176,7 +178,9 @@ static void* wattsup_poll_sensors(void* args) {
     state->total_uj += state->deciwatts * state->exec_us / 10;
     if (state->use_estimates) {
       __sync_lock_release(&state->lock);
+#ifndef __ANDROID__
       pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+#endif
     }
     energymon_sleep_us(WU_MIN_INTERVAL_US);
   }
@@ -357,7 +361,9 @@ int energymon_finish_wattsup(energymon* em) {
   // stop sensors polling thread and cleanup
   if (state->poll) {
     state->poll = 0;
+#ifndef __ANDROID__
     pthread_cancel(state->thread);
+#endif
     err_save = pthread_join(state->thread, NULL);
   }
 
