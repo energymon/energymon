@@ -23,6 +23,13 @@ world-readable, e.g.:
 sudo chmod og+r /dev/cpu/0/msr
 ```
 
+On some Linux kernels you may still get an `Operation not permitted` error.
+Set RAWIO permissions on your executable:
+
+```sh
+sudo setcap cap_sys_rawio+ep BINARY
+```
+
 ## Usage
 
 By default, only the MSR for cpu 0 will be accessed.
