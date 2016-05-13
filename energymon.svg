@@ -1,0 +1,93 @@
+<svg width="40" height="40" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <defs>
+  <linearGradient id="imagebot_19">
+   <stop stop-color="#2e3436" id="imagebot_40"/>
+   <stop stop-color="#babdb6" offset="1" id="imagebot_39"/>
+  </linearGradient>
+  <linearGradient id="imagebot_20">
+   <stop stop-color="#fff" id="imagebot_38"/>
+   <stop stop-opacity="0" stop-color="#fff" offset="1" id="imagebot_37"/>
+  </linearGradient>
+  <linearGradient id="imagebot_21">
+   <stop stop-color="#d3d7cf" id="imagebot_36"/>
+   <stop stop-color="#eeeeec" offset="1" id="imagebot_35"/>
+  </linearGradient>
+  <linearGradient id="imagebot_22">
+   <stop stop-color="#888a85" id="imagebot_34"/>
+   <stop stop-color="#555753" offset="1" id="imagebot_33"/>
+  </linearGradient>
+  <linearGradient id="imagebot_23">
+   <stop stop-opacity="0.5" stop-color="#fff" id="imagebot_32"/>
+   <stop stop-opacity="0" stop-color="#fff" offset="1" id="imagebot_31"/>
+  </linearGradient>
+  <linearGradient id="imagebot_24">
+   <stop stop-color="#2e3436" id="imagebot_30"/>
+   <stop stop-opacity="0" stop-color="#2e3436" offset="1" id="imagebot_29"/>
+  </linearGradient>
+  <radialGradient gradientTransform="matrix(1, 0, 0, 0.115044, -4, 46.1989)" gradientUnits="userSpaceOnUse" xlink:href="#imagebot_24" id="imagebot_18" r="16.727" cy="44.3" cx="25.02"/>
+  <linearGradient x1="-0.1572" xlink:href="#imagebot_23" id="imagebot_16" y2="1.0138" x2="-0.1572" y1="-0.01378"/>
+  <radialGradient gradientTransform="matrix(-0.242859, 0.981873, -1.974, -0.488254, 33.8045, 4.04851)" gradientUnits="userSpaceOnUse" xlink:href="#imagebot_22" id="imagebot_17" r="18.717" cy="9.421" cx="14.11"/>
+  <radialGradient gradientTransform="matrix(1.19205, -1.67157, 2.42344, 1.72823, -83.5477, 31.4448)" gradientUnits="userSpaceOnUse" xlink:href="#imagebot_21" id="imagebot_14" r="14.476" cy="30.17" cx="26.805"/>
+  <linearGradient xlink:href="#imagebot_20" id="imagebot_11" y2="1.59469" x2="0.61918" y1="-1.40241" x1="0.00004"/>
+  <linearGradient x1="-0.25804" xlink:href="#imagebot_19" id="imagebot_15" y2="0.99999" x2="-0.25804" y1="0"/>
+ </defs>
+ <g>
+  <title>Layer 1</title>
+  <path transform="translate(-0, -10.9999) translate(-4, 6.996)" fill="url(#imagebot_18)" opacity="0.6" id="imagebot_1" d="M41.74394,44.2993A16.72718,1.92437 0 1 1 8.28958,44.2993A16.72718,1.92437 0 1 1 41.74394,44.2993z"/>
+ </g>
+ <g>
+  <title>Layer 2</title>
+  <path transform="translate(-0, -10.9999) translate(-4, 6.996)" fill="#2e3436" id="imagebot_2" d="M44,24A20,19.99795 0 1 1 4,24A20,19.99795 0 1 1 44,24z"/>
+ </g>
+ <g>
+  <title>Layer 3</title>
+  <path transform="translate(-0, -10.9999) translate(-4, 6.996)" fill="url(#imagebot_17)" id="imagebot_3" d="M22.75,5.375C8.61534,5.6267 0.00193,23.95276 8.9375,35.0625L8.90625,35.09375C17.01838,47.07901 37.3447,44.11383 41.5625,30.25L41.59375,30.25C41.60135,30.23041 41.58625,30.2071 41.59375,30.1875C46.2584,17.97679 35.85896,4.23375 22.8125,5.375C22.79102,5.37688 22.7715,5.37304 22.75,5.375z"/>
+ </g>
+ <g>
+  <title>Layer 4</title>
+  <path transform="translate(-0, -10.9999) translate(-4, 6.996)" stroke="url(#imagebot_16)" fill="none" id="imagebot_4" d="M25.15625,5.78125C24.39279,5.74387 23.59819,5.77357 22.8125,5.84375C22.80203,5.84469 22.79172,5.8428 22.78125,5.84375C9.01612,6.06301 0.55496,24.01766 9.3125,34.8125C17.20378,46.47146 37.08243,43.59887 41.15625,30.09375C41.15915,30.08425 41.15335,30.07203 41.15625,30.0625C45.44272,18.90229 36.75097,6.349 25.15625,5.78125z"/>
+ </g>
+ <g>
+  <title>Layer 5</title>
+  <path transform="translate(-0, -10.9999) translate(-4, 6.996)" fill="url(#imagebot_15)" id="imagebot_5" d="M22.8125,8.21875C11.12569,8.42686 3.74444,24.06602 11.15625,33.28125A2.85755,2.85755 0 0 1 11.40625,33.65625C18.23504,43.42547 35.35711,40.86678 38.84375,29.40625A2.85755,2.85755 0 0 1 38.9375,29.15625C42.8419,18.93566 33.99391,7.26251 23.0625,8.21875C22.55474,8.26317 22.52968,8.26163 23,8.21875A2.85755,2.85755 0 0 1 22.8125,8.21875z"/>
+ </g>
+ <g>
+  <title>Layer 6</title>
+  <path transform="translate(-0, -10.9999) translate(-4, 6.996)" fill="url(#imagebot_14)" id="imagebot_6" d="M22.84375,9.59375C22.82185,9.59551 22.79842,9.62374 22.78125,9.625C22.76654,9.62608 22.70779,9.62345 22.6875,9.625C22.66646,9.62567 22.64601,9.62421 22.625,9.625C12.27524,10.0131 5.60576,24.21547 12.21875,32.4375C12.3281,32.57639 12.44019,32.72359 12.53125,32.875C18.68163,41.67368 34.39056,39.32338 37.53125,29C37.56759,28.88734 37.61058,28.76545 37.65625,28.65625C41.19142,19.40219 33.0938,8.72718 23.1875,9.59375C23.1232,9.59937 23.08078,9.58952 23.03125,9.59375C22.96199,9.59602 22.91303,9.59489 22.84375,9.59375z"/>
+ </g>
+ <g>
+  <title>Layer 7</title>
+  <path transform="translate(-0, -10.9999) translate(-4, 6.996)" fill="#f57900" opacity="0.9" id="imagebot_7" d="M24.125,9.5625C23.81926,9.56743 23.49707,9.56667 23.1875,9.59375C23.1232,9.59937 23.08078,9.58952 23.03125,9.59375C22.96199,9.59602 22.91303,9.59489 22.84375,9.59375C22.82185,9.59551 22.79842,9.62374 22.78125,9.625C22.76654,9.62608 22.70779,9.62345 22.6875,9.625C22.66646,9.62567 22.64601,9.62421 22.625,9.625C19.22532,9.75248 16.23391,11.37425 13.96875,13.78125L18.4375,18.21875C19.88046,16.80593 21.85383,15.9375 24.03125,15.9375C26.22349,15.9375 28.21078,16.82017 29.65625,18.25L34.125,13.78125C31.52554,11.16379 27.99261,9.50009 24.125,9.5625z"/>
+ </g>
+ <g>
+  <title>Layer 8</title>
+  <path transform="translate(-0, -10.9999) translate(-4, 6.996)" fill="#8bb300" opacity="0.9" id="imagebot_8" d="M13.90625,13.84375C9.32216,18.77145 7.79721,26.94013 12.21875,32.4375C12.3281,32.57639 12.44019,32.72359 12.53125,32.875C12.87313,33.36409 13.25911,33.82927 13.65625,34.25L18.34375,29.5625C16.91381,28.117 16.03125,26.12985 16.03125,23.9375C16.03125,21.74567 16.91441,19.75791 18.34375,18.3125L13.90625,13.84375z"/>
+ </g>
+ <g>
+  <title>Layer 9</title>
+  <path transform="translate(-0, -10.9999) translate(-4, 6.996)" fill="#c00" opacity="0.9" id="imagebot_9" d="M34.1875,13.84375L29.71875,18.3125C31.14857,19.75798 32.03125,21.74525 32.03125,23.9375C32.03125,26.12216 31.13984,28.08704 29.71875,29.53125L34.34375,34.15625C35.78363,32.76053 36.9081,31.04828 37.53125,29C37.56759,28.88734 37.61058,28.76545 37.65625,28.65625C39.6724,23.37854 37.91628,17.64128 34.1875,13.84375z"/>
+ </g>
+ <g>
+  <title>Layer 10</title>
+  <path transform="translate(-0, -10.9999) translate(-4, 6.996)" fill="#555753" id="imagebot_13" d="M26.45541,23.9648A2.04466,2.00293 0 1 1 22.36609,23.9648A2.04466,2.00293 0 1 1 26.45541,23.9648z"/>
+ </g>
+ <g>
+  <title>Layer 11</title>
+  <rect transform="rotate(128.602, 16.4335, 16.7186) matrix(1, 0, 0, 1, -17.125, 17.1211)" rx="1.418" fill="#555753" id="imagebot_12" y="-6.996" x="32.14" ry="1.449" height="13.187" width="2.837"/>
+ </g>
+ <g>
+  <title>Layer 12</title>
+  <path transform="translate(-0, -10.9999) translate(-4, 6.996)" fill="url(#imagebot_11)" opacity="0.6" id="imagebot_10" d="M24.125,9.53125C23.8192,9.53624 23.49707,9.56667 23.1875,9.59375C23.1232,9.59937 23.08078,9.58952 23.03125,9.59375C22.96199,9.59602 22.91303,9.59489 22.84375,9.59375C22.82185,9.59551 22.79842,9.62374 22.78125,9.625C22.76654,9.62608 22.70779,9.62345 22.6875,9.625C22.66646,9.62567 22.64601,9.62421 22.625,9.625C14.94884,9.91284 9.30346,17.80878 9.59375,25.21875C18.47604,22.33732 28.26679,19.61149 36.9375,17.65625C34.53519,12.94984 29.67869,9.44058 24.125,9.53125z"/>
+  <g transform="translate(-0, -10.9999) matrix(0.574051, 0, 0, 0.574051, 16.0399, 34.9894)" id="imagebot_50">
+   <g stroke="#000000" stroke-width="1mm" stroke-linecap="square" fill="none" transform="matrix(0.218425, 0, 0, 0.218425, -0.00619148, -0.00619148)" id="imagebot_43">
+    <circle r="25.3" cx="34" cy="37.2" id="imagebot_49"/>
+    <line y2="37.2" x1="27.5" x2="1.8" y1="37.2" id="imagebot_48"/>
+    <line stroke-width="2mm" x1="27.5" y1="22.3" x2="27.5" y2="52.1" id="imagebot_47"/>
+    <path d="M27.8,46.3L48.5,58.5L48.5,72.6" id="imagebot_46"/>
+    <path d="M27.8,28.1L48.5,15.9L48.5,1.8" id="imagebot_45"/>
+    <path fill="#000000" d="M45.6,56.8L36.1,56.1L38.3,52.4L40.5,48.8L45.6,56.8z" id="imagebot_44"/>
+   </g>
+   <metadata id="imagebot_42">image/svg+xmlOpenclipart</metadata>
+  </g>
+ </g>
+</svg>
