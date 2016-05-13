@@ -67,7 +67,7 @@ To remove files installed to the system, run with proper privileges:
 make uninstall
 ```
 
-## Usage
+## Linking
 
 The best approach for linking with any EnergyMon library is to use [pkg-config](http://www.freedesktop.org/wiki/Software/pkg-config/).
 This is especially useful if building and linking to static libraries to ensure that you link with transitive dependencies.
@@ -88,4 +88,28 @@ include_directories(${ENERGYMON_INCLUDE_DIRS})
 
 add_executable(hello_world hello_world.c)
 target_link_libraries(hello_world -L${ENERGYMON_LIBDIR} ${ENERGYMON_LIBRARIES})
+```
+
+## Usage
+
+To use an EnergyMon implementation, you must first populate the struct by calling the getter function, then initialize it.
+Don't forget to cleanup the instance once you're finished with it.
+See `energymon.h` and `energymon-default.h` for more detailed function descriptions.
+
+```C
+  energymon em;
+  uint64_t start_uj, end_uj;
+
+  // get the energymon instance and initialize
+  energymon_get_default(&em);
+  em.finit(&em);
+
+  // profile application function
+  start_uj = em.fread(&em);
+  do_work();
+  end_uj = em.fread(&em);
+  printf("Total energy for do_work() in microjoules: %"PRIu64"\n", end_uj - start_uj);
+
+  // destroy the instance
+  em.ffinish(&em);
 ```
