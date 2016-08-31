@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
   }
 
   // open the output file
-  fout = fopen(argv[1], "wb");
+  fout = fopen(argv[1], "w+");
   if (fout == NULL) {
     perror("Failed to open output file");
     em.ffinish(&em);
