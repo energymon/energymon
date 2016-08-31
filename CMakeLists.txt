@@ -7,14 +7,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-unknown-pragmas -Wextra -pedantic
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
-# Build shared objects by default
-if(NOT DEFINED BUILD_SHARED_LIBS)
-  set(BUILD_SHARED_LIBS TRUE CACHE STRING "Whether to build shared or static libs")
-endif()
-
-# force fPIC on static libs
-set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
-
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   # Determine if we should link with librt for libraries that use "clock_gettime"
   include(CheckFunctionExists)
@@ -99,7 +91,10 @@ if(UNIX)
   add_executable(energymon-overhead src/app/energymon-overhead.c;src/energymon-time-util.c)
   target_link_libraries(energymon-overhead energymon-default ${LIBRT})
 
-  install(TARGETS energymon-cmd-profile energymon-file-provider energymon-idle-power energymon-overhead DESTINATION bin)
+  add_executable(energymon-power-poller src/app/energymon-power-poller.c;src/energymon-time-util.c)
+  target_link_libraries(energymon-power-poller energymon-default ${LIBRT} m)
+
+  install(TARGETS energymon-cmd-profile energymon-file-provider energymon-idle-power energymon-overhead energymon-power-poller DESTINATION bin)
 endif()
 
 # Tests
