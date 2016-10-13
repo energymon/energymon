@@ -2,6 +2,12 @@
 
 EnergyMon provides a general C interface for energy monitoring utilities.
 
+For details, please see the following publication and reference as appropriate:  
+Connor Imes, Lars Bergstrom, and Henry Hoffmann.
+"A Portable Interface for Runtime Energy Monitoring".
+In: FSE. 2016.  
+You may also find an extended analysis in the [Tech Report](https://cs.uchicago.edu/research/publications/techreports/TR-2016-08).
+
 Applications using some libraries may need to be executed using elevated
 privileges.
 
