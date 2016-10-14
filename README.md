@@ -119,3 +119,26 @@ See `energymon.h` and `energymon-default.h` for more detailed function descripti
   // destroy the instance
   em.ffinish(&em);
 ```
+
+## Tools
+
+This project includes a handful of applications.
+
+### Utilities
+
+All of the following are linked with `energymon-default`:
+
+* `energymon-cmd-profile`: Prints out time, energy, and power statistics for the execution of a given shell command.
+* `energymon-power-poller`: Prints average power values at the requested interval for the previous interval period.
+* `energymon-file-provider`: Writes energy data to a file (overwrites previous values).
+* `energymon-idle-power`: Prints the average power over the given interval (meant to run in isolation and measure idle power consumption).
+* `energymon-info`: Prints information about the implementation.
+* `energymon-overhead`: Prints the latency overhead in nanoseconds of the functions `finit`, `fread`, and `ffinish`.
+
+### Shared Memory Providers
+
+Shared memory providers allow exposing energy data to one or more unprivileged applications for sources that require elevated privileges and/or exclusive access.
+The providers may need to run with elevated privileges, but other applications can attach to their shared memory and read energy data using the `shmem` EnergyMon implementation.
+
+* `energymon-osp-polling-shmem-provider`
+* `energymon-wattsup-shmem-provider`
