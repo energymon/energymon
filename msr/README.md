@@ -5,9 +5,12 @@ Specific Registers on Linux platforms.
 
 ## Prerequisites
 
-First, you must be using a system that supports MSRs.
+First, you must be using a system that supports Intel MSRs.
 
-To access MSRs, the `msr` kernel module needs to be loaded:
+The implementation first checks for the [msr-safe](https://github.com/LLNL/msr-safe)
+kernel module, otherwise it falls back on the `msr` kernel module.
+
+To load the `msr` kernel module:
 
 ```sh
 sudo modprobe msr

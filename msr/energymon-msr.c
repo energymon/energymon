@@ -101,7 +101,7 @@ static inline int msr_info_init(msr_info* m, unsigned int n, char* env_cores) {
   uint64_t msr_val;
   unsigned int i;
   unsigned int energy_status_units;
-  char filename[24];
+  char filename[32];
   char* saveptr;
   char* tok = env_cores == NULL ? "0" :
     strtok_r(env_cores, ENERGYMON_MSRS_DELIMS, &saveptr);
@@ -109,12 +109,21 @@ static inline int msr_info_init(msr_info* m, unsigned int n, char* env_cores) {
   for (i = 0; tok && i < n && !errno; i++) {
     m[i].n_overflow = 0;
     m[i].energy_last = 0;
-    snprintf(filename, sizeof(filename), "/dev/cpu/%s/msr", tok);
-    if ((m[i].fd = open(filename, O_RDONLY)) <= 0 ||
-        pread(m[i].fd, &msr_val, sizeof(msr_val), MSR_RAPL_POWER_UNIT) < 0) {
+    // first try msr_safe file
+    snprintf(filename, sizeof(filename), "/dev/cpu/%s/msr_safe", tok);
+    if ((m[i].fd = open(filename, O_RDONLY)) <= 0) {
+      // fall back on regular msr file
+      snprintf(filename, sizeof(filename), "/dev/cpu/%s/msr", tok);
+      if ((m[i].fd = open(filename, O_RDONLY)) <= 0) {
+        perror(filename);
+        return errno;
+      }
+    }
+    if (pread(m[i].fd, &msr_val, sizeof(msr_val), MSR_RAPL_POWER_UNIT) < 0) {
       perror(filename);
       return errno;
     }
+
     // Energy related information (in Joules) is based on the multiplier,
     // 1/2^ESU; where ESU is an unsigned integer represented by bits 12:8.
     energy_status_units = ((msr_val >> 8) & 0x1f);
