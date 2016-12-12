@@ -66,6 +66,7 @@ static inline unsigned int rapl_zone_count() {
   return errno ? 0 : count;
 }
 
+#ifdef ENERGYMON_RAPL_OVERFLOW
 /**
  * Returns 0 on error (check errno), otherwise the max energy.
  */
@@ -92,6 +93,7 @@ static inline uint64_t rapl_read_max_energy(unsigned int zone) {
   }
   return ret;
 }
+#endif
 
 static inline int rapl_cleanup(const energymon_rapl* state) {
   int err_save = 0;

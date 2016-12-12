@@ -45,10 +45,6 @@ typedef struct energymon_odroid {
   int fds[];
 } energymon_odroid;
 
-static inline int64_t to_usec(struct timespec* ts) {
-  return ts->tv_sec * 1000000 + (ts->tv_nsec / 1000);
-}
-
 /**
  * Returns 0 if sensor is disabled or on I/O failure (check errno).
  */
