@@ -2,11 +2,10 @@
 
 EnergyMon provides a general C interface for energy monitoring utilities.
 
-For details, please see the following publication and reference as appropriate:  
-Connor Imes, Lars Bergstrom, and Henry Hoffmann.
-"A Portable Interface for Runtime Energy Monitoring".
-In: FSE. 2016.  
-You may also find an extended analysis in the [Tech Report](https://cs.uchicago.edu/research/publications/techreports/TR-2016-08).
+For details, please see the following publication and reference as appropriate:
+
+* Connor Imes, Lars Bergstrom, and Henry Hoffmann. "A Portable Interface for Runtime Energy Monitoring". In: FSE. 2016. DOI: https://doi.org/10.1145/2950290.2983956
+* You may also find an extended analysis in the [Tech Report](https://cs.uchicago.edu/research/publications/techreports/TR-2016-08).
 
 Applications using some libraries may need to be executed using elevated
 privileges.
@@ -142,3 +141,11 @@ The providers may need to run with elevated privileges, but other applications c
 
 * `energymon-osp-polling-shmem-provider`
 * `energymon-wattsup-shmem-provider`
+
+## Project Source
+
+Find this and related project sources at the [energymon organization on GitHub](https://github.com/energymon).  
+This project originates at: https://github.com/energymon/energymon
+
+
+Bug reports and pull requests for new implementations, bug fixes, and enhancements are welcome.
