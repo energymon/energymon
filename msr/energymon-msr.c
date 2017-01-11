@@ -79,8 +79,7 @@ static inline int msr_info_init(msr_info* m, unsigned int n, char* env_cores) {
   char* saveptr;
   char* tok = env_cores == NULL ? "0" :
     strtok_r(env_cores, ENERGYMON_MSRS_DELIMS, &saveptr);
-  errno = 0;
-  for (i = 0; tok && i < n && !errno; i++) {
+  for (i = 0; tok && i < n; i++) {
     m[i].n_overflow = 0;
     m[i].energy_last = 0;
     // first try msr_safe file
