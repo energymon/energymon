@@ -12,6 +12,7 @@
 extern "C" {
 #endif
 
+#include <inttypes.h>
 #include <stddef.h>
 #include "energymon.h"
 
