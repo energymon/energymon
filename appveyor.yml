@@ -9,6 +9,7 @@ configuration:
   - Release
 
 before_build:
+  # TODO: Install optional dependencies like hidapi-libusb, libusb-1.0, libftdi
   # Workaround for CMake not wanting sh.exe on PATH for MinGW
   - set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
   - set PATH=C:\MinGW\bin;%PATH%

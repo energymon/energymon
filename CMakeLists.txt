@@ -69,11 +69,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux|Android")
   add_subdirectory(odroid)
   add_subdirectory(osp)
   add_subdirectory(rapl)
+endif()
+
+if(UNIX OR WIN32)
   add_subdirectory(wattsup)
 endif()
 
 # Binaries
-
 
 add_executable(energymon-info src/app/energymon-info.c)
 target_link_libraries(energymon-info energymon-default)
