@@ -139,6 +139,7 @@ int energymon_init_msr(energymon* em) {
   size_t size = sizeof(energymon_msr) + ncores * sizeof(msr_info);
   energymon_msr* state = calloc(1, size);
   if (state == NULL) {
+    free(tmp);
     return -1;
   }
   state->msr_count = ncores;

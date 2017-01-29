@@ -54,11 +54,15 @@ static inline unsigned int rapl_zone_count() {
   struct dirent* entry;
   char buf[24];
   DIR* dir = opendir(RAPL_BASE_DIR);
-  for (errno = 0; dir != NULL && (entry = readdir(dir)) != NULL;) {
+  if (dir == NULL) {
+    perror(RAPL_BASE_DIR);
+    return 0;
+  }
+  for (errno = 0; (entry = readdir(dir)) != NULL;) {
     snprintf(buf, sizeof(buf), "intel-rapl:%u", count);
     count += strncmp(entry->d_name, buf, strlen(buf)) ? 0 : 1;
   }
-  err_save = errno; // from opendir or readdir
+  err_save = errno; // from readdir
   if (closedir(dir)) {
     perror(RAPL_BASE_DIR);
   }

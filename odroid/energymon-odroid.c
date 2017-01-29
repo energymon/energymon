@@ -279,6 +279,7 @@ int energymon_init_odroid(energymon* em) {
   size_t size = sizeof(energymon_odroid) + count * sizeof(int);
   energymon_odroid* state = calloc(1, size);
   if (state == NULL) {
+    free_sensor_directories(sensor_dirs, count);
     return -1;
   }
   state->count = count;

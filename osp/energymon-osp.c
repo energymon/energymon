@@ -159,7 +159,7 @@ static int energymon_finish_osp_local(energymon* em) {
  */
 static void* osp_poll_device(void* args) {
   energymon_osp* state = (energymon_osp*) args;
-  double watts;
+  double watts = 0;
   char w[8];
   int64_t exec_us = 0;
   int err_save;
