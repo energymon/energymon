@@ -7,23 +7,17 @@
 * @author Connor Imes
 * @date 2016-02-08
 */
-
 #include <assert.h>
 #include <errno.h>
-#include <fcntl.h>
 #include <inttypes.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/select.h>
-#include <sys/stat.h>
-#include <termios.h>
-#include <unistd.h>
 #include "energymon.h"
-#include "energymon-wattsup.h"
 #include "energymon-time-util.h"
-#include "energymon-util.h"
+#include "energymon-wattsup.h"
+#include "wattsup-driver.h"
 
 #ifdef ENERGYMON_DEFAULT
 #include "energymon-default.h"
@@ -45,11 +39,9 @@ int energymon_get_default(energymon* em) {
 // chosen empirically as a ridiculous value - never needed more than ~4 reads
 #define WU_MAX_INITIAL_READS 100
 
-static const char* const WU_CLEAR = "#R,W,0;";
-static const char* const WU_LOG_START_EXTERNAL = "#L,W,3,E,1,1;";
-
 typedef struct energymon_wattsup {
-  int fd;
+  energymon_wattsup_ctx* ctx;
+
   int poll;
   pthread_t thread;
   int use_estimates;
@@ -61,43 +53,23 @@ typedef struct energymon_wattsup {
   uint64_t total_uj;
 } energymon_wattsup;
 
-/**
- * Read data from the WattsUp into the buffer.
- * Returns the number of characters read, or -1 on failure (errno is set).
- */
-static inline int wattsup_read(int fd, char* buf, size_t buflen) {
-  fd_set set;
-  struct timeval timeout;
-  int ret = -1;
-
-  assert(fd > 0);
-  assert(buf != NULL);
-  assert(buflen > 0);
-
-  FD_ZERO(&set);
-  FD_SET(fd, &set);
-  // documentation specifies response within 2 seconds
-  timeout.tv_sec = 2;
-  timeout.tv_usec = 0;
-
-  switch (select(fd + 1, &set, NULL, NULL, &timeout)) {
-    case -1:
-      // failed
-      break;
-    case 0:
-      // timed out
-      errno = ETIME;
-      break;
-    default:
-      ret = read(fd, buf, buflen);
-      if (!ret) {
-        // no data was read
-        ret = -1;
-        errno = ENODATA;
-      }
-      break;
+static void lock_acquire(int* lock) {
+  assert(lock != NULL);
+#if defined(_WIN32)
+  while (InterlockedExchange((long*) lock, 1)) {
+#else
+  while (__sync_lock_test_and_set(lock, 1)) {
+#endif
+    while (*lock);
   }
-  return ret;
+}
+
+static void lock_release(int* lock) {
+#if defined(_WIN32)
+  InterlockedExchange((long*) lock, 0);
+#else
+  __sync_lock_release(lock);
+#endif
 }
 
 /**
@@ -111,6 +83,7 @@ static void* wattsup_poll_sensors(void* args) {
   char* saveptr;
   char* tok;
   int ret;
+  int dummy_old_state; // not used but kept for portability (see pthread docs)
 
   state->deciwatts = 0;
   if (energymon_clock_gettime(&state->ts)) {
@@ -120,7 +93,12 @@ static void* wattsup_poll_sensors(void* args) {
   }
   energymon_sleep_us(WU_MIN_INTERVAL_US);
   while (state->poll) {
-    ret = wattsup_read(state->fd, buf, WU_BUFSIZE);
+#ifndef __ANDROID__
+    // deadlock can occur during disconnect in some wattsup_driver impls if thread is canceled during I/O
+    // disable thread cancel while we do I/O and later while we hold the lock
+    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &dummy_old_state);
+#endif
+    ret = wattsup_read(state->ctx, buf, WU_BUFSIZE);
     if (ret < 0) {
       perror("wattsup_poll_sensors:wattsup_read");
     } else {
@@ -166,101 +144,38 @@ static void* wattsup_poll_sensors(void* args) {
 
     // WattsUps are cranky - don't read for a whole second
     if (state->use_estimates) {
-#ifndef __ANDROID__
-      // disable thread cancel while we hold the lock
-      pthread_setcancelstate(PTHREAD_CANCEL_DEFERRED, NULL);
-#endif
-      while (__sync_lock_test_and_set(&state->lock, 1)) {
-        while (state->lock);
-      }
+      lock_acquire(&state->lock);
     }
     state->exec_us = energymon_gettime_us(&state->ts);
     state->total_uj += state->deciwatts * state->exec_us / 10;
     if (state->use_estimates) {
-      __sync_lock_release(&state->lock);
-#ifndef __ANDROID__
-      pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-#endif
+      lock_release(&state->lock);
     }
+#ifndef __ANDROID__
+    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &dummy_old_state);
+#endif
     energymon_sleep_us(WU_MIN_INTERVAL_US);
   }
   return (void*) NULL;
 }
 
-static inline int wattsup_open(const char* filename, int* fd) {
-  struct stat s;
-  char buf[32] = { 0 };
-  const char* shortname;
-
-  assert(filename != NULL);
-  assert(fd != NULL);
-
-  // Check if device node exists and is writable
-  if (stat(filename, &s) < 0) {
-    perror(filename);
+static int wattsup_flush_read(energymon_wattsup_ctx* ctx) {
+  assert(ctx != NULL);
+  char buf[WU_BUFSIZE];
+  int i;
+  // do at most WU_MAX_INITIAL_READS reads, just so we don't read indefinitely
+  for (i = 0; i < WU_MAX_INITIAL_READS; i++) {
+    if (wattsup_read(ctx, buf, sizeof(buf)) != sizeof(buf)) {
+      break;
+    }
+  }
+  if (i == WU_MAX_INITIAL_READS) {
+    // the device is just giving us garbage
     return -1;
   }
-  if (!S_ISCHR(s.st_mode)) {
-    errno = ENOTTY;
-    perror("Not a TTY character device");
-    return -1;
-  }
-  if (access(filename, R_OK | W_OK)) {
-    perror(filename);
-    return -1;
-  }
-
-  // Get shortname by dropping leading "/dev/"
-  if (!(shortname = strrchr(filename, '/'))) {
-    // shouldn't happen since we've already checked filename
-    errno = EINVAL;
-    perror(filename);
-    return -1;
-  }
-  shortname++;
-
-  // Check if "/sys/class/tty/<shortname>" exists and is correct type
-  snprintf(buf, sizeof(buf), "/sys/class/tty/%s", shortname);
-  if (stat(buf, &s) < 0) {
-    perror(buf);
-    return -1;
-  }
-  if (!S_ISDIR(s.st_mode)) {
-    errno = ENODEV;
-    perror("Not a TTY device");
-    return -1;
-  }
-
-  // Open the device file
-  *fd = open(filename, O_RDWR | O_NONBLOCK);
-  if (*fd < 0) {
-    perror(filename);
-    return -1;
-  }
+  // read (hopefully) the last of the junk
+  wattsup_read(ctx, buf, sizeof(buf));
   return 0;
-}
-
-static inline int wattsup_set_serial_attributes(int fd) {
-  struct termios t;
-  assert(fd > 0);
-  // get attributes
-  if (tcgetattr(fd, &t)) {
-    return -1;
-  }
-  // set "raw" mode
-  cfmakeraw(&t);
-  // set input/output baud rate
-  cfsetispeed(&t, B115200);
-  cfsetospeed(&t, B115200);
-  // flush any data received but not read
-  tcflush(fd, TCIFLUSH);
-  // ignore framing and parity errors (there is no parity bit)
-  t.c_iflag |= IGNPAR;
-  // Turn off double stop bits (documentation specifies only one is used)
-  t.c_cflag &= ~CSTOPB;
-
-  // set the parameters (immediately)
-  return tcsetattr(fd, TCSANOW, &t);
 }
 
 int energymon_init_wattsup(energymon* em) {
@@ -269,81 +184,66 @@ int energymon_init_wattsup(energymon* em) {
     return -1;
   }
 
-  int fd;
-  int i;
-  int err_save = 0;
-  char buf[WU_BUFSIZE] = { '\0' };
-  const char* wu_filename = getenv(ENERGYMON_WATTSUP_DEV_FILE);
-  if (wu_filename == NULL) {
-    wu_filename = ENERGYMON_WATTSUP_DEV_FILE_DEFAULT;
+  int err_save;
+  const char* dev_file = getenv(ENERGYMON_WATTSUP_DEV_FILE);
+  if (dev_file == NULL) {
+    dev_file = ENERGYMON_WATTSUP_DEV_FILE_DEFAULT;
   }
-
-  // open the file descriptor and check device properties
-  if (wattsup_open(wu_filename, &fd)) {
-    return -1;
-  }
-
-  // set serial port configuration
-  if (wattsup_set_serial_attributes(fd)) {
-    perror(wu_filename);
-    close(fd);
-    return -1;
-  }
-
-  // clear device memory
-  if (write(fd, WU_CLEAR, strlen(WU_CLEAR)) < 0) {
-    perror(wu_filename);
-    close(fd);
-    return -1;
-  }
-
-  // TODO: This seems necessary to prevent early bad reads in polling thread...
-  energymon_sleep_us(WU_MIN_INTERVAL_US);
-
-  // start device logging
-  if (write(fd, WU_LOG_START_EXTERNAL, strlen(WU_LOG_START_EXTERNAL)) < 0) {
-    perror(wu_filename);
-    close(fd);
-    return -1;
-  }
-
-  // dummy reads - sometimes we get a bunch of junk to start with
-  // do at most WU_MAX_INITIAL_READS reads, just so we don't read indefinitely
-  for (i = 0; i < WU_MAX_INITIAL_READS; i++) {
-    if (wattsup_read(fd, buf, sizeof(buf)) != sizeof(buf)) {
-      break;
-    }
-  }
-  if (i == WU_MAX_INITIAL_READS) {
-    // the device is just giving us garbage
-    fprintf(stderr, "energymon_init_wattsup: Too much data from WattsUp\n");
-    close(fd);
-    errno = ENODATA;
-    return -1;
-  }
-  // read (hopefully) the last of the junk
-  wattsup_read(fd, buf, sizeof(buf));
 
   // create the state struct
   energymon_wattsup* state = calloc(1, sizeof(energymon_wattsup));
   if (state == NULL) {
-    close(fd);
+    return -1;
+  }
+
+  // connect to the device
+  if ((state->ctx = wattsup_connect(dev_file, ENERGYMON_WATTSUP_TIMEOUT_MS)) == NULL) {
+    free(state);
+    return -1;
+  }
+
+  // clear device memory
+  if (wattsup_write(state->ctx, WU_CLEAR, strlen(WU_CLEAR)) < 0) {
+    wattsup_disconnect(state->ctx);
+    free(state);
+    return -1;
+  }
+
+  // start device logging
+  if (wattsup_write(state->ctx, WU_LOG_START_EXTERNAL, strlen(WU_LOG_START_EXTERNAL)) < 0) {
+    wattsup_disconnect(state->ctx);
+    free(state);
+    return -1;
+  }
+
+  // must let the device start working before we read anything, otherwise we get garbage
+  energymon_sleep_us(WU_MIN_INTERVAL_US);
+
+  // dummy reads - sometimes we get a bunch of junk to start with
+  if (wattsup_flush_read(state->ctx)) {
+    fprintf(stderr, "energymon_init_wattsup: Too much data from WattsUp\n");
+    wattsup_disconnect(state->ctx);
+    free(state);
+    errno = ENODATA;
     return -1;
   }
 
   // set state properties
-  state->fd = fd;
   state->use_estimates = getenv(ENERGYMON_WATTSUP_ENABLE_ESTIMATES) != NULL;
 
   // start polling thread
   state->poll = 1;
   err_save = pthread_create(&state->thread, NULL, wattsup_poll_sensors, state);
   if (err_save) {
-    close(fd);
+    wattsup_disconnect(state->ctx);
     free(state);
     errno = err_save;
     return -1;
   }
+
+  // This is hacky, but seems to be the most reliable way to provide accurate data:
+  // give time for the polling thread to get a reading
+  energymon_sleep_us(WU_MIN_INTERVAL_US);
 
   em->state = state;
   return 0;
@@ -367,9 +267,13 @@ int energymon_finish_wattsup(energymon* em) {
     err_save = pthread_join(state->thread, NULL);
   }
 
-  // close file
-  if (state->fd > 0 && close(state->fd)) {
-    err_save = err_save ? err_save : errno;
+  if (state->ctx != NULL) {
+    // stop logging
+    wattsup_write(state->ctx, WU_LOG_STOP, strlen(WU_LOG_STOP));
+    // disconnect from device
+    if (wattsup_disconnect(state->ctx)) {
+      err_save = err_save ? err_save : errno;
+    }
   }
 
   em->state = NULL;
@@ -386,18 +290,16 @@ uint64_t energymon_read_total_wattsup(const energymon* em) {
   }
   energymon_wattsup* state = (energymon_wattsup*) em->state;
   if (state->use_estimates) {
-    while (__sync_lock_test_and_set(&state->lock, 1)) {
-      while (state->lock);
-    }
+    lock_acquire(&state->lock);
     state->exec_us = energymon_gettime_us(&state->ts);
     state->total_uj += state->deciwatts * state->exec_us / 10;
-    __sync_lock_release(&state->lock);
+    lock_release(&state->lock);
   }
   return state->total_uj;
 }
 
 char* energymon_get_source_wattsup(char* buffer, size_t n) {
-  return energymon_strencpy(buffer, "WattsUp? Power Meter", n);
+  return wattsup_get_implementation(buffer, n);
 }
 
 uint64_t energymon_get_interval_wattsup(const energymon* em) {

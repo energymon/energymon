@@ -17,7 +17,9 @@ extern "C" {
 
 // Environment variable for specifying the device file to read from
 #define ENERGYMON_WATTSUP_DEV_FILE "ENERGYMON_WATTSUP_DEV_FILE"
-#define ENERGYMON_WATTSUP_DEV_FILE_DEFAULT "/dev/ttyUSB0"
+#ifndef ENERGYMON_WATTSUP_DEV_FILE_DEFAULT
+  #define ENERGYMON_WATTSUP_DEV_FILE_DEFAULT "/dev/ttyUSB0"
+#endif
 
 int energymon_init_wattsup(energymon* em);
 

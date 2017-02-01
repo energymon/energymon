@@ -24,6 +24,8 @@ Current EnergyMon implementation options are:
 * rapl
 * shmem
 * wattsup
+* wattsup-libusb
+* wattsup-libftdi
 
 ## Building
 

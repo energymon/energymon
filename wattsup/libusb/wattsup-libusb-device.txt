@@ -1,0 +1,34 @@
+# WattsUp? PRO device information
+# Captured using the "testlibusb -v" example program in libusb
+
+Dev (bus 2, device 2): FTDI - FT232R USB UART
+  - Serial Number: A5015A7F
+  Configuration:
+    wTotalLength:         32
+    bNumInterfaces:       1
+    bConfigurationValue:  1
+    iConfiguration:       0
+    bmAttributes:         a0h
+    MaxPower:             45
+    Interface:
+      bInterfaceNumber:   0
+      bAlternateSetting:  0
+      bNumEndpoints:      2
+      bInterfaceClass:    255
+      bInterfaceSubClass: 255
+      bInterfaceProtocol: 255
+      iInterface:         2
+      Endpoint:
+        bEndpointAddress: 81h
+        bmAttributes:     02h
+        wMaxPacketSize:   64
+        bInterval:        0
+        bRefresh:         0
+        bSynchAddress:    0
+      Endpoint:
+        bEndpointAddress: 02h
+        bmAttributes:     02h
+        wMaxPacketSize:   64
+        bInterval:        0
+        bRefresh:         0
+        bSynchAddress:    0
