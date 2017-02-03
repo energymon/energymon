@@ -20,16 +20,11 @@ On Ubuntu 14.04 LTS and newer, just install `libhidapi-dev`.
 
 ## Linking
 
-To link with the library:
+To link with the appropriate library and its dependencies, use `pkg-config` to get the linker flags:
 
-```
--lenergymon-osp -lhidapi-libusb
-```
-
-To link with the polling version of the library:
-
-```
--lenergymon-osp-polling -lhidapi-libusb -lpthread
+```sh
+pkg-config --libs --static energymon-osp
+pkg-config --libs --static energymon-osp-polling
 ```
 
-For the polling version, also need `-lrt` for glibc versions before 2.17.
+The `--static` flag is unnecessary when using dynamically linked libraries.

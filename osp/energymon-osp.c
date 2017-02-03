@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+#include <time.h>
 #include "energymon.h"
 #ifdef ENERGYMON_OSP_USE_POLLING
 #include "energymon-osp-polling.h"
