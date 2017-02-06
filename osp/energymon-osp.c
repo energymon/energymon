@@ -169,7 +169,7 @@ static void* osp_poll_device(void* args) {
     perror("osp_poll_device");
     return (void*) NULL;
   }
-  energymon_sleep_us(ENERGYMON_OSP_POLL_DELAY_US);
+  energymon_sleep_us(ENERGYMON_OSP_POLL_DELAY_US, &state->poll_sensors);
   while (state->poll_sensors) {
     w[0] = '\0';
     errno = 0;
@@ -190,7 +190,7 @@ static void* osp_poll_device(void* args) {
       state->total_uj += watts * exec_us;
     }
     // sleep for the polling delay (minus most overhead)
-    energymon_sleep_us(2 * ENERGYMON_OSP_POLL_DELAY_US - exec_us);
+    energymon_sleep_us(2 * ENERGYMON_OSP_POLL_DELAY_US - exec_us, &state->poll_sensors);
   }
   return (void*) NULL;
 }

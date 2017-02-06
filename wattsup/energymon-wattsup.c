@@ -91,7 +91,7 @@ static void* wattsup_poll_sensors(void* args) {
     perror("wattsup_poll_sensors");
     return (void*) NULL;
   }
-  energymon_sleep_us(WU_MIN_INTERVAL_US);
+  energymon_sleep_us(WU_MIN_INTERVAL_US, &state->poll);
   while (state->poll) {
 #ifndef __ANDROID__
     // deadlock can occur during disconnect in some wattsup_driver impls if thread is canceled during I/O
@@ -154,7 +154,7 @@ static void* wattsup_poll_sensors(void* args) {
 #ifndef __ANDROID__
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &dummy_old_state);
 #endif
-    energymon_sleep_us(WU_MIN_INTERVAL_US);
+    energymon_sleep_us(WU_MIN_INTERVAL_US, &state->poll);
   }
   return (void*) NULL;
 }
@@ -184,6 +184,7 @@ int energymon_init_wattsup(energymon* em) {
     return -1;
   }
 
+  static const int IGNORE_INTERRUPT = 0;
   int err_save;
   const char* dev_file = getenv(ENERGYMON_WATTSUP_DEV_FILE);
   if (dev_file == NULL) {
@@ -217,7 +218,7 @@ int energymon_init_wattsup(energymon* em) {
   }
 
   // must let the device start working before we read anything, otherwise we get garbage
-  energymon_sleep_us(WU_MIN_INTERVAL_US);
+  energymon_sleep_us(WU_MIN_INTERVAL_US, &IGNORE_INTERRUPT);
 
   // dummy reads - sometimes we get a bunch of junk to start with
   if (wattsup_flush_read(state->ctx)) {
@@ -243,7 +244,7 @@ int energymon_init_wattsup(energymon* em) {
 
   // This is hacky, but seems to be the most reliable way to provide accurate data:
   // give time for the polling thread to get a reading
-  energymon_sleep_us(WU_MIN_INTERVAL_US);
+  energymon_sleep_us(WU_MIN_INTERVAL_US, &IGNORE_INTERRUPT);
 
   em->state = state;
   return 0;

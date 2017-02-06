@@ -1,5 +1,5 @@
 set(LNAME energymon-wattsup)
-set(SOURCES ../energymon-wattsup.c;wattsup-driver-dev.c;../../src/energymon-util.c;../../src/energymon-time-util.c)
+set(SOURCES ../energymon-wattsup.c;wattsup-driver-dev.c;${ENERGYMON_UTIL};${ENERGYMON_TIME_UTIL})
 set(DESCRIPTION "EnergyMon implementation for WattsUp? Power meters")
 set(SHMEM_PROVIDER ${LNAME}-shmem-provider)
 

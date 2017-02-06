@@ -1,5 +1,5 @@
 set(LNAME energymon-wattsup-libftdi)
-set(SOURCES_LIBFTDI ../energymon-wattsup.c;wattsup-driver-libftdi.c;../../src/energymon-util.c;../../src/energymon-time-util.c)
+set(SOURCES_LIBFTDI ../energymon-wattsup.c;wattsup-driver-libftdi.c;${ENERGYMON_UTIL};${ENERGYMON_TIME_UTIL})
 set(DESCRIPTION_FTDI "EnergyMon implementation for WattsUp? Power meters using libftdi")
 set(SHMEM_PROVIDER ${LNAME}-shmem-provider)
 

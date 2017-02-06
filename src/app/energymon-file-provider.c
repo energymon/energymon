@@ -89,7 +89,7 @@ int main(int argc, char** argv) {
       break;
     }
     fflush(fout);
-    energymon_sleep_us(us);
+    energymon_sleep_us(us, &running);
   }
 
   // cleanup

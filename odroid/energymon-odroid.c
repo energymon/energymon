@@ -218,7 +218,7 @@ static void* odroid_poll_sensors(void* args) {
     perror("odroid_poll_sensors");
     return (void*) NULL;
   }
-  energymon_sleep_us(state->read_delay_us);
+  energymon_sleep_us(state->read_delay_us, &state->poll_sensors);
   while (state->poll_sensors) {
     // read individual sensors
     for (sum_w = 0, errno = 0, i = 0; i < state->count && !errno; i++) {
@@ -235,7 +235,7 @@ static void* odroid_poll_sensors(void* args) {
       state->total_uj += sum_w * exec_us;
     }
     // sleep for the update interval of the sensors (minus most overhead)
-    energymon_sleep_us(2 * state->read_delay_us - exec_us);
+    energymon_sleep_us(2 * state->read_delay_us - exec_us, &state->poll_sensors);
     errno = 0;
   }
   return (void*) NULL;

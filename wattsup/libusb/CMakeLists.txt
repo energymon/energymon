@@ -1,5 +1,5 @@
 set(LNAME energymon-wattsup-libusb)
-set(SOURCES_LIBUSB ../energymon-wattsup.c;wattsup-driver-libusb.c;../../src/energymon-util.c;../../src/energymon-time-util.c)
+set(SOURCES_LIBUSB ../energymon-wattsup.c;wattsup-driver-libusb.c;${ENERGYMON_UTIL};${ENERGYMON_TIME_UTIL})
 set(DESCRIPTION_LIBUSB "EnergyMon implementation for WattsUp? Power meters using libusb-1.0")
 set(SHMEM_PROVIDER ${LNAME}-shmem-provider)
 

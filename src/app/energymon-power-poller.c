@@ -18,6 +18,7 @@
 #include "energymon-default.h"
 #include "energymon-time-util.h"
 
+static const int IGNORE_INTERRUPT = 0;
 
 static volatile uint64_t running = 1;
 static int count = 0;
@@ -155,7 +156,7 @@ int main(int argc, char** argv) {
 
   // output at regular intervals
   energy_last = em.fread(&em);
-  energymon_sleep_us(interval);
+  energymon_sleep_us(interval, &IGNORE_INTERRUPT);
   while (running) {
     if (count) {
       running--;
@@ -184,7 +185,7 @@ int main(int argc, char** argv) {
       pavg = pavg + ((power - pavg) / n);
     }
     pstd = pstd + (power - pavg) * (power - pavg_last);
-    energymon_sleep_us(interval);
+    energymon_sleep_us(interval, &IGNORE_INTERRUPT);
   }
 
   if (summarize) {

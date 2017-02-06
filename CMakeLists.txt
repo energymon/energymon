@@ -6,6 +6,8 @@ set(PROJECT_VERSION 0.2.0)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-unknown-pragmas -Wextra -pedantic -std=gnu99")
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
+set(ENERGYMON_UTIL ${CMAKE_SOURCE_DIR}/src/energymon-util.c)
+set(ENERGYMON_TIME_UTIL ${CMAKE_SOURCE_DIR}/src/energymon-time-util.c;${CMAKE_SOURCE_DIR}/src/ptime/ptime.c)
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   # Determine if we should link with librt for libraries that use "clock_gettime"
@@ -81,19 +83,19 @@ add_executable(energymon-info src/app/energymon-info.c)
 target_link_libraries(energymon-info energymon-default)
 
 if(UNIX)
-  add_executable(energymon-cmd-profile src/app/energymon-cmd-profile.c;src/energymon-time-util.c)
+  add_executable(energymon-cmd-profile src/app/energymon-cmd-profile.c;${ENERGYMON_TIME_UTIL})
   target_link_libraries(energymon-cmd-profile energymon-default ${LIBRT})
 
-  add_executable(energymon-file-provider src/app/energymon-file-provider.c;src/energymon-time-util.c)
+  add_executable(energymon-file-provider src/app/energymon-file-provider.c;${ENERGYMON_TIME_UTIL})
   target_link_libraries(energymon-file-provider energymon-default ${LIBRT})
 
-  add_executable(energymon-idle-power src/app/energymon-idle-power.c;src/energymon-time-util.c)
+  add_executable(energymon-idle-power src/app/energymon-idle-power.c;${ENERGYMON_TIME_UTIL})
   target_link_libraries(energymon-idle-power energymon-default ${LIBRT})
 
-  add_executable(energymon-overhead src/app/energymon-overhead.c;src/energymon-time-util.c)
+  add_executable(energymon-overhead src/app/energymon-overhead.c;${ENERGYMON_TIME_UTIL})
   target_link_libraries(energymon-overhead energymon-default ${LIBRT})
 
-  add_executable(energymon-power-poller src/app/energymon-power-poller.c;src/energymon-time-util.c)
+  add_executable(energymon-power-poller src/app/energymon-power-poller.c;${ENERGYMON_TIME_UTIL})
   target_link_libraries(energymon-power-poller energymon-default ${LIBRT} m)
 
   install(TARGETS energymon-cmd-profile energymon-file-provider energymon-idle-power energymon-overhead energymon-power-poller DESTINATION bin)

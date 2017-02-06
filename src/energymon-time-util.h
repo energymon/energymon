@@ -5,15 +5,14 @@
 #include <time.h>
 
 /**
- * Get the real system time in nanoseconds.
+ * Get monotonic time in nanoseconds.
  *
  * @return system clock in nanoseconds
  */
 uint64_t energymon_gettime_ns(void);
 
 /**
- * Get the current time.
- * On Linux, this uses CLOCK_MONOTONiC.
+ * Get the current monotonic time.
  *
  * @param ts
  *  pointer to timespec (must not be NULL)
@@ -22,8 +21,7 @@ uint64_t energymon_gettime_ns(void);
 int energymon_clock_gettime(struct timespec* ts);
 
 /**
- * Compute the elapsed time in microseconds since the given timespec.
- * If CLOCK_MONOTONIC is supported, no errors should occur.
+ * Compute the elapsed monotonic time in microseconds since the given timespec.
  * The given timespec will be updated with the current time.
  *
  * @param ts
@@ -34,10 +32,9 @@ int64_t energymon_gettime_us(struct timespec* ts);
 
 /**
  * Sleep for the specified number of microseconds. If us <= 0, no sleep occurs.
- * If CLOCK_MONOTONIC is supported, no errors should occur.
  *
  * @param us
  *  the number of microseconds
  * @return 0 on success, error code on failure
  */
-int energymon_sleep_us(uint64_t us);
+int energymon_sleep_us(int64_t us, volatile const int* ignore_interrupt);

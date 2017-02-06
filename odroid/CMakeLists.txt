@@ -1,7 +1,7 @@
 set(LNAME energymon-odroid)
 set(LNAME_IOCTL energymon-odroid-ioctl)
-set(SOURCES ${LNAME}.c;../src/energymon-util.c;../src/energymon-time-util.c)
-set(SOURCES_IOCTL ${LNAME_IOCTL}.c;../src/energymon-util.c;../src/energymon-time-util.c)
+set(SOURCES ${LNAME}.c;${ENERGYMON_UTIL};${ENERGYMON_TIME_UTIL})
+set(SOURCES_IOCTL ${LNAME_IOCTL}.c;${ENERGYMON_UTIL};${ENERGYMON_TIME_UTIL})
 set(DESCRIPTION "EnergyMon implementation for ODROID systems")
 set(DESCRIPTION_IOCTL "EnergyMon implementation for ODROID systems using ioctl")
 
