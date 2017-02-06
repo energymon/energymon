@@ -22,7 +22,7 @@ if(${PKG_CONFIG_FOUND})
       pkg_search_module(HIDAPI ${HIDAPI_IMPL})
     elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
       # Check for impl with IOHidManager backend
-      set(HIDAPI_IMPL hidapi-iohidmanager)
+      set(HIDAPI_IMPL hidapi)
       pkg_search_module(HIDAPI ${HIDAPI_IMPL})
     elseif(WIN32)
       # Check for impl with dll backend (hidapi.dll)

@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "energymon.h"
 #include "energymon-time-util.h"
 #include "energymon-wattsup.h"

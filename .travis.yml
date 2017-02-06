@@ -2,6 +2,8 @@ os:
   - linux
   - osx
 
+language: c
+
 compiler:
   - gcc
   - clang
@@ -35,8 +37,6 @@ before_install:
   - make install
   - export PKG_CONFIG_PATH="`pwd`/_local_install/lib/pkgconfig:$PKG_CONFIG_PATH"
   - cd -
-
-language: c
 
 script:
   - mkdir _build
