@@ -85,7 +85,7 @@ static inline long get_update_interval(char** sensors, unsigned int num) {
     if (close(fd)) {
       perror(file);
     }
-    if (!read_ret) {
+    if (read_ret > 0) {
       errno = 0;
       tmp = strtoul(cdata, NULL, 0);
       if (errno) {
