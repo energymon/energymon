@@ -18,10 +18,7 @@ int energymon_clock_gettime(struct timespec* ts) {
 }
 
 int64_t energymon_gettime_us(struct timespec* ts) {
-  if (ptime_clock_gettime(PTIME_MONOTONIC, ts)) {
-    return 0;
-  }
-  return ptime_timespec_to_us(ts);
+  return ptime_gettime_elapsed_us(PTIME_MONOTONIC, ts);
 }
 
 int energymon_sleep_us(int64_t us, volatile const int* ignore_interrupt) {
