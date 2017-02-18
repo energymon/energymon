@@ -96,6 +96,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux|Android")
   add_subdirectory(msr)
   add_subdirectory(odroid)
   add_subdirectory(rapl)
+  add_subdirectory(zcu102)
 endif()
 
 if(UNIX OR WIN32)

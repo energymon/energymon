@@ -1,0 +1,39 @@
+set(SNAME zcu102)
+set(LNAME energymon-zcu102)
+set(SOURCES ${LNAME}.c;${ENERGYMON_UTIL};${ENERGYMON_TIME_UTIL})
+set(DESCRIPTION "EnergyMon implementation for Xilinx ZCU102 systems")
+
+# Dependencies
+
+# Must be set to OFF to prevent doing a try_run() during cross-compiling
+set(THREADS_PTHREAD_ARG OFF)
+find_package(Threads)
+if(CMAKE_THREAD_LIBS_INIT)
+  set(PKG_CONFIG_PRIVATE_LIBS "${CMAKE_THREAD_LIBS_INIT}")
+endif()
+if(LIBRT)
+  set(PKG_CONFIG_PRIVATE_LIBS "${PKG_CONFIG_PRIVATE_LIBS} -lrt")
+endif()
+
+# Libraries
+
+if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
+   ENERGYMON_BUILD_LIB STREQUAL SNAME OR
+   ENERGYMON_BUILD_LIB STREQUAL LNAME)
+
+  add_library(${LNAME} ${SOURCES})
+  target_link_libraries(${LNAME} ${CMAKE_THREAD_LIBS_INIT} ${LIBRT})
+  if(BUILD_SHARED_LIBS)
+    set_target_properties(${LNAME} PROPERTIES VERSION ${PROJECT_VERSION}
+                                              SOVERSION ${VERSION_MAJOR})
+  endif()
+  PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
+  install(TARGETS ${LNAME} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  install(FILES ${LNAME}.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
+
+endif()
+
+if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
+  BUILD_DEFAULT("${SOURCES}" "${CMAKE_THREAD_LIBS_INIT};${LIBRT}" "")
+  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
+endif()
