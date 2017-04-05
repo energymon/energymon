@@ -73,14 +73,14 @@ typedef struct energymon_osp {
 #endif
 } energymon_osp;
 
-static inline int em_osp_request_status(energymon_osp* em) {
+static int em_osp_request_status(energymon_osp* em) {
   memset((void*) &em->buf, 0x00, sizeof(em->buf));
   em->buf[1] = OSP_REQUEST_STATUS;
   return hid_write(em->device, em->buf, sizeof(em->buf)) == -1 ||
          hid_read(em->device, em->buf, sizeof(em->buf)) == -1;
 }
 
-static inline int em_osp_request_startstop(energymon_osp* em) {
+static int em_osp_request_startstop(energymon_osp* em) {
   memset((void*) &em->buf, 0x00, sizeof(em->buf));
   em->buf[1] = OSP_REQUEST_STARTSTOP;
   if (hid_write(em->device, em->buf, sizeof(em->buf)) == -1) {
@@ -89,15 +89,14 @@ static inline int em_osp_request_startstop(energymon_osp* em) {
   return 0;
 }
 
-static inline int em_osp_request_data(energymon_osp* em) {
+static int em_osp_request_data(energymon_osp* em) {
   memset((void*) &em->buf, 0x00, sizeof(em->buf));
   em->buf[1] = OSP_REQUEST_DATA;
   return hid_write(em->device, em->buf, sizeof(em->buf)) == -1 ||
          hid_read(em->device, em->buf, sizeof(em->buf)) == -1;
 }
 
-static inline int em_osp_request_data_retry(energymon_osp* em,
-                                            unsigned int retries) {
+static int em_osp_request_data_retry(energymon_osp* em, unsigned int retries) {
   do {
     // always read twice - the first attempt often returns old data
     em_osp_request_data(em);
