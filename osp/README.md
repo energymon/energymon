@@ -18,6 +18,23 @@ You need an ODROID Smart Power device with a USB connection.
 This implementation depends on [hidapi](https://github.com/signal11/hidapi/).
 On Ubuntu 14.04 LTS and newer, just install `libhidapi-dev`.
 
+### Linux Privileges
+
+To use an ODROID Smart Power without needing sudo/root at runtime, set appropriate [udev](https://en.wikipedia.org/wiki/Udev) privileges.
+
+For example, you can give access to a specific group, e.g. `plugdev`, by creating/modifying a `udev` config file, e.g. `/etc/udev/rules.d/10-local.rules`.
+Depending on whether you are using the `libusb` or `hidraw` implementations of `hidapi`, use one of the following rules (though having both shouldn't hurt):
+
+```sh
+# ODROID Smart Power - HIDAPI/libusb
+SUBSYSTEM=="usb", ATTRS{idVendor}=="04d8", ATTRS{idProduct}=="003f", GROUP="plugdev"
+
+# ODROID Smart Power - HIDAPI/hidraw
+KERNEL=="hidraw*", ATTRS{busnum}=="1", ATTRS{idVendor}=="04d8", ATTRS{idProduct}=="003f", GROUP="plugdev"
+```
+
+The device probably needs to be disconnected and reconnected, or the system rebooted, for the change to take effect (the device must be remounted by the kernel with the new permissions).
+
 ## Linking
 
 To link with the appropriate library and its dependencies, use `pkg-config` to get the linker flags:

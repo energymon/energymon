@@ -1,8 +1,8 @@
 set(LNAME energymon-osp)
 set(LNAME_POLLING energymon-osp-polling)
 set(SHMEM_PROVIDER ${LNAME_POLLING}-shmem-provider)
-set(SOURCES ${LNAME}.c;${ENERGYMON_UTIL})
-set(SOURCES_POLLING ${SOURCES};${ENERGYMON_TIME_UTIL})
+set(SOURCES ${LNAME}.c;${ENERGYMON_UTIL};${ENERGYMON_TIME_UTIL})
+set(SOURCES_POLLING ${SOURCES})
 set(DESCRIPTION "EnergyMon implementation for ODROID Smart Power")
 set(DESCRIPTION_POLLING "EnergyMon implementation for ODROID Smart Power with Polling")
 
