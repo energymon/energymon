@@ -84,6 +84,14 @@ int energymon_get_default(energymon* em) {
   #define ENERGYMON_OSP_RETRIES 1
 #endif
 
+// Environment variable to stop the device recording on finish.
+// Keeping this as an undocumented feature for now.
+#define ENERGYMON_OSP_STOP_ON_FINISH "ENERGYMON_OSP_STOP_ON_FINISH"
+
+// Environment variable to not call HID API static lifecycle functions.
+// Keeping this as an undocumented feature for now.
+#define ENERGYMON_OSP_HID_SKIP_LIFECYCLE "ENERGYMON_OSP_HID_SKIP_LIFECYCLE"
+
 typedef struct energymon_osp {
   hid_device* device;
   unsigned char buf[OSP_BUF_SIZE];
@@ -143,14 +151,9 @@ static int em_osp_request_data_retry(energymon_osp* em, unsigned int retries) {
   return -1;
 }
 
-static int energymon_finish_osp_local(energymon* em) {
-  if (em == NULL || em->state == NULL) {
-    errno = EINVAL;
-    return -1;
-  }
-
-  int err_save = 0;
+static int em_osp_finish(energymon* em, int start_errno) {
   energymon_osp* state = (energymon_osp*) em->state;
+  int err_save = start_errno;
 
 #ifdef ENERGYMON_OSP_USE_POLLING
   if (state->poll) {
@@ -159,25 +162,48 @@ static int energymon_finish_osp_local(energymon* em) {
 #ifndef __ANDROID__
     pthread_cancel(state->thread);
 #endif
-    err_save = pthread_join(state->thread, NULL);
+    errno = pthread_join(state->thread, NULL);
+    if (errno && !err_save) {
+      err_save = errno;
+    }
   }
 #endif
-#ifdef ENERGYMON_OSP_STOP_ON_FINISH
-  if (em_osp_request_startstop(state)) {
-    perror("energymon_finish_osp_local: Failed to request start/stop");
-    err_save = errno && !err_save ? errno : err_save;
+
+  if (state->device != NULL) {
+    // stop the device, if desired
+    if (getenv(ENERGYMON_OSP_STOP_ON_FINISH) != NULL &&
+        em_osp_request_startstop(state)) {
+      perror("em_osp_finish: em_osp_request_startstop");
+      if (!err_save) {
+        err_save = errno;
+      }
+    }
+    // close the HID device handle
+    errno = 0;
+    hid_close(state->device);
+    if (errno) {
+      perror("em_osp_finish: hid_close");
+      if (!err_save) {
+        err_save = errno;
+      }
+    }
   }
-#endif
-  errno = 0;
-  hid_close(state->device);
-  if (errno) {
-    perror("energymon_finish_osp_local: hid_close");
-    err_save = !err_save ? errno : err_save;
+
+  // teardown HID API, unless told not to
+  if (getenv(ENERGYMON_OSP_HID_SKIP_LIFECYCLE) == NULL && hid_exit()) {
+    if (errno) {
+      perror("em_osp_finish: hid_exit");
+    } else {
+      fprintf(stderr, "em_osp_finish: hid_exit: Unknown error\n");
+      // at least set some errno
+      errno = EIO;
+    }
+    if (!err_save) {
+      err_save = errno;
+    }
   }
-  if (hid_exit()) {
-    perror("energymon_finish_osp_local: hid_exit");
-    err_save = errno && !err_save ? errno : err_save;
-  }
+
+  // final cleanup
   free(em->state);
   em->state = NULL;
   errno = err_save;
@@ -195,7 +221,7 @@ static void* osp_poll_device(void* args) {
   struct timespec ts;
   if (energymon_clock_gettime(&ts)) {
     // must be that CLOCK_MONOTONIC is not supported
-    perror("osp_poll_device");
+    perror("osp_poll_device: energymon_clock_gettime");
     return (void*) NULL;
   }
   energymon_sleep_us(ENERGYMON_OSP_POLL_DELAY_US, &state->poll);
@@ -223,6 +249,20 @@ static void* osp_poll_device(void* args) {
 }
 #endif
 
+static int em_osp_init_fail(energymon* em, const char* src, int alt_errno) {
+  if (errno) {
+    perror(src);
+  } else {
+    fprintf(stderr, "%s: Unknown error\n", src);
+    // at least set some errno
+    errno = alt_errno;
+  }
+  if (em != NULL) {
+    em_osp_finish(em, errno);
+  }
+  return -1;
+}
+
 #ifdef ENERGYMON_OSP_USE_POLLING
 int energymon_init_osp_polling(energymon* em) {
 #else
@@ -233,42 +273,33 @@ int energymon_init_osp(energymon* em) {
     return -1;
   }
 
-  // initialize
-  if (hid_init()) {
-    perror("energymon_init_osp: Failed to initialize ODROID Smart Power");
-    return -1;
-  }
-
   energymon_osp* state = calloc(1, sizeof(energymon_osp));
   if (state == NULL) {
     return -1;
   }
 
-  // get the device
-  state->device = hid_open(OSP_VENDOR_ID, OSP_PRODUCT_ID, NULL);
-  if (state->device == NULL) {
-    perror("energymon_init_osp: hid_open");
-    if (hid_exit()) {
-      perror("energymon_init_osp: hid_exit");
-    }
+  // initialize HID API, unless told not to
+  if (getenv(ENERGYMON_OSP_HID_SKIP_LIFECYCLE) == NULL && hid_init()) {
     free(state);
-    return -1;
+    return em_osp_init_fail(NULL, "energymon_init_osp: hid_init", EIO);
   }
 
   em->state = state;
 
+  // get the HID device handle
+  state->device = hid_open(OSP_VENDOR_ID, OSP_PRODUCT_ID, NULL);
+  if (state->device == NULL) {
+    return em_osp_init_fail(em, "energymon_init_osp: hid_open", ENODEV);
+  }
+
   // set nonblocking
   if (hid_set_nonblocking(state->device, 1)) {
-    perror("energymon_init_osp: hid_set_nonblocking");
-    energymon_finish_osp_local(em);
-    return -1;
+    return em_osp_init_fail(em, "energymon_init_osp: hid_set_nonblocking", EIO);
   }
 
   // get the status
   if (em_osp_request_status(state)) {
-    perror("energymon_init_osp: Failed to request status");
-    energymon_finish_osp_local(em);
-    return -1;
+    return em_osp_init_fail(em, "energymon_init_osp: em_osp_request_status", EIO);
   }
 
   int started = (state->buf[1] == OSP_STATUS_STARTED) ? 1 : 0;
@@ -277,9 +308,7 @@ int energymon_init_osp(energymon* em) {
 #endif
   if (!started) {
     if (em_osp_request_startstop(state)) {
-      perror("energymon_init_osp: Failed to request start/stop");
-      energymon_finish_osp_local(em);
-      return -1;
+      return em_osp_init_fail(em, "energymon_init_osp: em_osp_request_startstop", EIO);
     }
     // wait for device
     energymon_sleep_us(OSP_RESET_DELAY_US, NULL);
@@ -290,8 +319,7 @@ int energymon_init_osp(energymon* em) {
   state->poll = 1;
   errno = pthread_create(&state->thread, NULL, osp_poll_device, state);
   if (errno) {
-    energymon_finish_osp_local(em);
-    return -1;
+    return em_osp_init_fail(em, "energymon_init_osp: pthread_create", errno);
   }
 #endif
 
@@ -356,7 +384,11 @@ int energymon_finish_osp_polling(energymon* em) {
 #else
 int energymon_finish_osp(energymon* em) {
 #endif
-  return energymon_finish_osp_local(em);
+  if (em == NULL || em->state == NULL) {
+    errno = EINVAL;
+    return -1;
+  }
+  return em_osp_finish(em, 0);
 }
 
 #ifdef ENERGYMON_OSP_USE_POLLING
