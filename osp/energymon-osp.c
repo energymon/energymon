@@ -61,9 +61,10 @@ int energymon_get_default(energymon* em) {
 
 #define OSP_STATUS_STARTED      0x01
 
-// Force an overflow at 10k Wh (chosen to be where the display overflows).
+// The display would overflow at 10k Wh, but stops incrementing at 8192.0 Wh.
 // Firmware doesn't check for overflows, so we must manage counter safely.
-#define OSP_WATTHOUR_MAX 10000.0
+// Force an overflow at 1k Wh (a round value with more than enough headroom).
+#define OSP_WATTHOUR_MAX 1000.0
 
 // firmware claims to use a 20 ms timer (main.c:YourHighPriorityISRCode())
 #define OSP_TIMER_INTERVAL_US 20000
