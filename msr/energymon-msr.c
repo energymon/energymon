@@ -170,12 +170,14 @@ uint64_t energymon_read_total_msr(const energymon* em) {
   for (errno = 0, i = 0; i < state->msr_count && !errno; i++) {
     if (pread(state->msrs[i].fd, &msr_val, sizeof(uint64_t),
               MSR_PKG_ENERGY_STATUS) == sizeof(uint64_t)) {
+      // bits 31:0 hold the energy consumption counter, ignore upper 32 bits
+      msr_val &= 0xFFFFFFFF;
       // overflows at 32 bits
       if (msr_val < state->msrs[i].energy_last) {
         state->msrs[i].n_overflow++;
       }
       state->msrs[i].energy_last = msr_val;
-      total += (msr_val + state->msrs[i].n_overflow * UINT32_MAX)
+      total += (msr_val + state->msrs[i].n_overflow * (uint64_t) UINT32_MAX)
                * state->msrs[i].energy_units * 1000000;
     }
   }
