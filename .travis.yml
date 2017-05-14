@@ -10,10 +10,7 @@ compiler:
 
 addons:
   apt:
-    sources:
-      - kubuntu-backports
     packages:
-      - cmake
       - libudev-dev
       - libusb-1.0-0-dev
       - autotools-dev
@@ -42,4 +39,4 @@ script:
   - mkdir _build
   - cd _build
   - cmake ..
-  - make
+  - cmake --build .
