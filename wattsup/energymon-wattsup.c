@@ -322,7 +322,7 @@ uint64_t energymon_get_precision_wattsup(const energymon* em) {
   return WU_MIN_INTERVAL_US / 10;
 }
 
-int energymon_is_exclusive_wattsup() {
+int energymon_is_exclusive_wattsup(void) {
   return 1;
 }
 

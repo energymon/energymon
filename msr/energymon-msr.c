@@ -239,7 +239,7 @@ uint64_t energymon_get_precision_msr(const energymon* em) {
   return prec ? prec : 1;
 }
 
-int energymon_is_exclusive_msr() {
+int energymon_is_exclusive_msr(void) {
   return 0;
 }
 

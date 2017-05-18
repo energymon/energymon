@@ -26,7 +26,7 @@ uint64_t energymon_get_interval_osp_polling(const energymon* em);
 
 uint64_t energymon_get_precision_osp_polling(const energymon* em);
 
-int energymon_is_exclusive_osp_polling();
+int energymon_is_exclusive_osp_polling(void);
 
 int energymon_get_osp_polling(energymon* em);
 

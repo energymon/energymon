@@ -36,7 +36,7 @@ uint64_t energymon_get_interval_msr(const energymon* em);
 
 uint64_t energymon_get_precision_msr(const energymon* em);
 
-int energymon_is_exclusive_msr();
+int energymon_is_exclusive_msr(void);
 
 int energymon_get_msr(energymon* em);
 

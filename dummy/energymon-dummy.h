@@ -27,7 +27,7 @@ uint64_t energymon_get_interval_dummy(const energymon* em);
 
 uint64_t energymon_get_precision_dummy(const energymon* em);
 
-int energymon_is_exclusive_dummy();
+int energymon_is_exclusive_dummy(void);
 
 int energymon_get_dummy(energymon* em);
 

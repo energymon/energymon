@@ -27,7 +27,7 @@ uint64_t energymon_get_interval_odroid(const energymon* em);
 
 uint64_t energymon_get_precision_odroid(const energymon* em);
 
-int energymon_is_exclusive_odroid();
+int energymon_is_exclusive_odroid(void);
 
 int energymon_get_odroid(energymon* em);
 

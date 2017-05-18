@@ -38,7 +38,7 @@ uint64_t energymon_get_interval_shmem(const energymon* em);
 
 uint64_t energymon_get_precision_shmem(const energymon* em);
 
-int energymon_is_exclusive_shmem();
+int energymon_is_exclusive_shmem(void);
 
 int energymon_get_shmem(energymon* em);
 

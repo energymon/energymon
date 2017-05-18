@@ -437,9 +437,9 @@ uint64_t energymon_get_precision_osp(const energymon* em) {
 }
 
 #ifdef ENERGYMON_OSP_USE_POLLING
-int energymon_is_exclusive_osp_polling() {
+int energymon_is_exclusive_osp_polling(void) {
 #else
-int energymon_is_exclusive_osp() {
+int energymon_is_exclusive_osp(void) {
 #endif
   return 1;
 }

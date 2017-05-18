@@ -63,7 +63,7 @@ uint64_t energymon_get_precision_dummy(const energymon* em) {
   return 1;
 }
 
-int energymon_is_exclusive_dummy() {
+int energymon_is_exclusive_dummy(void) {
   return 0;
 }
 

@@ -245,7 +245,7 @@ uint64_t energymon_get_precision_rapl(const energymon* em) {
   return 0;
 }
 
-int energymon_is_exclusive_rapl() {
+int energymon_is_exclusive_rapl(void) {
   return 0;
 }
 

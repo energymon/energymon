@@ -344,7 +344,7 @@ uint64_t energymon_get_precision_odroid(const energymon* em) {
   return prec ? prec : 1;
 }
 
-int energymon_is_exclusive_odroid() {
+int energymon_is_exclusive_odroid(void) {
   return 0;
 }
 

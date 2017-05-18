@@ -33,7 +33,7 @@ uint64_t energymon_get_interval_wattsup(const energymon* em);
 
 uint64_t energymon_get_precision_wattsup(const energymon* em);
 
-int energymon_is_exclusive_wattsup();
+int energymon_is_exclusive_wattsup(void);
 
 int energymon_get_wattsup(energymon* em);
 

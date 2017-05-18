@@ -99,7 +99,7 @@ uint64_t energymon_get_precision_shmem(const energymon* em) {
   return ((energymon_shmem*) em->state)->precision_uj;
 }
 
-int energymon_is_exclusive_shmem() {
+int energymon_is_exclusive_shmem(void) {
   return 0;
 }
 
