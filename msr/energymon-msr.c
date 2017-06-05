@@ -10,6 +10,7 @@
  * @author Hank Hoffmann
  */
 
+#define _POSIX_C_SOURCE 200809L
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
@@ -77,7 +78,7 @@ static inline int msr_info_init(msr_info* m, unsigned int n, char* env_cores) {
   unsigned int energy_status_units;
   char filename[32];
   char* saveptr;
-  char* tok = env_cores == NULL ? "0" :
+  const char* tok = env_cores == NULL ? "0" :
     strtok_r(env_cores, ENERGYMON_MSRS_DELIMS, &saveptr);
   for (i = 0; tok && i < n; i++) {
     m[i].n_overflow = 0;

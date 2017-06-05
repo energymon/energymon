@@ -11,6 +11,7 @@
  * @author Connor Imes
  * @date 2016-02-10
  */
+#define _GNU_SOURCE
 #include <errno.h>
 #include <inttypes.h>
 #include <signal.h>
@@ -25,7 +26,7 @@
 
 static volatile int running = 1;
 
-void shandle(int sig) {
+static void shandle(int sig) {
   switch (sig) {
     case SIGTERM:
     case SIGINT:
@@ -44,7 +45,7 @@ void shandle(int sig) {
   }
 }
 
-int main() {
+int main(void) {
   energymon em;
   energymon_shmem* ems;
   struct timespec ts;

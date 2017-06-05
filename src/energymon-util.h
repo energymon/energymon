@@ -1,6 +1,13 @@
 /**
  * Internal utility functions.
  */
+#ifndef _ENERGYMON_UTIL_H_
+#define _ENERGYMON_UTIL_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stddef.h>
 
 /**
@@ -16,3 +23,9 @@
  * @return pointer to dest, or NULL on failure
  */
 char* energymon_strencpy(char* dest, const char* src, size_t n);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

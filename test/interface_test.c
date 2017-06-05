@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "energymon-default.h"
 
-int main() {
+int main(void) {
   energymon em;
   char source[100] = { '\0' };
   uint64_t result;

@@ -13,6 +13,11 @@
 extern "C" {
 #endif
 
+#if !defined _GNU_SOURCE
+#error "Files using this header must be compiled with _GNU_SOURCE, specified before the first include of time.h"
+#endif
+
+#define _GNU_SOURCE
 #include <inttypes.h>
 #include <time.h>
 

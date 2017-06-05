@@ -31,6 +31,8 @@ extern "C" {
 #define WU_CLEAR "#R,W,0;"
 #define WU_LOG_START_EXTERNAL "#L,W,3,E,1,1;"
 #define WU_LOG_STOP "#L,W,0;"
+// a self-imposed max message size
+#define WU_MAX_MESSAGE_SIZE 64
 
 // opaque struct
 typedef struct energymon_wattsup_ctx energymon_wattsup_ctx;

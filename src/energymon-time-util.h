@@ -1,6 +1,17 @@
 /**
  * Internal utility functions that depend on librt.
  */
+#ifndef _ENERGYMON_TIME_UTIL_H_
+#define _ENERGYMON_TIME_UTIL_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if !defined _GNU_SOURCE
+#error "Files using this header must be compiled with _GNU_SOURCE, specified before the first include of time.h"
+#endif
+
 #include <inttypes.h>
 #include <time.h>
 
@@ -38,3 +49,9 @@ int64_t energymon_gettime_us(struct timespec* ts);
  * @return 0 on success, error code on failure
  */
 int energymon_sleep_us(int64_t us, volatile const int* ignore_interrupt);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

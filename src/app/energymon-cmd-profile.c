@@ -4,6 +4,7 @@
  * @author Connor Imes
  * @date 2016-03-02
  */
+#define _GNU_SOURCE
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>

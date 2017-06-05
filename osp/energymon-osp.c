@@ -24,6 +24,7 @@
  * @see http://odroid.com/dokuwiki/doku.php?id=en:odroidsmartpower
  */
 
+#define _GNU_SOURCE
 #include <errno.h>
 #include <hidapi.h>
 #include <inttypes.h>

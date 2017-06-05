@@ -5,6 +5,7 @@
  * @author Connor Imes
  * @date 2016-02-18
  */
+#define _GNU_SOURCE
 #include <errno.h>
 #include <inttypes.h>
 #include <signal.h>
@@ -74,7 +75,7 @@ static void parse_args(int argc, char** argv) {
   }
 }
 
-void shandle(int sig) {
+static void shandle(int sig) {
   switch (sig) {
     case SIGTERM:
     case SIGINT:
@@ -93,7 +94,7 @@ void shandle(int sig) {
   }
 }
 
-int cleanup_shmem() {
+static int cleanup_shmem(void) {
   // detach shared memory
   if (shmdt(ems)) {
     perror("shmdt");

@@ -10,6 +10,7 @@
 #include <libusb.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "energymon-util.h"
 #include "wattsup-driver.h"
 
@@ -188,8 +189,11 @@ int wattsup_write(energymon_wattsup_ctx* ctx, const char* buf, size_t buflen) {
   assert(ctx->handle != NULL);
   assert(buf != NULL);
   assert(buflen > 0);
+  assert(buflen <= WU_MAX_MESSAGE_SIZE);
+  unsigned char ubuf[WU_MAX_MESSAGE_SIZE];
   int actual = 0;
-  int rc = libusb_bulk_transfer(ctx->handle, (ctx->endpoint_w | LIBUSB_ENDPOINT_OUT), (unsigned char*) buf, buflen, &actual, ctx->timeout_ms);
+  memcpy(ubuf, buf, buflen);
+  int rc = libusb_bulk_transfer(ctx->handle, (ctx->endpoint_w | LIBUSB_ENDPOINT_OUT), ubuf, buflen, &actual, ctx->timeout_ms);
   if (rc < 0) {
     fprintf(stderr, "wattsup_write:libusb_bulk_transfer: %s\n", libusb_error_name(rc));
   }

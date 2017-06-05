@@ -5,6 +5,7 @@
  * @author Connor Imes
  * @date 2016-08-30
  */
+#define _GNU_SOURCE
 #include <errno.h>
 #include <float.h>
 #include <getopt.h>
@@ -91,7 +92,7 @@ static void parse_args(int argc, char** argv) {
   }
 }
 
-void shandle(int sig) {
+static void shandle(int sig) {
   switch (sig) {
     case SIGTERM:
     case SIGINT:

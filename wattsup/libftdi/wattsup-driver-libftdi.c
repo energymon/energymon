@@ -9,6 +9,7 @@
 #include <ftdi.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "energymon-util.h"
 #include "wattsup-driver.h"
 
@@ -108,7 +109,13 @@ int wattsup_write(energymon_wattsup_ctx* ctx, const char* buf, size_t buflen) {
   assert(ctx->ctx != NULL);
   assert(buf != NULL);
   assert(buflen > 0);
-  int rc = ftdi_write_data(ctx->ctx, (unsigned char*) buf, buflen);
+  assert(buflen <= WU_MAX_MESSAGE_SIZE);
+  unsigned char ubuf[WU_MAX_MESSAGE_SIZE];
+  memcpy(ubuf, buf, buflen);
+  // The normal ftdi.h specifies the buf param as const, but it's really not under the hood when calling libusb.
+  // Some systems deploy a header that removes the const qualifer, causing a warning with -Wdiscarded-qualifiers.
+  // We'll have to copy off the buffer like in the libusb implementation.
+  int rc = ftdi_write_data(ctx->ctx, ubuf, buflen);
   if (rc < 0) {
     fprintf(stderr, "ftdi_write_data: %s\n", ftdi_get_error_string(ctx->ctx));
   }

@@ -17,7 +17,12 @@ before_build:
   - cd _build
 
 build_script:
-  - cmake -G "%GENERATOR%" -DCMAKE_BUILD_TYPE=%CONFIGURATION% ..
+  # Test with stricter flags
+  - set CFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector -g3 -pedantic -W -Wall -Wbad-function-cast -Wcast-align \
+      -Wcast-qual -Wdisabled-optimization -Wendif-labels -Wfloat-equal -Wformat=2 -Wformat-nonliteral -Winline \
+      -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wno-unused-parameter -Wpointer-arith -Wshadow \
+      -Wstrict-prototypes -Wstack-protector -Wswitch -Wundef -Wwrite-strings -std=c99"
+  - cmake -G "%GENERATOR%" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_C_FLAGS="%CFLAGS%" ..
   - cmake --build . --config %CONFIGURATION%
 
 test_script:

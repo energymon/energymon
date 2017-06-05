@@ -7,6 +7,7 @@
 
 #include <errno.h>
 #include <stddef.h>
+#include "energymon-util.h"
 
 char* energymon_strencpy(char* dest, const char* src, size_t n) {
   if (dest == NULL || src == NULL) {

@@ -5,6 +5,7 @@
  * @date 2014-06-30
  */
 
+#define _GNU_SOURCE
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -13,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 #include "energymon.h"
 #include "energymon-odroid.h"

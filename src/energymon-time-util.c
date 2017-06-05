@@ -4,6 +4,7 @@
  * @author Connor Imes
  * @date 2015-12-24
  */
+#define _GNU_SOURCE
 #include <inttypes.h>
 #include <time.h>
 #include "energymon-time-util.h"

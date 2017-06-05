@@ -5,6 +5,7 @@
  * @author Connor Imes
  * @date 2015-07-09
  */
+#define _GNU_SOURCE
 #include <errno.h>
 #include <inttypes.h>
 #include <limits.h>
@@ -27,7 +28,7 @@ static void print_usage(const char* app) {
   fprintf(stderr, "  %s <output_file>\n", app);
 }
 
-void shandle(int sig) {
+static void shandle(int sig) {
   switch (sig) {
     case SIGTERM:
     case SIGINT:

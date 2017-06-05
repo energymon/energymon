@@ -5,6 +5,7 @@
  * @date 2015-08-04
  */
 
+#define _POSIX_C_SOURCE 200809L
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -47,7 +48,7 @@ typedef struct energymon_rapl {
  * Count the number of RAPL zones (does not include subzones).
  * Returns 0 on error (check errno) or if no RAPL zones found.
  */
-static inline unsigned int rapl_zone_count() {
+static inline unsigned int rapl_zone_count(void) {
   unsigned int count = 0;
   int err_save;
   struct dirent* entry;

@@ -5,6 +5,7 @@
  * @date 2016-02-10
  */
 
+#define _GNU_SOURCE
 #include <errno.h>
 #include <inttypes.h>
 #include <stdlib.h>
