@@ -16,6 +16,7 @@ If you are using a different platform, change the commands accordingly.
 Current EnergyMon implementation options are:
 
 * dummy [default]
+* cray-pm
 * msr
 * odroid
 * odroid-ioctl

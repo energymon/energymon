@@ -67,6 +67,7 @@ if(UNIX)
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux|Android")
+  add_subdirectory(cray-pm)
   add_subdirectory(msr)
   add_subdirectory(odroid)
   add_subdirectory(rapl)
