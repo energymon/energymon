@@ -7,8 +7,7 @@ For details, please see the following publication and reference as appropriate:
 * Connor Imes, Lars Bergstrom, and Henry Hoffmann. "A Portable Interface for Runtime Energy Monitoring". In: FSE. 2016. DOI: https://doi.org/10.1145/2950290.2983956
 * You may also find an extended analysis in the [Tech Report](https://cs.uchicago.edu/research/publications/techreports/TR-2016-08).
 
-Applications using some libraries may need to be executed using elevated
-privileges.
+Applications using some libraries may need to be executed using elevated privileges.
 
 The following instructions are for Linux systems.
 If you are using a different platform, change the commands accordingly.
@@ -41,17 +40,23 @@ cmake ..
 make
 ```
 
-To use a different default implementation, e.g. the RAPL energy monitor, change
-the `cmake` command to specify `DEFAULT`:
+To use a different default implementation, e.g. the RAPL energy monitor, change the `cmake` command to specify `DEFAULT`:
 
 ``` sh
 cmake -DDEFAULT=rapl ..
 ```
 
-To build static libraries instead of shared objects, turn off `BUILD_SHARED_LIBS` when running `cmake`:
+To build shared objects / dynamically linked libraries instead of static libraries, set `BUILD_SHARED_LIBS` when running `cmake`:
 
 ``` sh
-cmake .. -DBUILD_SHARED_LIBS=false
+cmake .. -DBUILD_SHARED_LIBS=ON
+```
+
+For an optimized build, set `CMAKE_BUILD_TYPE` when running `cmake`, e.g. one of:
+
+``` sh
+cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo
 ```
 
 ## Installing
