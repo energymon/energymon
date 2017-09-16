@@ -35,6 +35,7 @@ static const struct option long_options[] = {
   {"interval",  required_argument, NULL, 'i'},
   {"summarize", required_argument, NULL, 's'},
   {"help",      required_argument, NULL, 'h'},
+  {0, 0, 0, 0}
 };
 
 static void print_usage(int exit_code) {
