@@ -1,22 +1,22 @@
+set(SNAME rapl)
 set(LNAME energymon-rapl)
-set(SOURCES ${LNAME}.c;../src/energymon-util.c)
+set(SOURCES ${LNAME}.c;${ENERGYMON_UTIL})
 set(DESCRIPTION "EnergyMon implementation for Intel RAPL")
 
 # Libraries
 
-add_library(${LNAME} ${SOURCES})
+if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
+   ENERGYMON_BUILD_LIB STREQUAL SNAME OR
+   ENERGYMON_BUILD_LIB STREQUAL LNAME)
 
-if(DEFAULT STREQUAL "rapl" OR DEFAULT STREQUAL LNAME)
-  BUILD_DEFAULT("${SOURCES}" "" "")
-  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "")
-  install(TARGETS energymon-default DESTINATION lib)
+  add_library(${LNAME} ${SOURCES})
+  PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "" "")
+  install(TARGETS ${LNAME} DESTINATION lib)
+  install(FILES ${LNAME}.h DESTINATION include/${PROJECT_NAME})
+
 endif()
 
-# pkg-config
-
-PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "" "")
-
-# Install
-
-install(TARGETS ${LNAME} DESTINATION lib)
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${LNAME}.h DESTINATION include/${PROJECT_NAME})
+if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
+  BUILD_DEFAULT("${SOURCES}" "" "")
+  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "")
+endif()

@@ -31,7 +31,7 @@ Current EnergyMon implementation options are:
 
 This project uses CMake.
 
-To build the libraries with the dummy implementation as the default, run:
+By default, all libraries will be built, with `dummy` as the `energymon-default` implementation:
 
 ``` sh
 mkdir _build
@@ -40,28 +40,55 @@ cmake ..
 make
 ```
 
-To use a different default implementation, e.g. the RAPL energy monitor, change the `cmake` command to specify `DEFAULT`:
+To use a different default implementation, e.g., the RAPL energy monitor, specify `ENERGYMON_BUILD_DEFAULT` with cmake:
 
 ``` sh
-cmake -DDEFAULT=rapl ..
+cmake -DENERGYMON_BUILD_DEFAULT=rapl ..
 ```
 
-To build shared objects / dynamically linked libraries instead of static libraries, set `BUILD_SHARED_LIBS` when running `cmake`:
+Set `ENERGYMON_BUILD_DEFAULT=NONE` to disable building a default implementation.
+Its default value is `dummy`.
+
+To build only a single library, e.g., the RAPL energy monitor, specify `ENERGYMON_BUILD_LIB` with cmake:
+
+``` sh
+cmake -DENERGYMON_BUILD_LIB=rapl ..
+```
+
+Set `ENERGYMON_BUILD_LIB=NONE` to only build the default implementation (if set).
+Set back to its default value of `ALL` to build all libraries.
+
+To build shared objects / dynamically linked libraries instead of static libraries, set `BUILD_SHARED_LIBS` with cmake:
 
 ``` sh
 cmake .. -DBUILD_SHARED_LIBS=ON
 ```
 
-For an optimized build, set `CMAKE_BUILD_TYPE` when running `cmake`, e.g. one of:
+For an optimized build, set `CMAKE_BUILD_TYPE` when with cmake, e.g., one of:
 
 ``` sh
 cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo
 ```
 
+Of course, you can specify multiple options, e.g.:
+
+``` sh
+cmake .. -DENERGYMON_BUILD_LIB=NONE -DENERGYMON_BUILD_DEFAULT=rapl -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release
+```
+
+### Other Build Options
+
+Boolean options:
+
+ * `ENERGYMON_BUILD_SHMEM_PROVIDERS` - enable/disable building shared memory providers (True by default)
+ * `ENERGYMON_BUILD_UTILITIES` - enable/disable building utility applications (True by default, dependent on building energymon-default)
+ * `ENERGYMON_BUILD_TESTS` - enable/disable building test code (True by default, dependent on building energymon-default)
+ * `ENERGYMON_BUILD_EXAMPLES` - enable/disable building examples (True by default)
+
 ## Installing
 
-To install all libraries, headers, and binaries, run with proper privileges:
+To install libraries, headers, and binaries, run with proper privileges:
 
 ``` sh
 make install

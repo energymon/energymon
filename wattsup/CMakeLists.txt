@@ -22,5 +22,7 @@ endif()
 
 # Install
 
-# TODO: Don't install headers if no implementation is built
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/energymon-wattsup.h DESTINATION include/${PROJECT_NAME})
+# Don't install headers if no implementation is built
+if(TARGET energymon-wattsup OR TARGET energymon-wattsup-libftdi OR TARGET energymon-wattsup-libusb)
+  install(FILES energymon-wattsup.h DESTINATION include/${PROJECT_NAME})
+endif()

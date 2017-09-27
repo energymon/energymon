@@ -1,3 +1,4 @@
+set(SNAME wattsup-libftdi)
 set(LNAME energymon-wattsup-libftdi)
 set(SOURCES_LIBFTDI ../energymon-wattsup.c;wattsup-driver-libftdi.c;${ENERGYMON_UTIL};${ENERGYMON_TIME_UTIL})
 set(DESCRIPTION_FTDI "EnergyMon implementation for WattsUp? Power meters using libftdi")
@@ -26,21 +27,24 @@ include_directories(.. ${LIBFTDI_INCLUDE_DIRS})
 
 # Libraries
 
-add_library(${LNAME} ${SOURCES_LIBFTDI})
-target_link_libraries(${LNAME} ${CMAKE_THREAD_LIBS_INIT} ${LIBRT} ${LIBFTDI_LIBRARIES})
-PKG_CONFIG("${LNAME}" "${DESCRIPTION_LIBFTDI}" "${FTDI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
-install(TARGETS ${LNAME} DESTINATION lib)
+if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
+   ENERGYMON_BUILD_LIB STREQUAL SNAME OR
+   ENERGYMON_BUILD_LIB STREQUAL LNAME)
 
-if(DEFAULT STREQUAL "wattsup-libftdi" OR DEFAULT STREQUAL LNAME)
-  BUILD_DEFAULT("${SOURCES_LIBFTDI}" "${CMAKE_THREAD_LIBS_INIT};${LIBRT};${LIBFTDI_LIBRARIES}" "")
-  PKG_CONFIG("energymon-default" "${DESCRIPTION_LIBFTDI}" "${FTDI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
-  install(TARGETS energymon-default DESTINATION lib)
+  add_library(${LNAME} ${SOURCES_LIBFTDI})
+  target_link_libraries(${LNAME} ${CMAKE_THREAD_LIBS_INIT} ${LIBRT} ${LIBFTDI_LIBRARIES})
+  PKG_CONFIG("${LNAME}" "${DESCRIPTION_LIBFTDI}" "${FTDI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
+  install(TARGETS ${LNAME} DESTINATION lib)
+
+  if(UNIX AND ENERGYMON_BUILD_SHMEM_PROVIDERS)
+    add_executable(${SHMEM_PROVIDER} ../energymon-wattsup-shmem-provider.c)
+    target_link_libraries(${SHMEM_PROVIDER} ${LNAME})
+    install(TARGETS ${SHMEM_PROVIDER} DESTINATION bin)
+  endif()
+
 endif()
 
-# Binaries
-
-if(UNIX)
-  add_executable(${SHMEM_PROVIDER} ../energymon-wattsup-shmem-provider.c)
-  target_link_libraries(${SHMEM_PROVIDER} ${LNAME})
-  install(TARGETS ${SHMEM_PROVIDER} DESTINATION bin)
+if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
+  BUILD_DEFAULT("${SOURCES_LIBFTDI}" "${CMAKE_THREAD_LIBS_INIT};${LIBRT};${LIBFTDI_LIBRARIES}" "")
+  PKG_CONFIG("energymon-default" "${DESCRIPTION_LIBFTDI}" "${FTDI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
 endif()

@@ -3,11 +3,22 @@ cmake_minimum_required(VERSION 2.8)
 project(energymon)
 set(PROJECT_VERSION 0.2.0)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-unknown-pragmas -Wextra -pedantic -std=gnu99")
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
-set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
-set(ENERGYMON_UTIL ${CMAKE_SOURCE_DIR}/src/energymon-util.c)
-set(ENERGYMON_TIME_UTIL ${CMAKE_SOURCE_DIR}/src/energymon-time-util.c;${CMAKE_SOURCE_DIR}/src/ptime/ptime.c)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -std=gnu99")
+
+set(ENERGYMON_UTIL ${CMAKE_SOURCE_DIR}/common/energymon-util.c)
+set(ENERGYMON_TIME_UTIL ${CMAKE_SOURCE_DIR}/common/energymon-time-util.c;${CMAKE_SOURCE_DIR}/common/ptime/ptime.c)
+
+set(ENERGYMON_BUILD_LIB "ALL" CACHE STRING "Specify a single library to build, ALL, or NONE")
+set(ENERGYMON_BUILD_DEFAULT "dummy" CACHE STRING "Default EnergyMon implementation, or NONE to disable building energymon-default")
+if (DEFAULT AND NOT ENERGYMON_BUILD_DEFAULT)
+  # for backward compatibility with old variable "DEFAULT"
+  set(ENERGYMON_BUILD_DEFAULT DEFAULT)
+endif()
+set(ENERGYMON_BUILD_SHMEM_PROVIDERS TRUE CACHE BOOL "Enable/disable building shared memory providers")
+set(ENERGYMON_BUILD_UTILITIES TRUE CACHE BOOL "Enable/disable building utility applications")
+set(ENERGYMON_BUILD_TESTS TRUE CACHE BOOL "Enable/disable building tests")
+set(ENERGYMON_BUILD_EXAMPLES TRUE CACHE BOOL "Enable/disable building example code")
+
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   # Determine if we should link with librt for libraries that use "clock_gettime"
@@ -19,46 +30,40 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
 include_directories(${PROJECT_SOURCE_DIR}/inc)
-include_directories(${PROJECT_SOURCE_DIR}/src)
+include_directories(${PROJECT_SOURCE_DIR}/common)
+
+
+# Macros
 
 macro(BUILD_DEFAULT source deplibs definitions)
   add_library(energymon-default ${source})
   target_link_libraries(energymon-default ${deplibs})
   set_target_properties(energymon-default PROPERTIES COMPILE_DEFINITIONS "ENERGYMON_DEFAULT;${definitions}")
+  install(TARGETS energymon-default DESTINATION lib)
+  install(FILES ${CMAKE_SOURCE_DIR}/inc/energymon-default.h DESTINATION include/${PROJECT_NAME})
 endmacro(BUILD_DEFAULT)
 
 macro(PKG_CONFIG name description requires_private libs_private)
   set(PKG_CONFIG_PREFIX "${CMAKE_INSTALL_PREFIX}")
   set(PKG_CONFIG_EXEC_PREFIX "\${prefix}")
   set(PKG_CONFIG_LIBDIR "\${prefix}/lib")
-  set(PKG_CONFIG_INCLUDEDIR "\${prefix}/include/energymon")
+  set(PKG_CONFIG_INCLUDEDIR "\${prefix}/include/${PROJECT_NAME}")
   set(PKG_CONFIG_NAME "${name}")
   set(PKG_CONFIG_DESCRIPTION "${description}")
   set(PKG_CONFIG_REQUIRES_PRIVATE "${requires_private}")
   set(PKG_CONFIG_CFLAGS "-I\${includedir}")
   set(PKG_CONFIG_LIBS "-L\${libdir} -l${name}")
   set(PKG_CONFIG_LIBS_PRIVATE "${libs_private}")
-  # The config file that will be installed
   configure_file(
     ${CMAKE_SOURCE_DIR}/pkgconfig.in
-    ${CMAKE_BINARY_DIR}/pkgconfig/${name}.pc
+    ${CMAKE_CURRENT_BINARY_DIR}/${name}.pc
     @ONLY
   )
-  install(FILES ${CMAKE_BINARY_DIR}/pkgconfig/${name}.pc DESTINATION lib/pkgconfig)
-  # The config file that points to the local build (without install)
-  set(PKG_CONFIG_PREFIX "${CMAKE_BINARY_DIR}")
-  set(PKG_CONFIG_INCLUDEDIR "${CMAKE_CURRENT_SOURCE_DIR}")
-  set(PKG_CONFIG_CFLAGS "-I${CMAKE_SOURCE_DIR}/inc -I\${includedir}")
-  configure_file(
-    ${CMAKE_SOURCE_DIR}/pkgconfig.in
-    ${CMAKE_BINARY_DIR}/${name}.pc
-    @ONLY
-  )
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${name}.pc DESTINATION lib/pkgconfig)
 endmacro(PKG_CONFIG)
 
-# Libraries
 
-set(DEFAULT "dummy" CACHE STRING "Default EnergyMon implementation")
+# Libraries
 
 add_subdirectory(dummy)
 
@@ -78,42 +83,23 @@ if(UNIX OR WIN32)
   add_subdirectory(wattsup)
 endif()
 
-# Binaries
 
-add_executable(energymon-info src/app/energymon-info.c)
-target_link_libraries(energymon-info energymon-default)
+# Binaries and tests
 
-if(UNIX)
-  add_executable(energymon-cmd-profile src/app/energymon-cmd-profile.c;${ENERGYMON_TIME_UTIL})
-  target_link_libraries(energymon-cmd-profile energymon-default ${LIBRT})
-
-  add_executable(energymon-file-provider src/app/energymon-file-provider.c;${ENERGYMON_TIME_UTIL})
-  target_link_libraries(energymon-file-provider energymon-default ${LIBRT})
-
-  add_executable(energymon-idle-power src/app/energymon-idle-power.c;${ENERGYMON_TIME_UTIL})
-  target_link_libraries(energymon-idle-power energymon-default ${LIBRT})
-
-  add_executable(energymon-overhead src/app/energymon-overhead.c;${ENERGYMON_TIME_UTIL})
-  target_link_libraries(energymon-overhead energymon-default ${LIBRT})
-
-  add_executable(energymon-power-poller src/app/energymon-power-poller.c;${ENERGYMON_TIME_UTIL})
-  target_link_libraries(energymon-power-poller energymon-default ${LIBRT} m)
-
-  install(TARGETS energymon-cmd-profile energymon-file-provider energymon-idle-power energymon-overhead energymon-power-poller DESTINATION bin)
+if(TARGET energymon-default)
+  if (ENERGYMON_BUILD_UTILITIES)
+    add_subdirectory(utils)
+  endif()
+  if (ENERGYMON_BUILD_TESTS)
+    add_subdirectory(test)
+  endif()
 endif()
 
-# Tests
-
-add_executable(interface-test test/interface_test.c)
-target_link_libraries(interface-test energymon-default)
-
-add_executable(interval-test test/interval_test.c)
-target_link_libraries(interval-test energymon-default)
 
 # Install
 
-install(TARGETS energymon-info DESTINATION bin)
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/inc/ DESTINATION include/${PROJECT_NAME})
+install(FILES inc/energymon.h DESTINATION include/${PROJECT_NAME})
+
 
 # Uninstall
 
