@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <time.h>
 #include "energymon-default.h"
 #include "energymon-time-util.h"
 

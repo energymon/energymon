@@ -24,7 +24,6 @@
  * @see http://odroid.com/dokuwiki/doku.php?id=en:odroidsmartpower
  */
 
-#define _GNU_SOURCE
 #include <errno.h>
 #include <hidapi.h>
 #include <inttypes.h>
@@ -32,7 +31,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include "energymon.h"
 #ifdef ENERGYMON_OSP_USE_POLLING
 #include "energymon-osp-polling.h"
@@ -219,9 +217,9 @@ static int em_osp_finish(energymon* em, int start_errno) {
 static void* osp_poll_device(void* args) {
   energymon_osp* state = (energymon_osp*) args;
   double watts;
-  int64_t exec_us;
-  struct timespec ts;
-  if (energymon_clock_gettime(&ts)) {
+  uint64_t exec_us;
+  uint64_t last_us;
+  if (!(last_us = energymon_gettime_us())) {
     // must be that CLOCK_MONOTONIC is not supported
     perror("osp_poll_device: energymon_clock_gettime");
     return (void*) NULL;
@@ -242,10 +240,12 @@ static void* osp_poll_device(void* args) {
       perror("osp_poll_device: em_osp_request_data_retry");
       watts = 0;
     }
-    exec_us = energymon_gettime_us(&ts);
+    exec_us = energymon_gettime_elapsed_us(&last_us);
     state->total_uj += watts * exec_us;
     // sleep for the polling delay (minus most overhead)
-    energymon_sleep_us(ENERGYMON_OSP_POLL_DELAY_US - exec_us, &state->poll);
+    if (ENERGYMON_OSP_POLL_DELAY_US > exec_us) {
+      energymon_sleep_us(ENERGYMON_OSP_POLL_DELAY_US - exec_us, &state->poll);
+    }
   }
   return (void*) NULL;
 }

@@ -7,7 +7,6 @@
 * @author Connor Imes
 * @date 2016-02-08
 */
-#define _GNU_SOURCE
 #include <assert.h>
 #include <errno.h>
 #include <inttypes.h>
@@ -15,7 +14,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include "energymon.h"
 #include "energymon-time-util.h"
 #include "energymon-wattsup.h"
@@ -48,8 +46,8 @@ typedef struct energymon_wattsup {
   pthread_t thread;
   int use_estimates;
 
-  int64_t exec_us;
-  struct timespec ts;
+  uint64_t exec_us;
+  uint64_t last_us;
   unsigned int deciwatts;
   int lock;
   uint64_t total_uj;
@@ -88,7 +86,7 @@ static void* wattsup_poll_sensors(void* args) {
   int dummy_old_state; // not used but kept for portability (see pthread docs)
 
   state->deciwatts = 0;
-  if (energymon_clock_gettime(&state->ts)) {
+  if (!(state->last_us = energymon_gettime_us())) {
     // must be that CLOCK_MONOTONIC is not supported
     perror("wattsup_poll_sensors");
     return (void*) NULL;
@@ -148,7 +146,7 @@ static void* wattsup_poll_sensors(void* args) {
     if (state->use_estimates) {
       lock_acquire(&state->lock);
     }
-    state->exec_us = energymon_gettime_us(&state->ts);
+    state->exec_us = energymon_gettime_elapsed_us(&state->last_us);
     state->total_uj += state->deciwatts * state->exec_us / 10;
     if (state->use_estimates) {
       lock_release(&state->lock);
@@ -294,7 +292,7 @@ uint64_t energymon_read_total_wattsup(const energymon* em) {
   energymon_wattsup* state = (energymon_wattsup*) em->state;
   if (state->use_estimates) {
     lock_acquire(&state->lock);
-    state->exec_us = energymon_gettime_us(&state->ts);
+    state->exec_us = energymon_gettime_elapsed_us(&state->last_us);
     state->total_uj += state->deciwatts * state->exec_us / 10;
     lock_release(&state->lock);
   }

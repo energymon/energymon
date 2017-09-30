@@ -12,7 +12,6 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include "energymon-default.h"
 #include "energymon-time-util.h"
 

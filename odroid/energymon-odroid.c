@@ -5,7 +5,6 @@
  * @date 2014-06-30
  */
 
-#define _GNU_SOURCE
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -14,7 +13,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include <unistd.h>
 #include "energymon.h"
 #include "energymon-odroid.h"
@@ -212,10 +210,10 @@ static void* odroid_poll_sensors(void* args) {
   char cdata[8];
   double sum_w;
   unsigned int i;
-  int64_t exec_us;
+  uint64_t exec_us;
+  uint64_t last_us;
   int err_save;
-  struct timespec ts;
-  if (energymon_clock_gettime(&ts)) {
+  if (!(last_us = energymon_gettime_us())) {
     // must be that CLOCK_MONOTONIC is not supported
     perror("odroid_poll_sensors");
     return (void*) NULL;
@@ -229,7 +227,7 @@ static void* odroid_poll_sensors(void* args) {
       }
     }
     err_save = errno;
-    exec_us = energymon_gettime_us(&ts);
+    exec_us = energymon_gettime_elapsed_us(&last_us);
     if (err_save) {
       errno = err_save;
       perror("odroid_poll_sensors: skipping power sensor reading");
@@ -237,7 +235,10 @@ static void* odroid_poll_sensors(void* args) {
       state->total_uj += sum_w * exec_us;
     }
     // sleep for the update interval of the sensors (minus most overhead)
-    energymon_sleep_us(2 * state->read_delay_us - exec_us, &state->poll_sensors);
+    // TODO: Why are we sleeping for twice the refresh rate?
+    if (2 * state->read_delay_us > exec_us) {
+      energymon_sleep_us(2 * state->read_delay_us - exec_us, &state->poll_sensors);
+    }
     errno = 0;
   }
   return (void*) NULL;
