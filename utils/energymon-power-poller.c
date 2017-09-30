@@ -32,8 +32,8 @@ static const struct option long_options[] = {
   {"count",     required_argument, NULL, 'c'},
   {"file",      required_argument, NULL, 'f'},
   {"interval",  required_argument, NULL, 'i'},
-  {"summarize", required_argument, NULL, 's'},
-  {"help",      required_argument, NULL, 'h'},
+  {"summarize", no_argument,       NULL, 's'},
+  {"help",      no_argument,       NULL, 'h'},
   {0, 0, 0, 0}
 };
 
