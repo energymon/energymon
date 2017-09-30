@@ -20,13 +20,17 @@ set(ENERGYMON_BUILD_TESTS TRUE CACHE BOOL "Enable/disable building tests")
 set(ENERGYMON_BUILD_EXAMPLES TRUE CACHE BOOL "Enable/disable building example code")
 
 
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(UNIX AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   # Determine if we should link with librt for libraries that use "clock_gettime"
   include(CheckFunctionExists)
   CHECK_FUNCTION_EXISTS(clock_gettime HAVE_CLOCK_GETTIME)
   if(NOT HAVE_CLOCK_GETTIME)
     find_library(LIBRT NAMES rt)
   endif()
+endif()
+
+if(UNIX)
+  set(LIBM m)
 endif()
 
 include_directories(${PROJECT_SOURCE_DIR}/inc)

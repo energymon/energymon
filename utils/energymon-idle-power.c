@@ -8,7 +8,6 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
 #include "energymon-default.h"
 #include "energymon-time-util.h"
 
