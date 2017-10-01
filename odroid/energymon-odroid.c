@@ -235,9 +235,8 @@ static void* odroid_poll_sensors(void* args) {
       state->total_uj += sum_w * exec_us;
     }
     // sleep for the update interval of the sensors (minus most overhead)
-    // TODO: Why are we sleeping for twice the refresh rate?
-    if (2 * state->read_delay_us > exec_us) {
-      energymon_sleep_us(2 * state->read_delay_us - exec_us, &state->poll_sensors);
+    if (state->read_delay_us > exec_us) {
+      energymon_sleep_us(state->read_delay_us - exec_us, &state->poll_sensors);
     }
     errno = 0;
   }
