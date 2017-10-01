@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
 project(energymon)
-set(PROJECT_VERSION 0.2.0)
+set(PROJECT_VERSION 0.2.1)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -std=gnu99")
 
