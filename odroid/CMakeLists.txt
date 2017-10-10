@@ -27,6 +27,10 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
 
   add_library(${LNAME} ${SOURCES})
   target_link_libraries(${LNAME} ${CMAKE_THREAD_LIBS_INIT} ${LIBRT})
+  if(BUILD_SHARED_LIBS)
+    set_target_properties(${LNAME} PROPERTIES VERSION ${PROJECT_VERSION}
+                                              SOVERSION ${VERSION_MAJOR})
+  endif()
   PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
   install(TARGETS ${LNAME} DESTINATION lib)
   install(FILES ${LNAME}.h DESTINATION include/${PROJECT_NAME})
@@ -39,6 +43,10 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
 
   add_library(${LNAME_IOCTL} ${SOURCES_IOCTL})
   target_link_libraries(${LNAME_IOCTL} ${CMAKE_THREAD_LIBS_INIT} ${LIBRT})
+  if(BUILD_SHARED_LIBS)
+    set_target_properties(${LNAME_IOCTL} PROPERTIES VERSION ${PROJECT_VERSION}
+                                                    SOVERSION ${VERSION_MAJOR})
+  endif()
   PKG_CONFIG("${LNAME_IOCTL}" "${DESCRIPTION_IOCTL}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
   install(TARGETS ${LNAME_IOCTL} DESTINATION lib)
   install(FILES ${LNAME_IOCTL}.h DESTINATION include/${PROJECT_NAME})

@@ -10,6 +10,10 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME)
 
   add_library(${LNAME} ${SOURCES})
+  if(BUILD_SHARED_LIBS)
+    set_target_properties(${LNAME} PROPERTIES VERSION ${PROJECT_VERSION}
+                                              SOVERSION ${VERSION_MAJOR})
+  endif()
   PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "" "")
   install(TARGETS ${LNAME} DESTINATION lib)
   install(FILES ${LNAME}.h DESTINATION include/${PROJECT_NAME})

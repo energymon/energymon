@@ -1,5 +1,9 @@
 # Release Notes
 
+## Unreleased
+
+ * Added VERSION and SOVERSION properties to shared object libraries
+
 ## v0.2.1 - 2017-10-01
 
  * Added support for msr-safe kernel module in msr implementation

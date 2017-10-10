@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
 
 project(energymon)
-set(PROJECT_VERSION 0.2.1)
+set(VERSION_MAJOR 0)
+set(VERSION_MINOR 2)
+set(VERSION_PATCH 1)
+set(PROJECT_VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -std=gnu99")
 
@@ -42,6 +45,10 @@ include_directories(${PROJECT_SOURCE_DIR}/common)
 macro(BUILD_DEFAULT source deplibs definitions)
   add_library(energymon-default ${source})
   target_link_libraries(energymon-default ${deplibs})
+  if(BUILD_SHARED_LIBS)
+    set_target_properties(energymon-default PROPERTIES VERSION ${PROJECT_VERSION}
+                                                       SOVERSION ${VERSION_MAJOR})
+  endif()
   set_target_properties(energymon-default PROPERTIES COMPILE_DEFINITIONS "ENERGYMON_DEFAULT;${definitions}")
   install(TARGETS energymon-default DESTINATION lib)
   install(FILES ${CMAKE_SOURCE_DIR}/inc/energymon-default.h DESTINATION include/${PROJECT_NAME})
