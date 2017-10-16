@@ -13,6 +13,8 @@ extern "C" {
 
 #include <inttypes.h>
 
+#pragma GCC visibility push(hidden)
+
 typedef enum ptime_clock_id {
   PTIME_REALTIME = 0,
   PTIME_MONOTONIC
@@ -95,6 +97,8 @@ uint64_t ptime_sleep_us(uint64_t us);
  * @return 0 on success, -1 otherwise
  */
 int ptime_sleep_us_no_interrupt(uint64_t us, volatile const int* ignore_interrupt);
+
+#pragma GCC visibility pop
 
 #ifdef __cplusplus
 }

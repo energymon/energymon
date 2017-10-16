@@ -10,6 +10,8 @@ extern "C" {
 
 #include <stddef.h>
 
+#pragma GCC visibility push(hidden)
+
 /**
  * Efficient bounded string copy.
  * The dest buffer will be null-terminated after the last char in src.
@@ -23,6 +25,8 @@ extern "C" {
  * @return pointer to dest, or NULL on failure
  */
 char* energymon_strencpy(char* dest, const char* src, size_t n);
+
+#pragma GCC visibility pop
 
 #ifdef __cplusplus
 }

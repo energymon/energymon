@@ -10,6 +10,8 @@ extern "C" {
 
 #include <inttypes.h>
 
+#pragma GCC visibility push(hidden)
+
 /**
  * Get monotonic time in nanoseconds.
  *
@@ -41,6 +43,8 @@ uint64_t energymon_gettime_elapsed_us(uint64_t* since);
  * @return 0 on success, error code on failure
  */
 int energymon_sleep_us(uint64_t us, volatile const int* ignore_interrupt);
+
+#pragma GCC visibility pop
 
 #ifdef __cplusplus
 }

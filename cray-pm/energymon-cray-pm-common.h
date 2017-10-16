@@ -16,6 +16,8 @@ extern "C" {
 #include <stdio.h>
 #include "energymon.h"
 
+#pragma GCC visibility push(hidden)
+
 #define CRAY_PM_BASE_DIR "/sys/cray/pm_counters"
 
 typedef struct energymon_cray_pm_common {
@@ -31,6 +33,8 @@ int energymon_cray_pm_common_finish(energymon* em);
 uint64_t energymon_cray_pm_common_get_interval(const energymon* em);
 
 uint64_t energymon_cray_pm_common_get_precision(const energymon* em);
+
+#pragma GCC visibility pop
 
 #ifdef __cplusplus
 }

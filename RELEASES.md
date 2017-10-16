@@ -3,6 +3,7 @@
 ## Unreleased
 
  * Added VERSION and SOVERSION properties to shared object libraries
+ * Only export symbols in shared object libraries that are declared in public headers (prevents symbol name clashes)
 
 ## v0.2.1 - 2017-10-01
 

@@ -13,6 +13,8 @@ extern "C" {
 
 #include <stddef.h>
 
+#pragma GCC visibility push(hidden)
+
 #ifndef ENERGYMON_WATTSUP_VENDOR_ID
   // vendor id is "Future Technology Devices International, Ltd"
   #define ENERGYMON_WATTSUP_VENDOR_ID 0x0403
@@ -101,6 +103,8 @@ int wattsup_write(energymon_wattsup_ctx* ctx, const char* buf, size_t buflen);
  * @return a pointer to the buffer on success, NULL otherwise
  */
 char* wattsup_get_implementation(char* buf, size_t buflen);
+
+#pragma GCC visibility pop
 
 #ifdef __cplusplus
 }
