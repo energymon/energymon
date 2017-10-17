@@ -24,4 +24,4 @@ install(TARGETS energymon-cmd-profile
                 energymon-info
                 energymon-overhead
                 energymon-power-poller
-        DESTINATION bin)
+        DESTINATION ${CMAKE_INSTALL_BINDIR})

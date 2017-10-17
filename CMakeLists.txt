@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.5)
 
 project(energymon)
 set(VERSION_MAJOR 0)
@@ -36,6 +36,14 @@ if(UNIX)
   set(LIBM m)
 endif()
 
+if(CMAKE_HOST_UNIX)
+  include(GNUInstallDirs)
+else()
+  set(CMAKE_INSTALL_LIBDIR lib)
+  set(CMAKE_INSTALL_INCLUDEDIR include)
+  set(CMAKE_INSTALL_BINDIR bin)
+endif()
+
 include_directories(${PROJECT_SOURCE_DIR}/inc)
 include_directories(${PROJECT_SOURCE_DIR}/common)
 
@@ -50,15 +58,15 @@ macro(BUILD_DEFAULT source deplibs definitions)
                                                        SOVERSION ${VERSION_MAJOR})
   endif()
   set_target_properties(energymon-default PROPERTIES COMPILE_DEFINITIONS "ENERGYMON_DEFAULT;${definitions}")
-  install(TARGETS energymon-default DESTINATION lib)
-  install(FILES ${CMAKE_SOURCE_DIR}/inc/energymon-default.h DESTINATION include/${PROJECT_NAME})
+  install(TARGETS energymon-default DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  install(FILES ${CMAKE_SOURCE_DIR}/inc/energymon-default.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
 endmacro(BUILD_DEFAULT)
 
 macro(PKG_CONFIG name description requires_private libs_private)
   set(PKG_CONFIG_PREFIX "${CMAKE_INSTALL_PREFIX}")
   set(PKG_CONFIG_EXEC_PREFIX "\${prefix}")
-  set(PKG_CONFIG_LIBDIR "\${prefix}/lib")
-  set(PKG_CONFIG_INCLUDEDIR "\${prefix}/include/${PROJECT_NAME}")
+  set(PKG_CONFIG_LIBDIR "\${prefix}/${CMAKE_INSTALL_LIBDIR}")
+  set(PKG_CONFIG_INCLUDEDIR "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}")
   set(PKG_CONFIG_NAME "${name}")
   set(PKG_CONFIG_DESCRIPTION "${description}")
   set(PKG_CONFIG_REQUIRES_PRIVATE "${requires_private}")
@@ -70,7 +78,7 @@ macro(PKG_CONFIG name description requires_private libs_private)
     ${CMAKE_CURRENT_BINARY_DIR}/${name}.pc
     @ONLY
   )
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${name}.pc DESTINATION lib/pkgconfig)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${name}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 endmacro(PKG_CONFIG)
 
 
@@ -109,7 +117,7 @@ endif()
 
 # Install
 
-install(FILES inc/energymon.h DESTINATION include/${PROJECT_NAME})
+install(FILES inc/energymon.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
 
 
 # Uninstall

@@ -15,8 +15,8 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
                                               SOVERSION ${VERSION_MAJOR})
   endif()
   PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "" "")
-  install(TARGETS ${LNAME} DESTINATION lib)
-  install(FILES ${LNAME}.h DESTINATION include/${PROJECT_NAME})
+  install(TARGETS ${LNAME} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  install(FILES ${LNAME}.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
 
 endif()
 

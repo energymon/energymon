@@ -38,12 +38,12 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
                                               SOVERSION ${VERSION_MAJOR})
   endif()
   PKG_CONFIG("${LNAME}" "${DESCRIPTION_LIBFTDI}" "${FTDI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
-  install(TARGETS ${LNAME} DESTINATION lib)
+  install(TARGETS ${LNAME} DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
   if(UNIX AND ENERGYMON_BUILD_SHMEM_PROVIDERS)
     add_executable(${SHMEM_PROVIDER} ../energymon-wattsup-shmem-provider.c)
     target_link_libraries(${SHMEM_PROVIDER} ${LNAME})
-    install(TARGETS ${SHMEM_PROVIDER} DESTINATION bin)
+    install(TARGETS ${SHMEM_PROVIDER} DESTINATION ${CMAKE_INSTALL_BINDIR})
   endif()
 
 endif()

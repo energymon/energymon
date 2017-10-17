@@ -4,6 +4,8 @@
 
  * Added VERSION and SOVERSION properties to shared object libraries
  * Only export symbols in shared object libraries that are declared in public headers (prevents symbol name clashes)
+ * Use GNU standard installation directories (multiarch support)
+ * Increased minimum CMake version from 2.8 to 2.8.5 to support GNUInstallDirs
 
 ## v0.2.1 - 2017-10-01
 
