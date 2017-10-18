@@ -6,12 +6,32 @@
  */
 #define _GNU_SOURCE
 #include <errno.h>
-#include <stdlib.h>
+#include <getopt.h>
+#include <inttypes.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "energymon-default.h"
 #include "energymon-time-util.h"
 
+#define CMD_MAX_LEN 8192
+
+static const char short_options[] = "+h";
+static const struct option long_options[] = {
+  {"help",      no_argument,       NULL, 'h'},
+  {0, 0, 0, 0}
+};
+
+static void print_usage(int exit_code) {
+  fprintf(exit_code ? stderr : stdout,
+          "Usage: energymon-cmd-profile [OPTION]... COMMAND [ARG...]\n"
+          "Options:\n"
+          "  -h, --help               Print this message and exit\n");
+  exit(exit_code);
+}
+
 int main(int argc, char** argv) {
+  char cmd[CMD_MAX_LEN] = { 0 };
+  energymon em;
   uint64_t time_start_ns;
   uint64_t time_end_ns;
   uint64_t time_total_ns;
@@ -19,22 +39,39 @@ int main(int argc, char** argv) {
   uint64_t energy_end_uj;
   uint64_t energy_total_uj;
   double watts;
-  char* cmd;
   int cmd_ret;
-  energymon em;
-
-  if (argc < 2) {
-    fprintf(stderr, "Must supply system command as parameter.\n");
-    exit(1);
+  int i;
+  int written = 0;
+  int c;
+  while ((c = getopt_long(argc, argv, short_options, long_options, NULL)) != -1) {
+    switch (c) {
+      case 'h':
+        print_usage(0);
+        break;
+      case '?':
+      default:
+        print_usage(1);
+        break;
+    }
   }
-  cmd = argv[1];
+  if (optind >= argc) {
+    print_usage(1);
+  }
 
+  for (i = optind; i < argc; i++) {
+    written += snprintf(cmd + written, CMD_MAX_LEN - written, "%s%s",
+                        argv[i], (i == argc - 1 ? "" : " "));
+    if (written >= CMD_MAX_LEN) {
+      fprintf(stderr, "Command too long");
+      exit(1);
+    }
+  }
+
+  // initialize
   if (energymon_get_default(&em)) {
     perror("energymon_get_default");
     exit(1);
   }
-
-  // initialize
   if (em.finit(&em)) {
     perror("energymon:finit");
     exit(1);
@@ -53,10 +90,6 @@ int main(int argc, char** argv) {
   // execute
   printf("Executing: %s\n", cmd);
   cmd_ret = system(cmd);
-  if (cmd_ret) {
-    fprintf(stderr, "Warning: command exited with return code %d:\n%s\n",
-            cmd_ret, cmd);
-  }
   
   // get end time/energy
   errno = 0;
@@ -67,6 +100,11 @@ int main(int argc, char** argv) {
     exit(1);
   }
   time_end_ns = energymon_gettime_ns();
+
+  if (cmd_ret) {
+    fprintf(stderr, "Warning: command exited with return code %d:\n%s\n",
+            cmd_ret, cmd);
+  }
 
   time_total_ns = time_end_ns - time_start_ns;
   energy_total_uj = energy_end_uj - energy_start_uj;

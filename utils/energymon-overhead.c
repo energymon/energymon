@@ -8,18 +8,18 @@
 #define _GNU_SOURCE
 #include <errno.h>
 #include <inttypes.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "energymon-default.h"
 #include "energymon-time-util.h"
 
 int main(void) {
+  char source[64] = { 0 };
   static energymon em;
   uint64_t time_start_ns, time_end_ns;
   uint64_t finit_ns, fread_ns, ffinish_ns;
   uint64_t energy_uj;
   int ret;
-  char source[64];
 
   // no need to profile getting the energymon
   if (energymon_get_default(&em)) {

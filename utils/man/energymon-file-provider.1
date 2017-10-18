@@ -1,0 +1,62 @@
+.TH "energymon-file-provider" "1" "2017-10-18" "energymon" "EnergyMon Utilities"
+.SH "NAME"
+.LP
+energymon\-file\-provider \- write energy readings to a file at regular
+intervals
+.SH "SYNPOSIS"
+.LP
+\fBenergymon\-file\-provider\fP
+[\fIOPTION\fP]... [\fIFILE\fP]
+.SH "DESCRIPTION"
+.LP
+Writes energy readings to a file at regular intervals.
+Uses the default EnergyMon implementation.
+.LP
+If no additional options are specified, energy readings are written to standard
+output at the implementation's minimum update interval, and the program loops
+until interrupted with \fBCTRL\-C\fP.
+Note that using the default interval is not always desirable, as it may be too
+fast and cause unnecessary overhead.
+The data also tends to be quite noisy at the minimum update interval.
+.LP
+If \fIFILE\fP is specified, the file is overwritten with each write, so there
+is only ever a single value.
+To instead write a new line for each sample, specify \fI\-n/\-\-no\-rewind\fP.
+This option is implied when using standard output by default.
+.SH "OPTIONS"
+.LP
+.TP
+\fB\-h\fP, \fB\-\-help\fP
+Prints the help screen.
+.TP
+\fB\-c\fP, \fB\-\-count\fP=\fIN\fP
+Stop after \fIN\fP reads.
+.TP
+\fB\-i\fP, \fB\-\-interval=\fP\fIUS\fP
+The update interval in microseconds.
+Must be greater than 0.
+.TP
+\fB\-n\fP, \fB\-\-no\-rewind\fP
+Write each reading on a new line.
+.SH "EXAMPLES"
+.TP
+\fBenergymon\-file\-provider\fP
+Print energy values to standard output at the implementation's update interval.
+.TP
+\fBenergymon\-file\-provider energy.log\fP
+Write energy readings to \fBenergy.log\fP at the implementation's update
+interval, overwriting prior energy readings.
+.TP
+\fBenergymon\-file\-provider \-i 5000000 \-n energy.log\fP
+Write energy readings to \fBenergy.log\fP every 5 seconds, with a new line for
+each energy reading.
+.TP
+\fBenergymon\-file\-provider \-c 10 \-i 1000000\fP
+Print energy values to standard output every second, stopping after 10
+readings.
+.SH "BUGS"
+.LP
+Report bugs upstream at <https://github.com/energymon/energymon>
+.SH "SEE ALSO"
+.LP
+energymon\-power\-poller(1)

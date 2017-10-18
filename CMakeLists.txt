@@ -42,6 +42,7 @@ else()
   set(CMAKE_INSTALL_LIBDIR lib)
   set(CMAKE_INSTALL_INCLUDEDIR include)
   set(CMAKE_INSTALL_BINDIR bin)
+  set(CMAKE_INSTALL_MANDIR share/man)
 endif()
 
 include_directories(${PROJECT_SOURCE_DIR}/inc)

@@ -1,0 +1,59 @@
+.TH "energymon-power-poller" "1" "2017-10-18" "energymon" "EnergyMon Utilities"
+.SH "NAME"
+.LP
+energymon\-power\-poller \- print average power at regular intervals
+.SH "SYNPOSIS"
+.LP
+\fBenergymon\-power\-poller\fP
+[\fIOPTION\fP]...
+.SH "DESCRIPTION"
+.LP
+Prints the average power at regular intervals.
+Uses the default EnergyMon implementation.
+.LP
+If no additional options are specified, average power is printed to standard
+output at the implementation's minimum update interval, and the program loops
+until interrupted with \fBCTRL\-C\fP.
+Note that using the default interval is not always desirable, as it may be too
+fast and cause unnecessary overhead.
+Also, computing power at the minimum update interval can result in noisy data.
+.SH "OPTIONS"
+.LP
+.TP
+\fB\-h\fP, \fB\-\-help\fP
+Prints the help screen.
+.TP
+\fB\-c\fP, \fB\-\-count\fP=\fIN\fP
+Stop after \fIN\fP reads.
+.TP
+\fB\-f\fP, \fB\-\-file\fP=\fIFILE\fP
+Write the output to \fIFILE\fP.
+.TP
+\fB\-i\fP, \fB\-\-interval=\fP\fIUS\fP
+The update interval in microseconds.
+Must be greater than 0.
+Note that if \fIUS\fP is too short for the EnergyMon implementation to get
+updated energy readings, the average power will be reported as 0.
+.TP
+\fB\-s\fP, \fB\-\-summarize\fP
+Print out a summary at completion.
+.SH "EXAMPLES"
+.TP
+\fBenergymon\-power\-poller\fP
+Measure average power at the implementation's update interval.
+.TP
+\fBenergymon\-power\-poller \-i 5000000 \-f power.log\fP
+Measure average power every 5 seconds and write output to \fBpower.log\fP.
+.TP
+\fBenergymon\-power\-poller \-i 100000 \-c 10\fP
+Measure average power every 100 milliseconds and stop after 10 readings.
+.TP
+\fBenergymon\-power\-poller \-i 50000 \-c 100 -s\fP
+Measure average power every 50 milliseconds, stop after 100 readings, and print
+a summary.
+.SH "BUGS"
+.LP
+Report bugs upstream at <https://github.com/energymon/energymon>
+.SH "SEE ALSO"
+.LP
+energymon\-file\-provider(1)

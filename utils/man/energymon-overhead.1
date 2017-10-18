@@ -1,0 +1,25 @@
+.TH "energymon-overhead" "1" "2017-10-18" "energymon" "EnergyMon Utilities"
+.SH "NAME"
+.LP
+energymon\-overhead \- measure overhead of the EnergyMon core functions
+.SH "SYNPOSIS"
+.LP
+\fBenergymon\-overhead\fP
+.SH "DESCRIPTION"
+.LP
+Measure the overhead of the init, read, and finish functions.
+Results are in nanoseconds.
+Uses the default EnergyMon implementation.
+.LP
+Note that overhead readings can only be as precise as the system clock
+supports.
+.SH "EXAMPLES"
+.TP
+\fBenergymon\-overhead\fP
+Measure the overhead of the init, read, and finish functions.
+.SH "BUGS"
+.LP
+Report bugs upstream at <https://github.com/energymon/energymon>
+.SH "SEE ALSO"
+.LP
+energymon\-info(1)

@@ -1,0 +1,39 @@
+.TH "energymon-idle-power" "1" "2017-10-18" "energymon" "EnergyMon Utilities"
+.SH "NAME"
+.LP
+energymon\-idle\-power \- measure system idle power
+.SH "SYNPOSIS"
+.LP
+\fBenergymon\-idle\-power\fP
+[\fIOPTION\fP]... [\fISECONDS\fP]
+.SH "DESCRIPTION"
+.LP
+Intended to measure the idle power of the system by doing nothing.
+In fact, it just measures the average power during the \fISECONDS\fP
+specified (10 by default), regardless of whether the system is actually idle.
+Uses the default EnergyMon implementation.
+.LP
+The \fISECONDS\fP value must be a positive integer.
+Note that if \fISECONDS\fP is too short for the EnergyMon implementation to get
+updated energy readings, the average power will be reported as 0.
+.SH "OPTIONS"
+.LP
+.TP
+\fB\-h\fP, \fB\-\-help\fP
+Prints the help screen.
+.SH "EXAMPLES"
+.TP
+\fBenergymon\-idle\-power\fP
+Measure average power for 10 seconds.
+.TP
+\fBenergymon\-idle\-power 5\fP
+Measure average power for 5 seconds.
+.TP
+\fBenergymon\-idle\-power 30\fP
+Measure average power for 30 seconds.
+.SH "BUGS"
+.LP
+Report bugs upstream at <https://github.com/energymon/energymon>
+.SH "SEE ALSO"
+.LP
+energymon\-cmd\-profile(1)

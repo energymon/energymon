@@ -25,3 +25,4 @@ install(TARGETS energymon-cmd-profile
                 energymon-overhead
                 energymon-power-poller
         DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(DIRECTORY man/ DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)

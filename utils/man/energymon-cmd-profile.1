@@ -1,0 +1,34 @@
+.TH "energymon-cmd-profile" "1" "2017-10-18" "energymon" "EnergyMon Utilities"
+.SH "NAME"
+.LP
+energymon\-cmd\-profile \- profile the execution of a command
+.SH "SYNPOSIS"
+.LP
+\fBenergymon\-cmd\-profile\fP
+[\fIOPTION\fP]... \fICOMMAND\fP [\fIARG\fP...]
+.SH "DESCRIPTION"
+.LP
+Prints time, energy, and average power for the execution of a command.
+Uses the default EnergyMon implementation.
+.SH "OPTIONS"
+.LP
+.TP
+\fB\-h\fP, \fB\-\-help\fP
+Prints the help screen.
+.SH "EXAMPLES"
+.TP
+\fBenergymon\-cmd\-profile sleep 10\fP
+Profile doing nothing for 10 seconds.
+The \fBsleep\fP program is part of \fBGNU coreutils\fP.
+.TP
+\fBenergymon\-cmd\-profile stress \-c $(nproc) \-t 10\fP
+Profile stressing the processor for 10 seconds.
+The \fBstress\fP program is a Linux command-line utility not related to or
+provided by EnergyMon.
+The \fBnproc\fP program is part of \fBGNU coreutils\fP.
+.SH "BUGS"
+.LP
+Report bugs upstream at <https://github.com/energymon/energymon>
+.SH "SEE ALSO"
+.LP
+energymon\-idle\-power(1)

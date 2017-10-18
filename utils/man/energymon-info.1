@@ -1,0 +1,26 @@
+.TH "energymon-info" "1" "2017-10-18" "energymon" "EnergyMon Utilities"
+.SH "NAME"
+.LP
+energymon\-info \- print information from the EnergyMon interface
+.SH "SYNPOSIS"
+.LP
+\fBenergymon\-info\fP
+.SH "DESCRIPTION"
+.LP
+Prints information from the EnergyMon interface functions, including source
+name, exclusivity, refresh interval, energy reading precision, and a current
+energy value.
+Uses the default EnergyMon implementation.
+.LP
+Even if the EnergyMon implementation fails to initialize, the program will
+attempt to read from as many functions as possible.
+.SH "EXAMPLES"
+.TP
+\fBenergymon\-info\fP
+Print information for the default EnergyMon implementation.
+.SH "BUGS"
+.LP
+Report bugs upstream at <https://github.com/energymon/energymon>
+.SH "SEE ALSO"
+.LP
+energymon\-overhead(1)

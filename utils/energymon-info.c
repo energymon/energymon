@@ -6,19 +6,15 @@
  */
 #include <errno.h>
 #include <inttypes.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "energymon-default.h"
 
-int main(int argc, char** argv) {
+int main(void) {
+  char buf[256] = { 0 };
   energymon em;
-  char buf[256];
-  int ret;
   uint64_t reading = 0;
-
-  // silence compiler warnings
-  (void) argc;
-  (void) argv;
+  int ret;
 
   if (energymon_get_default(&em)) {
     perror("energymon_get_default");
@@ -29,10 +25,9 @@ int main(int argc, char** argv) {
 
   // initialize
   if ((ret = em.finit(&em))) {
+    // don't quit, we can still try other functions (except fread)
     perror("energymon:finit");
-  }
-
-  if (!ret) {
+  } else {
     errno = 0;
     reading = em.fread(&em);
     if (!reading && errno) {

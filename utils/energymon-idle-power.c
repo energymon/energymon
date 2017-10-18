@@ -6,41 +6,60 @@
  */
 #define _GNU_SOURCE
 #include <errno.h>
-#include <stdlib.h>
+#include <getopt.h>
+#include <inttypes.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "energymon-default.h"
 #include "energymon-time-util.h"
 
-static const int DEFAULT_SLEEP_US = 10000000; // 10 seconds
+static const uint64_t DEFAULT_SLEEP_US = 10000000; // 10 seconds
 static const int IGNORE_INTERRUPT = 0;
 
-/**
- * The only argument allowed is an integer value for the number of seconds to
- * sleep for.
- */
+static const char short_options[] = "+h";
+static const struct option long_options[] = {
+  {"help",      no_argument,       NULL, 'h'},
+  {0, 0, 0, 0}
+};
+
+static void print_usage(int exit_code) {
+  fprintf(exit_code ? stderr : stdout,
+          "Usage: energymon-idle-power [OPTION]... [SECONDS]\n"
+          "Options:\n"
+          "  -h, --help               Print this message and exit\n"
+          "By default, SECONDS = %"PRIu64"\n", (DEFAULT_SLEEP_US / 1000000));
+  exit(exit_code);
+}
+
 int main(int argc, char** argv) {
-  int sleep_us = DEFAULT_SLEEP_US;
+  energymon em;
+  uint64_t sleep_us = DEFAULT_SLEEP_US;
   uint64_t time_start_ns;
   uint64_t time_end_ns;
   uint64_t energy_start_uj;
   uint64_t energy_end_uj;
   double watts;
-  energymon em;
-
-  if (argc > 1) {
-    sleep_us = atoi(argv[1]) * 1000000;
-    if (sleep_us <= 0) {
-      fprintf(stderr, "Sleep time must be > 0 seconds.\n");
-      exit(1);
+  int c;
+  while ((c = getopt_long(argc, argv, short_options, long_options, NULL)) != -1) {
+    switch (c) {
+      case 'h':
+        print_usage(0);
+        break;
+      case '?':
+      default:
+        print_usage(1);
+        break;
     }
   }
+  if (optind < argc) {
+    sleep_us = strtoull(argv[optind], NULL, 0) * 1000000;
+  }
 
+  // initialize
   if (energymon_get_default(&em)) {
     perror("energymon_get_default");
     exit(1);
   }
-
-  // initialize
   if (em.finit(&em)) {
     perror("energymon:finit");
     exit(1);
