@@ -126,16 +126,6 @@ int energymon_finish_zcu102(energymon* em) {
   return errno ? -1 : 0;
 }
 
-/**
- * Ignore non-directories and hidden/relative directories (. and ..).
- * We expect the folder name to be something like 3-0040 or 4-0045.
- */
-static inline int is_sensor_dir(struct dirent* entry) {
-  return (entry->d_type == DT_LNK || entry->d_type == DT_DIR)
-          && entry->d_name[0] != '.'
-          && entry->d_name[1] == '-';
-}
-
 static inline void free_sensor_directories(char** dirs, unsigned int n) {
   while (n > 0) {
     free(dirs[--n]);
