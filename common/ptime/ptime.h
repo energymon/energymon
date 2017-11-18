@@ -43,26 +43,26 @@ uint64_t ptime_gettime_ns(ptime_clock_id clk_id);
 uint64_t ptime_gettime_us(ptime_clock_id clk_id);
 
 /**
- * Get the elapsed nanoseconds since the time specified in "since", which is updated with the current time.
- * Returns 0 and sets errno if the time could not be determined or "since" is in the future.
+ * Get the elapsed nanoseconds since the time specified in "since_ns", which is updated with the current time.
+ * Returns 0 and sets errno if the time could not be determined or "since_ns" is in the future.
  *
  * @param clk_id
- * @param since
+ * @param since_ns
  *
  * @return nanoseconds elapsed, or 0 on failure
  */
-uint64_t ptime_gettime_elapsed_ns(ptime_clock_id clk_id, uint64_t* since);
+uint64_t ptime_gettime_elapsed_ns(ptime_clock_id clk_id, uint64_t* since_ns);
 
 /**
- * Get the elapsed microseconds since the time specified in "since", which is updated with the current time.
- * Returns 0 and sets errno if the time could not be determined or "since" is in the future.
+ * Get the elapsed microseconds since the time specified in "since_us", which is updated with the current time.
+ * Returns 0 and sets errno if the time could not be determined or "since_us" is in the future.
  *
  * @param clk_id
- * @param since
+ * @param since_us
  *
  * @return microseconds elapsed, or 0 on failure
  */
-uint64_t ptime_gettime_elapsed_us(ptime_clock_id clk_id, uint64_t* since);
+uint64_t ptime_gettime_elapsed_us(ptime_clock_id clk_id, uint64_t* since_us);
 
 /*
  * Sleeping

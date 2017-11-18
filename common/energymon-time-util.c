@@ -16,8 +16,8 @@ uint64_t energymon_gettime_us(void) {
   return ptime_gettime_us(PTIME_MONOTONIC);
 }
 
-uint64_t energymon_gettime_elapsed_us(uint64_t* since) {
-  return ptime_gettime_elapsed_us(PTIME_MONOTONIC, since);
+uint64_t energymon_gettime_elapsed_us(uint64_t* since_us) {
+  return ptime_gettime_elapsed_us(PTIME_MONOTONIC, since_us);
 }
 
 int energymon_sleep_us(uint64_t us, volatile const int* ignore_interrupt) {
