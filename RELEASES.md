@@ -3,6 +3,14 @@
 ## [Unreleased]
 
 
+## [v0.2.3] - 2017-11-19
+### Added
+ * Implementation for Xilinx ZCU102 (Jason Miller)
+
+### Fixed
+ * Fixed [#40]: Time conversion bug in common function 'energymon_gettime_elapsed_us' (Jason Miller)
+
+
 ## [v0.2.2] - 2017-10-26
 ### Added
  * New capabilities to some utility applications:
@@ -53,8 +61,10 @@
 ### Added
  * Initial public release
 
-[Unreleased]: https://github.com/energymon/energymon/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/energymon/energymon/compare/v0.2.3...HEAD
+[v0.2.3]: https://github.com/energymon/energymon/compare/v0.2.2...v0.2.3
 [v0.2.2]: https://github.com/energymon/energymon/compare/v0.2.1...v0.2.2
 [v0.2.1]: https://github.com/energymon/energymon/compare/v0.2.0...v0.2.1
+[#40]: https://github.com/energymon/energymon/issues/40
 [#37]: https://github.com/energymon/energymon/issues/37
 [#27]: https://github.com/energymon/energymon/issues/27
