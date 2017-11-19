@@ -26,6 +26,7 @@ Current EnergyMon implementation options are:
 * wattsup
 * wattsup-libusb
 * wattsup-libftdi
+* zcu102
 
 ## Building
 
