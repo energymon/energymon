@@ -29,11 +29,11 @@ uint64_t energymon_gettime_us(void);
 /**
  * Get elapsed time in microseconds.
  *
- * @param since
- *  must not be NULL, is updated with current time
+ * @param since_us
+ *  previous time in microseconds, must not be NULL, is updated with current time
  * @return elapsed microseconds, or 0 on failure
  */
-uint64_t energymon_gettime_elapsed_us(uint64_t* since);
+uint64_t energymon_gettime_elapsed_us(uint64_t* since_us);
 
 /**
  * Sleep for the specified number of microseconds.
