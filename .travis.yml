@@ -18,7 +18,6 @@ addons:
 before_install:
   # OSX-specific packages
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install libusb; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install libftdi; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install hidapi; fi
 
