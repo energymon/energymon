@@ -13,9 +13,6 @@
 #include "energymon-util.h"
 #include "wattsup-driver.h"
 
-// undocumented environment variable to force setting serial attributes like baud rate
-#define WATTSUP_LIBFTDI_SET_SERIAL_ATTRIBUTES "WATTSUP_LIBFTDI_SET_SERIAL_ATTRIBUTES"
-
 #ifndef ENERGYMON_WATTSUP_BAUD_RATE
   #define ENERGYMON_WATTSUP_BAUD_RATE 115200
 #endif
@@ -72,16 +69,14 @@ energymon_wattsup_ctx* wattsup_connect(const char* dev_file, unsigned int timeou
     return init_failed("ftdi_usb_open", ctx, 0);
   }
 
-  // We don't appear to need to set the following, so we'll only do so if requested
-  if (getenv(WATTSUP_LIBFTDI_SET_SERIAL_ATTRIBUTES) != NULL) {
-    // configure baud rate
-    if (ftdi_set_baudrate(ctx->ctx, ENERGYMON_WATTSUP_BAUD_RATE) < 0) {
-      return init_failed("ftdi_set_baudrate", ctx, 1);
-    }
-    // ftdi example "serial_test" also does this for writing to this same vid/pid
-    if (ftdi_set_line_property(ctx->ctx, BITS_8, STOP_BIT_1, NONE)) {
-      return init_failed("ftdi_set_line_property", ctx, 1);
-    }
+  // sometimes we fail to actually read data unless we set these values
+  // configure baud rate
+  if (ftdi_set_baudrate(ctx->ctx, ENERGYMON_WATTSUP_BAUD_RATE) < 0) {
+    return init_failed("ftdi_set_baudrate", ctx, 1);
+  }
+  // ftdi example "serial_test" also does this for writing to this same vid/pid
+  if (ftdi_set_line_property(ctx->ctx, BITS_8, STOP_BIT_1, NONE)) {
+    return init_failed("ftdi_set_line_property", ctx, 1);
   }
 
   return ctx;
