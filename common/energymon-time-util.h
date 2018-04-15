@@ -40,6 +40,8 @@ uint64_t energymon_gettime_elapsed_us(uint64_t* since_us);
  *
  * @param us
  *  the number of microseconds
+ * @param ignore_interrupt
+ *  whether to ignore interrupts (true if not specified)
  * @return 0 on success, error code on failure
  */
 int energymon_sleep_us(uint64_t us, volatile const int* ignore_interrupt);

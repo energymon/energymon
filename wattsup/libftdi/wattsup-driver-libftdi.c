@@ -68,8 +68,6 @@ energymon_wattsup_ctx* wattsup_connect(const char* dev_file, unsigned int timeou
   if (ftdi_usb_open(ctx->ctx, ENERGYMON_WATTSUP_VENDOR_ID, ENERGYMON_WATTSUP_PRODUCT_ID) < 0) {
     return init_failed("ftdi_usb_open", ctx, 0);
   }
-
-  // sometimes we fail to actually read data unless we set these values
   // configure baud rate
   if (ftdi_set_baudrate(ctx->ctx, ENERGYMON_WATTSUP_BAUD_RATE) < 0) {
     return init_failed("ftdi_set_baudrate", ctx, 1);
@@ -77,6 +75,10 @@ energymon_wattsup_ctx* wattsup_connect(const char* dev_file, unsigned int timeou
   // ftdi example "serial_test" also does this for writing to this same vid/pid
   if (ftdi_set_line_property(ctx->ctx, BITS_8, STOP_BIT_1, NONE)) {
     return init_failed("ftdi_set_line_property", ctx, 1);
+  }
+  // flush buffers
+  if (ftdi_usb_purge_buffers(ctx->ctx)) {
+    return init_failed("ftdi_usb_purge_buffers", ctx, 1);
   }
 
   return ctx;

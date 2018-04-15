@@ -26,6 +26,8 @@
   #define ENERGYMON_WATTSUP_ENDPOINT_READ 0x81
 #endif
 
+#define ENERGYMON_WATTSUP_REQUEST_TYPE (LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT)
+
 // undocumented environment variable to force setting serial attributes like baud rate
 #define WATTSUP_LIBUSB_SET_SERIAL_ATTRIBUTES "WATTSUP_LIBUSB_SET_SERIAL_ATTRIBUTES"
 
@@ -126,41 +128,47 @@ energymon_wattsup_ctx* wattsup_connect(const char* dev_file, unsigned int timeou
 
   // TODO: stil getting some junk characters during reading - see ftdi_read_data(), packet size = 64
 
-  // We don't appear to need to set the following, so we'll only do so if requested
-  if (getenv(WATTSUP_LIBUSB_SET_SERIAL_ATTRIBUTES) != NULL) {
-    // reverse-engineered these calls and parameters from libftdi
-    // reset the device
-    static const uint8_t RESET_REQUEST = 0;
-    static const uint16_t RESET_VALUE = 0;
-    static const uint16_t RESET_INDEX = 0;
-    if (libusb_control_transfer(ctx->handle, (LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT), RESET_REQUEST,
-                                RESET_VALUE, RESET_INDEX,
-                                NULL, 0,
-                                ctx->timeout_ms) < 0) {
-      return init_failed("libusb_control_transfer: reset", rc, ctx, 1);
-    }
-    // set baud rate
-    static const uint8_t SET_BAUD_RATE_REQUEST = 3;
-    static const uint16_t BAUD_RATE_CONVERTED = 26;
-    static const int BAUD_RATE_INDEX = 0;
-    if (libusb_control_transfer(ctx->handle,
-                                (LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT), SET_BAUD_RATE_REQUEST,
-                                BAUD_RATE_CONVERTED, BAUD_RATE_INDEX,
-                                NULL, 0,
-                                ctx->timeout_ms) < 0) {
-      return init_failed("libusb_control_transfer: baud", rc, ctx, 1);
-    }
-    static const uint8_t SET_DATA_REQUEST = 4;
-    static const uint16_t LINE_PROPERTIES_VALUE = 8;
-    static const uint16_t LINE_PROPERTIES_INDEX = 8;
-    // configure serial line properties
-    if (libusb_control_transfer(ctx->handle,
-                                (LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT), SET_DATA_REQUEST,
-                                LINE_PROPERTIES_VALUE, LINE_PROPERTIES_INDEX,
-                                NULL, 0,
-                                ctx->timeout_ms) < 0) {
-      return init_failed("libusb_control_transfer: line properties", rc, ctx, 1);
-    }
+  // reverse-engineered these calls and parameters from libftdi
+  static const uint8_t SET_DATA_REQUEST = 4;
+  static const uint16_t LINE_PROPERTIES_VALUE = 8;
+  static const uint16_t LINE_PROPERTIES_INDEX = 8;
+  // configure serial line properties
+  if (libusb_control_transfer(ctx->handle, ENERGYMON_WATTSUP_REQUEST_TYPE,
+                              SET_DATA_REQUEST, LINE_PROPERTIES_VALUE, LINE_PROPERTIES_INDEX,
+                              NULL, 0, ctx->timeout_ms) < 0) {
+    return init_failed("libusb_control_transfer: line properties", rc, ctx, 1);
+  }
+  // reset the device
+  static const uint8_t RESET_REQUEST = 0;
+  static const uint16_t RESET_VALUE = 0;
+  static const uint16_t RESET_INDEX = 0;
+  if (libusb_control_transfer(ctx->handle, ENERGYMON_WATTSUP_REQUEST_TYPE,
+                              RESET_REQUEST, RESET_VALUE, RESET_INDEX,
+                              NULL, 0, ctx->timeout_ms) < 0) {
+    return init_failed("libusb_control_transfer: reset", rc, ctx, 1);
+  }
+  // set baud rate
+  static const uint8_t SET_BAUD_RATE_REQUEST = 3;
+  static const uint16_t BAUD_RATE_CONVERTED = 26;
+  static const int BAUD_RATE_INDEX = 0;
+  if (libusb_control_transfer(ctx->handle, ENERGYMON_WATTSUP_REQUEST_TYPE,
+                              SET_BAUD_RATE_REQUEST, BAUD_RATE_CONVERTED, BAUD_RATE_INDEX,
+                              NULL, 0, ctx->timeout_ms) < 0) {
+    return init_failed("libusb_control_transfer: baud", rc, ctx, 1);
+  }
+  // flush read buffer
+  static const uint16_t PURGE_RX = 1;
+  if (libusb_control_transfer(ctx->handle, ENERGYMON_WATTSUP_REQUEST_TYPE,
+                              RESET_REQUEST, PURGE_RX, RESET_INDEX,
+                              NULL, 0, ctx->timeout_ms) < 0) {
+    return init_failed("libusb_control_transfer: flush read", rc, ctx, 1);
+  }
+  // flush write buffer
+  static const uint16_t PURGE_TX = 1;
+  if (libusb_control_transfer(ctx->handle, ENERGYMON_WATTSUP_REQUEST_TYPE,
+                              RESET_REQUEST, PURGE_TX, RESET_INDEX,
+                              NULL, 0, ctx->timeout_ms) < 0) {
+    return init_failed("libusb_control_transfer: flush write", rc, ctx, 1);
   }
 
   return ctx;

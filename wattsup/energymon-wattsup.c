@@ -37,7 +37,7 @@ int energymon_get_default(energymon* em) {
 #define WU_POWER_INDEX 3
 #define WU_BUFSIZE 256
 // chosen empirically as a ridiculous value - never needed more than ~4 reads
-#define WU_MAX_INITIAL_READS 100
+#define WU_MAX_RETRIES 5
 
 typedef struct energymon_wattsup {
   energymon_wattsup_ctx* ctx;
@@ -83,7 +83,9 @@ static void* wattsup_poll_sensors(void* args) {
   char* saveptr;
   char* tok;
   int ret;
+#ifndef __ANDROID__
   int dummy_old_state; // not used but kept for portability (see pthread docs)
+#endif
 
   state->deciwatts = 0;
   if (!(state->last_us = energymon_gettime_us())) {
@@ -161,20 +163,32 @@ static void* wattsup_poll_sensors(void* args) {
 
 static int wattsup_flush_read(energymon_wattsup_ctx* ctx) {
   assert(ctx != NULL);
-  char buf[WU_BUFSIZE];
+  char buf[WU_BUFSIZE] = { 0 };
+  const int IGNORE_INTERRUPT = 0;
   int i;
-  // do at most WU_MAX_INITIAL_READS reads, just so we don't read indefinitely
-  for (i = 0; i < WU_MAX_INITIAL_READS; i++) {
-    if (wattsup_read(ctx, buf, sizeof(buf)) != sizeof(buf)) {
+  int ret;
+  // try to get one good data packet from the device
+  for (i = 0; i <= WU_MAX_RETRIES; i++) {
+    if ((ret = wattsup_read(ctx, buf, WU_BUFSIZE)) < 0) {
+      return -1;
+    }
+    buf[ret < WU_BUFSIZE ? ret : WU_BUFSIZE - 1] = '\0';
+#ifdef ENERGYMON_WATTSUP_DEBUG
+    fprintf(stdout, "Looking for good data packet: %d: %s\n", i, buf);
+#endif
+    if (ret == WU_BUFSIZE) {
+      // cut through the data backlog (shouldn't be a problem if buffers were properly flushed)
+      continue;
+    }
+    // good packets start with a '#' and end with a ';'
+    if (strrchr(buf, '#') && strrchr(buf, ';')) {
       break;
     }
+    if (i == WU_MAX_RETRIES) {
+      return -1; // avoid unnecessary sleep
+    }
+    energymon_sleep_us(WU_MIN_INTERVAL_US, &IGNORE_INTERRUPT);
   }
-  if (i == WU_MAX_INITIAL_READS) {
-    // the device is just giving us garbage
-    return -1;
-  }
-  // read (hopefully) the last of the junk
-  wattsup_read(ctx, buf, sizeof(buf));
   return 0;
 }
 
@@ -184,7 +198,6 @@ int energymon_init_wattsup(energymon* em) {
     return -1;
   }
 
-  static const int IGNORE_INTERRUPT = 0;
   int err_save;
   const char* dev_file = getenv(ENERGYMON_WATTSUP_DEV_FILE);
   if (dev_file == NULL) {
@@ -217,12 +230,9 @@ int energymon_init_wattsup(energymon* em) {
     return -1;
   }
 
-  // must let the device start working before we read anything, otherwise we get garbage
-  energymon_sleep_us(WU_MIN_INTERVAL_US, &IGNORE_INTERRUPT);
-
   // dummy reads - sometimes we get a bunch of junk to start with
   if (wattsup_flush_read(state->ctx)) {
-    fprintf(stderr, "energymon_init_wattsup: Too much data from WattsUp\n");
+    fprintf(stderr, "energymon_init_wattsup: Too much or no data from WattsUp\n");
     wattsup_disconnect(state->ctx);
     free(state);
     errno = ENODATA;
@@ -242,9 +252,8 @@ int energymon_init_wattsup(energymon* em) {
     return -1;
   }
 
-  // This is hacky, but seems to be the most reliable way to provide accurate data:
-  // give time for the polling thread to get a reading
-  energymon_sleep_us(WU_MIN_INTERVAL_US, &IGNORE_INTERRUPT);
+  // give the polling thread a head start
+  energymon_sleep_us(WU_MIN_INTERVAL_US / 100, &state->poll);
 
   em->state = state;
   return 0;

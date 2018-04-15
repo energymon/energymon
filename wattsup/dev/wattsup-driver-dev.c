@@ -90,15 +90,14 @@ static int wattsup_set_serial_attributes(int fd) {
   // set input/output baud rate
   cfsetispeed(&t, B115200);
   cfsetospeed(&t, B115200);
-  // flush any data received but not read
-  tcflush(fd, TCIFLUSH);
   // ignore framing and parity errors (there is no parity bit)
   t.c_iflag |= IGNPAR;
   // Turn off double stop bits (documentation specifies only one is used)
   t.c_cflag &= ~CSTOPB;
-
-  // set the parameters (immediately)
-  return tcsetattr(fd, TCSANOW, &t);
+  // set the parameters
+  tcsetattr(fd, TCSANOW, &t);
+  // flush any data received but not read and written but not transmitted
+  return tcflush(fd, TCIOFLUSH);
 }
 
 energymon_wattsup_ctx* wattsup_connect(const char* dev_file, unsigned int timeout_ms) {
