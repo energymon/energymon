@@ -21,7 +21,7 @@
 #include "wattsup-driver.h"
 
 struct energymon_wattsup_ctx {
-  struct timeval timeout;
+  struct timespec timeout;
   int fd;
 };
 
@@ -110,7 +110,7 @@ energymon_wattsup_ctx* wattsup_connect(const char* dev_file, unsigned int timeou
 
   // set read timeout
   ctx->timeout.tv_sec = timeout_ms / 1000;
-  ctx->timeout.tv_usec = timeout_ms % 1000;
+  ctx->timeout.tv_nsec = (timeout_ms % 1000) * 1000000;
 
   // open the file descriptor and check device properties
   if (wattsup_open(dev_file, &ctx->fd)) {
@@ -150,7 +150,7 @@ int wattsup_read(energymon_wattsup_ctx* ctx, char* buf, size_t buflen) {
   FD_ZERO(&set);
   FD_SET(ctx->fd, &set);
 
-  switch (select(ctx->fd + 1, &set, NULL, NULL, &ctx->timeout)) {
+  switch (pselect(ctx->fd + 1, &set, NULL, NULL, &ctx->timeout, NULL)) {
     case -1:
       // failed
       break;
