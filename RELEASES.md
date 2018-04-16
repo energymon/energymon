@@ -3,10 +3,10 @@
 ## [Unreleased]
 ### Changed
  * WattsUp implementations:
-  * Wait up to 5 seconds for a good data packet (or fail) before completing initialization
-  * Purge data buffers during initialization
-  * Poll device at shorter intervals to increase energy value accuracy
-  * Better handling of incomplete data packets
+   * Wait up to 5 seconds for a good data packet (or fail) before completing initialization
+   * Purge data buffers during initialization
+   * Poll device at shorter intervals to increase energy value accuracy
+   * Better handling of incomplete data packets
 
 ### Fixed
  * wattsup-libftdi, wattsup-libusb: Fix empty reads by always setting baud rate and serial line properties
@@ -24,9 +24,9 @@
 ## [v0.2.2] - 2017-10-26
 ### Added
  * New capabilities to some utility applications:
-  * energymon-cmd-profile: Accept commands without quotations; add help option
-  * energymon-file-provider: Add help, count, interval, and no-rewind options
-  * energymon-idle-power: Add help option
+   * energymon-cmd-profile: Accept commands without quotations; add help option
+   * energymon-file-provider: Add help, count, interval, and no-rewind options
+   * energymon-idle-power: Add help option
  * Man pages for utility applications
  * VERSION and SOVERSION properties on shared object libraries
  * Multiarch support (use GNU standard installation directories)
