@@ -2,8 +2,11 @@
 
 ## [Unreleased]
 ### Changed
- * Wattsup implementations: Wait up to 5 seconds for a good data packet (or fail) before completing initialization
- * Wattsup implementations: Purge data buffers during initialization
+ * WattsUp implementations:
+  * Wait up to 5 seconds for a good data packet (or fail) before completing initialization
+  * Purge data buffers during initialization
+  * Poll device at shorter intervals to increase energy value accuracy
+  * Better handling of incomplete data packets
 
 ### Fixed
  * wattsup-libftdi, wattsup-libusb: Fix empty reads by always setting baud rate and serial line properties
