@@ -104,6 +104,8 @@ int main(int argc, char** argv) {
   uint64_t min_interval;
   uint64_t energy;
   uint64_t energy_last;
+  uint64_t last_us;
+  uint64_t exec_us;
   float power;
   uint64_t n = 0;
   float pmin = FLT_MAX;
@@ -153,13 +155,15 @@ int main(int argc, char** argv) {
 
   // output at regular intervals
   energy_last = em.fread(&em);
+  last_us = energymon_gettime_us();
   energymon_sleep_us(interval, &IGNORE_INTERRUPT);
   while (running) {
     if (count) {
       running--;
     }
     energy = em.fread(&em);
-    power = (energy - energy_last) / ((float) interval);
+    exec_us = energymon_gettime_elapsed_us(&last_us);
+    power = (energy - energy_last) / ((float) exec_us);
     if (fprintf(fout, "%f\n", power) < 0) {
       ret = 1;
       if (filename == NULL) {
