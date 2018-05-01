@@ -158,6 +158,9 @@ static int em_osp_finish(energymon* em, int start_errno) {
   if (state->poll) {
     // stop sensors polling thread and cleanup
     state->poll = 0;
+#ifndef __ANDROID__
+   pthread_cancel(state->thread);
+#endif
     errno = pthread_join(state->thread, NULL);
     if (errno && !err_save) {
       err_save = errno;
@@ -215,12 +218,20 @@ static void* osp_poll_device(void* args) {
   double watts;
   uint64_t exec_us;
   uint64_t last_us;
+#ifndef __ANDROID__
+  int dummy_old_state;
+#endif
   if (!(last_us = energymon_gettime_us())) {
     // must be that CLOCK_MONOTONIC is not supported
     perror("osp_poll_device: energymon_gettime_us");
     return (void*) NULL;
   }
   while (state->poll) {
+#ifndef __ANDROID__
+    // Deadlock can occur during disconnect if thread is canceled during I/O
+    // Enable thread cancel while sleeping, disable during I/O
+    pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &dummy_old_state);
+#endif
     errno = 0;
     if (em_osp_request_data_retry(state, ENERGYMON_OSP_RETRIES, &state->poll) == 0) {
       // Watt value always starts at index 17
@@ -239,6 +250,9 @@ static void* osp_poll_device(void* args) {
     state->total_uj += watts * exec_us;
     // sleep for the polling delay
     if (state->poll) {
+#ifndef __ANDROID__
+      pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &dummy_old_state);
+#endif
       energymon_sleep_us(ENERGYMON_OSP_POLL_DELAY_US, &state->poll);
     }
   }

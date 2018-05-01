@@ -15,7 +15,6 @@
  * wattsup-libftdi, wattsup-libusb: Fix empty reads by always setting baud rate and serial line properties
  * wattsup-dev: Use pselect to avoid timer expired errors
  * odroid, odroid-ioctl, osp-polling: Minor correction to polling delay interval
- * osp-polling: Don't use pthread_cancel during finish (was causing occasional hangs)
 
 
 ## [v0.2.3] - 2017-11-19
