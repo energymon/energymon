@@ -234,9 +234,9 @@ static void* odroid_poll_sensors(void* args) {
     } else {
       state->total_uj += sum_w * exec_us;
     }
-    // sleep for the update interval of the sensors (minus most overhead)
-    if (state->read_delay_us > exec_us) {
-      energymon_sleep_us(state->read_delay_us - exec_us, &state->poll_sensors);
+    // sleep for the update interval of the sensors
+    if (state->poll_sensors) {
+      energymon_sleep_us(state->read_delay_us, &state->poll_sensors);
     }
     errno = 0;
   }
