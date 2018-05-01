@@ -65,10 +65,9 @@ int energymon_get_default(energymon* em) {
 // Force an overflow at 1k Wh (a round value with more than enough headroom).
 #define OSP_WATTHOUR_MAX 1000.0
 
-// firmware claims to use a 20 ms timer (main.c:YourHighPriorityISRCode())
-#define OSP_TIMER_INTERVAL_US 20000
-// firmware skips the first 35 timer interrupts (timer.c:timer0_ISR())
-#define OSP_RESET_DELAY_US (OSP_TIMER_INTERVAL_US * 35)
+// Time wait between writing a command the reading the response
+#define OSP_WRITE_READ_DELAY_US 10
+
 // documentation says USB refresh rate is 10 Hz
 #define OSP_USB_REFRESH_US 100000
 
@@ -105,36 +104,36 @@ typedef struct energymon_osp {
 #endif
 } energymon_osp;
 
-static int em_osp_request_status(energymon_osp* em) {
+static int em_osp_request_status(energymon_osp* em, volatile const int* ignore_interrupt) {
   memset((void*) &em->buf, 0x00, sizeof(em->buf));
   em->buf[1] = OSP_REQUEST_STATUS;
   return hid_write(em->device, em->buf, sizeof(em->buf)) == -1 ||
-         energymon_sleep_us(OSP_TIMER_INTERVAL_US, NULL) ||
+         energymon_sleep_us(OSP_WRITE_READ_DELAY_US, ignore_interrupt) ||
          hid_read(em->device, em->buf, sizeof(em->buf)) == -1;
 }
 
-static int em_osp_request_startstop(energymon_osp* em) {
+static int em_osp_request_startstop(energymon_osp* em, volatile const int* ignore_interrupt) {
   memset((void*) &em->buf, 0x00, sizeof(em->buf));
   em->buf[1] = OSP_REQUEST_STARTSTOP;
   if (hid_write(em->device, em->buf, sizeof(em->buf)) == -1 ||
-      energymon_sleep_us(OSP_TIMER_INTERVAL_US, NULL)) {
+      energymon_sleep_us(OSP_WRITE_READ_DELAY_US, ignore_interrupt)) {
     return -1;
   }
   return 0;
 }
 
-static int em_osp_request_data(energymon_osp* em) {
+static int em_osp_request_data(energymon_osp* em, volatile const int* ignore_interrupt) {
   memset((void*) &em->buf, 0x00, sizeof(em->buf));
   em->buf[1] = OSP_REQUEST_DATA;
   return hid_write(em->device, em->buf, sizeof(em->buf)) == -1 ||
-         energymon_sleep_us(OSP_TIMER_INTERVAL_US, NULL) ||
+         energymon_sleep_us(OSP_WRITE_READ_DELAY_US, ignore_interrupt) ||
          hid_read(em->device, em->buf, sizeof(em->buf)) == -1;
 }
 
-static int em_osp_request_data_retry(energymon_osp* em, unsigned int retries) {
+static int em_osp_request_data_retry(energymon_osp* em, unsigned int retries, volatile const int* ignore_interrupt) {
   do {
     errno = 0;
-    if (em_osp_request_data(em)) {
+    if (em_osp_request_data(em, ignore_interrupt)) {
       // a HID error, we won't try to recover
       // hidapi not guaranteed to set errno, so we should set it to something
       if (!errno) {
@@ -159,9 +158,6 @@ static int em_osp_finish(energymon* em, int start_errno) {
   if (state->poll) {
     // stop sensors polling thread and cleanup
     state->poll = 0;
-#ifndef __ANDROID__
-    pthread_cancel(state->thread);
-#endif
     errno = pthread_join(state->thread, NULL);
     if (errno && !err_save) {
       err_save = errno;
@@ -172,7 +168,7 @@ static int em_osp_finish(energymon* em, int start_errno) {
   if (state->device != NULL) {
     // stop the device, if desired
     if (getenv(ENERGYMON_OSP_STOP_ON_FINISH) != NULL &&
-        em_osp_request_startstop(state)) {
+        em_osp_request_startstop(state, NULL)) {
       perror("em_osp_finish: em_osp_request_startstop");
       if (!err_save) {
         err_save = errno;
@@ -221,13 +217,12 @@ static void* osp_poll_device(void* args) {
   uint64_t last_us;
   if (!(last_us = energymon_gettime_us())) {
     // must be that CLOCK_MONOTONIC is not supported
-    perror("osp_poll_device: energymon_clock_gettime");
+    perror("osp_poll_device: energymon_gettime_us");
     return (void*) NULL;
   }
-  energymon_sleep_us(ENERGYMON_OSP_POLL_DELAY_US, &state->poll);
   while (state->poll) {
     errno = 0;
-    if (em_osp_request_data_retry(state, ENERGYMON_OSP_RETRIES) == 0) {
+    if (em_osp_request_data_retry(state, ENERGYMON_OSP_RETRIES, &state->poll) == 0) {
       // Watt value always starts at index 17
       state->buf[OSP_BUF_SIZE - 1] = '\0';
       errno = 0;
@@ -242,9 +237,9 @@ static void* osp_poll_device(void* args) {
     }
     exec_us = energymon_gettime_elapsed_us(&last_us);
     state->total_uj += watts * exec_us;
-    // sleep for the polling delay (minus most overhead)
-    if (ENERGYMON_OSP_POLL_DELAY_US > exec_us) {
-      energymon_sleep_us(ENERGYMON_OSP_POLL_DELAY_US - exec_us, &state->poll);
+    // sleep for the polling delay
+    if (state->poll) {
+      energymon_sleep_us(ENERGYMON_OSP_POLL_DELAY_US, &state->poll);
     }
   }
   return (void*) NULL;
@@ -299,8 +294,8 @@ int energymon_init_osp(energymon* em) {
     return em_osp_init_fail(em, "energymon_init_osp: hid_set_nonblocking", EIO);
   }
 
-  // get the status
-  if (em_osp_request_status(state)) {
+  // get the status - for some reason we have to get it twice
+  if (em_osp_request_status(state, NULL) || em_osp_request_status(state, NULL)) {
     return em_osp_init_fail(em, "energymon_init_osp: em_osp_request_status", EIO);
   }
 
@@ -309,11 +304,9 @@ int energymon_init_osp(energymon* em) {
   printf("ODROID Smart Power: already started: %s\n", started ? "yes" : "no");
 #endif
   if (!started) {
-    if (em_osp_request_startstop(state)) {
+    if (em_osp_request_startstop(state, NULL)) {
       return em_osp_init_fail(em, "energymon_init_osp: em_osp_request_startstop", EIO);
     }
-    // wait for device
-    energymon_sleep_us(OSP_RESET_DELAY_US, NULL);
   }
 
 #ifdef ENERGYMON_OSP_USE_POLLING
@@ -342,7 +335,7 @@ uint64_t energymon_read_total_osp(const energymon* em) {
   return state->total_uj;
 #else
   double wh;
-  if (em_osp_request_data_retry(state, ENERGYMON_OSP_RETRIES)) {
+  if (em_osp_request_data_retry(state, ENERGYMON_OSP_RETRIES, NULL)) {
     perror("energymon_read_total_osp: em_osp_request_data_retry");
     return 0;
   }
@@ -367,14 +360,12 @@ uint64_t energymon_read_total_osp(const energymon* em) {
     state->overflow_surplus += wh;
     wh = 0;
     // restart device counter
-    if (em_osp_request_startstop(state)) {
+    if (em_osp_request_startstop(state, NULL)) {
       perror("energymon_read_total_osp: em_osp_request_startstop: stop");
     }
-    if (em_osp_request_startstop(state)) {
+    if (em_osp_request_startstop(state, NULL)) {
       perror("energymon_read_total_osp: em_osp_request_startstop: start");
     }
-    // TODO: This sleep doesn't seem necessary (or is at least too long); why?
-    // energymon_sleep_us(OSP_RESET_DELAY_US, NULL);
   }
   return UJOULES_PER_WATTHOUR *
          (wh + state->n_overflow * OSP_WATTHOUR_MAX + state->overflow_surplus);
