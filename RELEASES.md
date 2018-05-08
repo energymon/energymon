@@ -7,14 +7,14 @@
    * Purge data buffers during initialization
    * Poll device at shorter intervals to increase energy value accuracy
    * Better handling of incomplete data packets
- * osp-polling:
-   * Allow polling thread to be interrupted during sleep when finish is requested
+ * osp-polling: Allow polling thread to be interrupted during sleep when finish is requested
  * energymon-power-poller: Account for true elapsed time to produce more accurate power values
 
 ### Fixed
  * wattsup-libftdi, wattsup-libusb: Fix empty reads by always setting baud rate and serial line properties
  * wattsup-dev: Use pselect to avoid timer expired errors
  * odroid, odroid-ioctl, osp-polling, zcu102: Minor correction to polling delay interval
+ * msr: Possible (but unlikely) precision computation bug
 
 
 ## [v0.2.3] - 2017-11-19

@@ -224,20 +224,15 @@ uint64_t energymon_get_precision_msr(const energymon* em) {
     return 0;
   }
   energymon_msr* state = (energymon_msr*) em->state;
-  uint64_t prec;
+  double units = 0;
   unsigned int i;
-  if (state->msr_count == 0) {
-    prec = 1;
-  } else {
-    prec = UINT64_MAX;
-    for (i = 0; i < state->msr_count; i++) {
-      if (state->msrs[i].energy_units < prec) {
-        // 61 uJ by default
-        prec = (uint64_t) (state->msrs[i].energy_units * 1000000);
-      }
+  for (i = 0; i < state->msr_count; i++) {
+    // precision limited by the largest units (they should all be the same though)
+    if (state->msrs[i].energy_units > units) {
+      units = state->msrs[i].energy_units;
     }
   }
-  return prec ? prec : 1;
+  return (uint64_t) (units * 1000000);
 }
 
 int energymon_is_exclusive_msr(void) {
