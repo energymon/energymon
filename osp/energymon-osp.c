@@ -55,9 +55,11 @@ int energymon_get_default(energymon* em) {
 #define OSP_VENDOR_ID           0x04d8
 #define OSP_PRODUCT_ID          0x003f
 #define OSP_REQUEST_DATA        0x37
+#define OSP_REQUEST_ONOFF       0x82
 #define OSP_REQUEST_STARTSTOP   0x80
 #define OSP_REQUEST_STATUS      0x81
 
+#define OSP_STATUS_ON           0x01
 #define OSP_STATUS_STARTED      0x01
 
 // The display would overflow at 10k Wh, but stops incrementing at 8192.0 Wh.
@@ -83,6 +85,13 @@ int energymon_get_default(energymon* em) {
   #define ENERGYMON_OSP_RETRIES 1
 #endif
 
+// It takes roughly a dozen reads to actually get the status of the device
+#define ENERGYMON_OSP_STATUS_RETRIES 100
+
+// Environment variable to request turning on the device if it's off during init.
+// Keeping this as an undocumented feature for now.
+#define ENERGYMON_OSP_REQUEST_ON "ENERGYMON_OSP_REQUEST_ON"
+
 // Environment variable to stop the device recording on finish.
 // Keeping this as an undocumented feature for now.
 #define ENERGYMON_OSP_STOP_ON_FINISH "ENERGYMON_OSP_STOP_ON_FINISH"
@@ -105,11 +114,32 @@ typedef struct energymon_osp {
 } energymon_osp;
 
 static int em_osp_request_status(energymon_osp* em, volatile const int* ignore_interrupt) {
+  int i;
   memset((void*) &em->buf, 0x00, sizeof(em->buf));
   em->buf[1] = OSP_REQUEST_STATUS;
-  return hid_write(em->device, em->buf, sizeof(em->buf)) == -1 ||
-         energymon_sleep_us(OSP_WRITE_READ_DELAY_US, ignore_interrupt) ||
-         hid_read(em->device, em->buf, sizeof(em->buf)) == -1;
+  if (hid_write(em->device, em->buf, sizeof(em->buf)) == -1) {
+    return -1;
+  }
+  for (i = 0; i < ENERGYMON_OSP_STATUS_RETRIES; i++) {
+    if (energymon_sleep_us(OSP_WRITE_READ_DELAY_US, ignore_interrupt) ||
+        hid_read(em->device, em->buf, sizeof(em->buf)) == -1) {
+      return -1;
+    }
+    if (em->buf[0] == OSP_REQUEST_STATUS) {
+      return 0;
+    }
+  }
+  return -1;
+}
+
+static int em_osp_request_onoff(energymon_osp* em, volatile const int* ignore_interrupt) {
+  memset((void*) &em->buf, 0x00, sizeof(em->buf));
+  em->buf[1] = OSP_REQUEST_ONOFF;
+  if (hid_write(em->device, em->buf, sizeof(em->buf)) == -1 ||
+      energymon_sleep_us(OSP_WRITE_READ_DELAY_US, ignore_interrupt)) {
+    return -1;
+  }
+  return 0;
 }
 
 static int em_osp_request_startstop(energymon_osp* em, volatile const int* ignore_interrupt) {
@@ -283,6 +313,8 @@ int energymon_init_osp(energymon* em) {
     errno = EINVAL;
     return -1;
   }
+  int is_started;
+  int is_on;
 
   energymon_osp* state = calloc(1, sizeof(energymon_osp));
   if (state == NULL) {
@@ -308,16 +340,35 @@ int energymon_init_osp(energymon* em) {
     return em_osp_init_fail(em, "energymon_init_osp: hid_set_nonblocking", EIO);
   }
 
-  // get the status - for some reason we have to get it twice
-  if (em_osp_request_status(state, NULL) || em_osp_request_status(state, NULL)) {
+  // get the status
+  if (em_osp_request_status(state, NULL)) {
     return em_osp_init_fail(em, "energymon_init_osp: em_osp_request_status", EIO);
   }
 
-  int started = (state->buf[1] == OSP_STATUS_STARTED) ? 1 : 0;
+  is_on = (state->buf[1] == OSP_STATUS_ON);
+  is_started = (state->buf[1] == OSP_STATUS_STARTED);
 #ifdef VERBOSE
-  printf("ODROID Smart Power: already started: %s\n", started ? "yes" : "no");
+  printf("ODROID Smart Power: already on: %s\n", is_on ? "yes" : "no");
+  printf("ODROID Smart Power: already started: %s\n", is_started ? "yes" : "no");
 #endif
-  if (!started) {
+  if (!is_on) {
+    // currently hiding behind an environment variable so we don't risk turning off active devices if we're wrong
+    if (getenv(ENERGYMON_OSP_REQUEST_ON) == NULL) {
+      fprintf(stderr, "ODROID Smart Power appears to be off, continuing anyway...\n");
+    } else {
+      // turn on the device
+      if (em_osp_request_onoff(state, NULL)) {
+        return em_osp_init_fail(em, "energymon_init_osp: em_osp_request_onoff", EIO);
+      }
+      // get the status again
+      if (em_osp_request_status(state, NULL)) {
+        return em_osp_init_fail(em, "energymon_init_osp: em_osp_request_status (after ON)", EIO);
+      }
+      is_started = (state->buf[1] == OSP_STATUS_STARTED);
+    }
+  }
+  if (!is_started) {
+    // start the device
     if (em_osp_request_startstop(state, NULL)) {
       return em_osp_init_fail(em, "energymon_init_osp: em_osp_request_startstop", EIO);
     }

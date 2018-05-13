@@ -15,6 +15,7 @@
  * wattsup-dev: Use pselect to avoid timer expired errors
  * odroid, odroid-ioctl, osp-polling, zcu102: Minor correction to polling delay interval
  * msr: Possible (but unlikely) precision computation bug
+ * osp, osp-polling: Fix status check during init that didn't always work
 
 
 ## [v0.2.3] - 2017-11-19
