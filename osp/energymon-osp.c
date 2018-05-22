@@ -345,7 +345,7 @@ int energymon_init_osp(energymon* em) {
     return em_osp_init_fail(em, "energymon_init_osp: em_osp_request_status", EIO);
   }
 
-  is_on = (state->buf[1] == OSP_STATUS_ON);
+  is_on = (state->buf[2] == OSP_STATUS_ON);
   is_started = (state->buf[1] == OSP_STATUS_STARTED);
 #ifdef VERBOSE
   printf("ODROID Smart Power: already on: %s\n", is_on ? "yes" : "no");
