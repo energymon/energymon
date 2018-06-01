@@ -1,6 +1,8 @@
 # Release Notes
 
 ## [Unreleased]
+
+## [v0.2.4] - 2018-06-01
 ### Changed
  * WattsUp implementations:
    * Wait up to 5 seconds for a good data packet (or fail) before completing initialization
@@ -76,7 +78,8 @@
 ### Added
  * Initial public release
 
-[Unreleased]: https://github.com/energymon/energymon/compare/v0.2.3...HEAD
+[Unreleased]: https://github.com/energymon/energymon/compare/v0.2.4...HEAD
+[v0.2.4]: https://github.com/energymon/energymon/compare/v0.2.3...v0.2.4
 [v0.2.3]: https://github.com/energymon/energymon/compare/v0.2.2...v0.2.3
 [v0.2.2]: https://github.com/energymon/energymon/compare/v0.2.1...v0.2.2
 [v0.2.1]: https://github.com/energymon/energymon/compare/v0.2.0...v0.2.1
