@@ -1,6 +1,8 @@
 # Release Notes
 
 ## [Unreleased]
+### Changed
+ * More pedantic formatting in man pages
 
 ## [v0.2.4] - 2018-06-01
 ### Changed
