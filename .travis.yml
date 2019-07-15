@@ -14,12 +14,11 @@ addons:
       - libusb-1.0-0-dev
       - libftdi-dev
       - libhidapi-dev
-
-before_install:
-  # OSX-specific packages
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install libftdi; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install hidapi; fi
+  homebrew:
+    packages:
+      - libftdi
+      - hidapi
+    update: true
 
 script:
   - mkdir _build
