@@ -4,6 +4,10 @@
 ### Changed
  * More pedantic formatting in man pages
 
+### Fixed
+ * Fixed [#14]: Print useful CMake error when bad ENERGYMON_BUILD_DEFAULT value is set
+
+
 ## [v0.2.4] - 2018-06-01
 ### Changed
  * WattsUp implementations:

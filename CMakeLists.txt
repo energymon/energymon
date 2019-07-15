@@ -104,6 +104,13 @@ if(UNIX OR WIN32)
   add_subdirectory(wattsup)
 endif()
 
+if(NOT TARGET energymon-default AND NOT ${ENERGYMON_BUILD_DEFAULT} MATCHES "NONE")
+  message(FATAL_ERROR
+          "No build target for ENERGYMON_BUILD_DEFAULT=${ENERGYMON_BUILD_DEFAULT}\n"
+          "Specified implementation may be unknown, unsupported for the target system, or skipped due to missing build dependencies\n"
+          "Retry with a supported value or set ENERGYMON_BUILD_DEFAULT=NONE")
+endif()
+
 
 # Binaries and tests
 
