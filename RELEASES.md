@@ -92,3 +92,4 @@
 [#40]: https://github.com/energymon/energymon/issues/40
 [#37]: https://github.com/energymon/energymon/issues/37
 [#27]: https://github.com/energymon/energymon/issues/27
+[#14]: https://github.com/energymon/energymon/issues/14
