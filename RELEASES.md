@@ -6,6 +6,7 @@
 
 ### Fixed
  * Fixed [#14]: Print useful CMake error when bad ENERGYMON_BUILD_DEFAULT value is set
+ * rapl: Powercap directory paths use lower case hex values, not decimal values
 
 
 ## [v0.2.4] - 2018-06-01

@@ -82,7 +82,7 @@ static inline uint64_t rapl_read_max_energy(unsigned int zone) {
   char buf[96];
   char data[30];
   int fd;
-  snprintf(buf, sizeof(buf), RAPL_BASE_DIR"/intel-rapl:%u/%s",
+  snprintf(buf, sizeof(buf), RAPL_BASE_DIR"/intel-rapl:%x/%s",
            zone, RAPL_MAX_ENERGY_FILE);
   errno = 0;
   fd = open(buf, O_RDONLY);
@@ -119,7 +119,7 @@ static inline int rapl_init(energymon_rapl* state, unsigned int count) {
   char buf[96];
   state->count = count;
   for (i = 0; i < state->count; i++) {
-    snprintf(buf, sizeof(buf), RAPL_BASE_DIR"/intel-rapl:%u/%s",
+    snprintf(buf, sizeof(buf), RAPL_BASE_DIR"/intel-rapl:%x/%s",
              i, RAPL_ENERGY_FILE);
     state->zones[i].energy_fd = open(buf, O_RDONLY);
     if (state->zones[i].energy_fd <= 0) {
