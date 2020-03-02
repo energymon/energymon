@@ -1,6 +1,9 @@
 # Release Notes
 
 ## [Unreleased]
+### Added
+ * raplcap-msr: new implementation using libraplcap-msr (more features than `msr` and `rapl` implementations)
+
 ### Changed
  * More pedantic formatting in man pages
 
