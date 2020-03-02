@@ -149,24 +149,25 @@ static inline char** get_sensor_directories(unsigned int* count) {
    *   commented out above.
    */
   unsigned int i;
-  char** directories = NULL;
+  char** directories;
   *count = 18;
-  errno = 0;
 
   directories = calloc(*count, sizeof(char*));
-  if (directories != NULL) {
-    for (i = 0; i < *count; i++) {
-      directories[i] = calloc(1, sizeof(HWMON_DIR_EXAMPLE));
-      if (directories[i] == NULL) {
-	break; // calloc failed
-      }
-      snprintf(directories[i], sizeof(HWMON_DIR_EXAMPLE), "hwmon%d", i);
-    }
-  }
-  if (errno) { // from calloc
-    directories = NULL;
+  if (directories == NULL) {
     *count = 0;
+    return NULL;
   }
+
+  for (i = 0; i < *count; i++) {
+    directories[i] = calloc(1, sizeof(HWMON_DIR_EXAMPLE));
+    if (directories[i] == NULL) {
+      free_sensor_directories(directories, i);
+      *count = 0;
+      return NULL;
+    }
+    snprintf(directories[i], sizeof(HWMON_DIR_EXAMPLE), "hwmon%d", i);
+  }
+
   return directories;
 }
 

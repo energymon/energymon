@@ -10,6 +10,7 @@
 ### Fixed
  * Fixed [#14]: Print useful CMake error when bad ENERGYMON_BUILD_DEFAULT value is set
  * rapl: Powercap directory paths use lower case hex values, not decimal values
+ * zcu102: potential memory leak in 'get_sensor_directories' under failure conditions
 
 
 ## [v0.2.4] - 2018-06-01
