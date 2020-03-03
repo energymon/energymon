@@ -56,3 +56,7 @@ if(BUILD_ATTACH_KERNEL)
   target_link_libraries(energymon-wattsup-attach-kernel ${LIBUSB_1_LIBRARIES})
   install(TARGETS energymon-wattsup-attach-kernel DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
+
+# Utils
+
+BUILD_UTILS(${LNAME} ${LNAME} energymon-wattsup.h energymon_get_wattsup)

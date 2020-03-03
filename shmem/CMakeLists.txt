@@ -31,3 +31,7 @@ if(TARGET energymon-default AND ENERGYMON_BUILD_EXAMPLES)
   add_executable(${EXAMPLE} example/${EXAMPLE}.c)
   target_link_libraries(${EXAMPLE} energymon-default)
 endif()
+
+# Utils
+
+BUILD_UTILS(${LNAME} ${LNAME} ${LNAME}.h energymon_get_shmem)

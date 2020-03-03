@@ -48,3 +48,7 @@ elseif(ENERGYMON_BUILD_DEFAULT STREQUAL "cray-pm-memory_energy" OR ENERGYMON_BUI
   BUILD_DEFAULT("${SOURCES}" "" "ENERGYMON_BUILD_DEFAULT_CRAY_PM_MEMORY_ENERGY")
   PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "")
 endif()
+
+# Utils
+
+BUILD_UTILS(${LNAME} ${LNAME} ${LNAME}.h energymon_get_cray_pm)

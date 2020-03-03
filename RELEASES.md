@@ -5,6 +5,7 @@
 ### Added
 
 * raplcap-msr: new implementation using libraplcap-msr (more features than `msr` and `rapl` implementations)
+* utils [#44]: Build utilities for all implementations, not just energymon-default
 
 ### Changed
 
@@ -118,6 +119,7 @@
 [v0.2.3]: https://github.com/energymon/energymon/compare/v0.2.2...v0.2.3
 [v0.2.2]: https://github.com/energymon/energymon/compare/v0.2.1...v0.2.2
 [v0.2.1]: https://github.com/energymon/energymon/compare/v0.2.0...v0.2.1
+[#44]: https://github.com/energymon/energymon/issues/44
 [#40]: https://github.com/energymon/energymon/issues/40
 [#37]: https://github.com/energymon/energymon/issues/37
 [#27]: https://github.com/energymon/energymon/issues/27

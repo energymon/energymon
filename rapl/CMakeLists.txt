@@ -24,3 +24,7 @@ if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LN
   BUILD_DEFAULT("${SOURCES}" "" "")
   PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "")
 endif()
+
+# Utils
+
+BUILD_UTILS(${LNAME} ${LNAME} ${LNAME}.h energymon_get_rapl)
