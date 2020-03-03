@@ -8,7 +8,8 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "energymon-default.h"
+#include "energymon.h"
+#include "energymon-get.h"
 
 int main(void) {
   char buf[256] = { 0 };
@@ -16,8 +17,7 @@ int main(void) {
   uint64_t reading = 0;
   int ret;
 
-  if (energymon_get_default(&em)) {
-    perror("energymon_get_default");
+  if (energymon_get(&em)) {
     exit(1);
   }
 

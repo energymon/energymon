@@ -13,7 +13,8 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "energymon-default.h"
+#include "energymon.h"
+#include "energymon-get.h"
 #include "energymon-time-util.h"
 
 static volatile int running = 1;
@@ -107,8 +108,7 @@ int main(int argc, char** argv) {
   parse_args(argc, argv);
 
   // initialize
-  if (energymon_get_default(&em)) {
-    perror("energymon_get_default");
+  if (energymon_get(&em)) {
     return 1;
   }
   if (em.finit(&em)) {

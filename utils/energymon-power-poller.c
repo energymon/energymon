@@ -15,7 +15,8 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "energymon-default.h"
+#include "energymon.h"
+#include "energymon-get.h"
 #include "energymon-time-util.h"
 
 static const int IGNORE_INTERRUPT = 0;
@@ -122,8 +123,7 @@ int main(int argc, char** argv) {
   parse_args(argc, argv);
 
   // initialize the energy monitor
-  if (energymon_get_default(&em)) {
-    perror("energymon_get_default");
+  if (energymon_get(&em)) {
     return 1;
   }
   if (em.finit(&em)) {

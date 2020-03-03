@@ -10,7 +10,8 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "energymon-default.h"
+#include "energymon.h"
+#include "energymon-get.h"
 #include "energymon-time-util.h"
 
 static const uint64_t DEFAULT_SLEEP_US = 10000000; // 10 seconds
@@ -56,8 +57,7 @@ int main(int argc, char** argv) {
   }
 
   // initialize
-  if (energymon_get_default(&em)) {
-    perror("energymon_get_default");
+  if (energymon_get(&em)) {
     exit(1);
   }
   if (em.finit(&em)) {

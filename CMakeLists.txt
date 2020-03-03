@@ -8,6 +8,7 @@ set(PROJECT_VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -std=gnu99")
 
+set(ENERGYMON_GET_HEADER_IN ${CMAKE_SOURCE_DIR}/common/energymon-get.h.in)
 set(ENERGYMON_UTIL ${CMAKE_SOURCE_DIR}/common/energymon-util.c)
 set(ENERGYMON_TIME_UTIL ${CMAKE_SOURCE_DIR}/common/energymon-time-util.c;${CMAKE_SOURCE_DIR}/common/ptime/ptime.c)
 
@@ -49,6 +50,11 @@ include_directories(${PROJECT_SOURCE_DIR}/inc)
 include_directories(${PROJECT_SOURCE_DIR}/common)
 
 
+# Utilities
+
+add_subdirectory(utils)
+
+
 # Macros
 
 macro(BUILD_DEFAULT source deplibs definitions)
@@ -61,6 +67,7 @@ macro(BUILD_DEFAULT source deplibs definitions)
   set_target_properties(energymon-default PROPERTIES COMPILE_DEFINITIONS "ENERGYMON_DEFAULT;${definitions}")
   install(TARGETS energymon-default DESTINATION ${CMAKE_INSTALL_LIBDIR})
   install(FILES ${CMAKE_SOURCE_DIR}/inc/energymon-default.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
+  BUILD_UTILS(energymon energymon-default energymon-default.h energymon_get_default)
 endmacro(BUILD_DEFAULT)
 
 macro(PKG_CONFIG name description requires_private libs_private)
@@ -116,9 +123,6 @@ endif()
 # Binaries and tests
 
 if(TARGET energymon-default)
-  if (ENERGYMON_BUILD_UTILITIES)
-    add_subdirectory(utils)
-  endif()
   if (ENERGYMON_BUILD_TESTS)
     add_subdirectory(test)
   endif()

@@ -10,7 +10,8 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "energymon-default.h"
+#include "energymon.h"
+#include "energymon-get.h"
 #include "energymon-time-util.h"
 
 int main(void) {
@@ -22,8 +23,7 @@ int main(void) {
   int ret;
 
   // no need to profile getting the energymon
-  if (energymon_get_default(&em)) {
-    perror("energymon_get_default");
+  if (energymon_get(&em)) {
     exit(1);
   }
 
