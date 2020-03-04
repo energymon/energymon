@@ -11,19 +11,11 @@
 extern "C" {
 #endif
 
-#include <stdio.h>
 #include "energymon.h"
-#include "@ENERGYMON_GET_HEADER@"
 
 #pragma GCC visibility push(hidden)
 
-static int energymon_get(energymon* em) {
-  int rc = @ENERGYMON_GET_FUNCTION@(em);
-  if (rc) {
-    perror("@ENERGYMON_GET_FUNCTION@");
-  }
-  return rc;
-}
+int energymon_get(energymon* em);
 
 #pragma GCC visibility pop
 

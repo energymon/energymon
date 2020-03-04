@@ -8,7 +8,6 @@ set(PROJECT_VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -std=gnu99")
 
-set(ENERGYMON_GET_HEADER_IN ${CMAKE_SOURCE_DIR}/common/energymon-get.h.in)
 set(ENERGYMON_UTIL ${CMAKE_SOURCE_DIR}/common/energymon-util.c)
 set(ENERGYMON_TIME_UTIL ${CMAKE_SOURCE_DIR}/common/energymon-time-util.c;${CMAKE_SOURCE_DIR}/common/ptime/ptime.c)
 
@@ -57,6 +56,12 @@ add_subdirectory(utils)
 
 # Macros
 
+macro(CONFIGURE_ENERGYMON_GET_C get_header get_function output)
+  set(ENERGYMON_GET_HEADER ${get_header})
+  set(ENERGYMON_GET_FUNCTION ${get_function})
+  configure_file(${CMAKE_SOURCE_DIR}/common/energymon-get.c.in ${output})
+endmacro(CONFIGURE_ENERGYMON_GET_C)
+
 macro(BUILD_DEFAULT source deplibs definitions)
   add_library(energymon-default ${source})
   target_link_libraries(energymon-default ${deplibs})
@@ -67,7 +72,8 @@ macro(BUILD_DEFAULT source deplibs definitions)
   set_target_properties(energymon-default PROPERTIES COMPILE_DEFINITIONS "ENERGYMON_DEFAULT;${definitions}")
   install(TARGETS energymon-default DESTINATION ${CMAKE_INSTALL_LIBDIR})
   install(FILES ${CMAKE_SOURCE_DIR}/inc/energymon-default.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
-  BUILD_UTILS(energymon energymon-default energymon-default.h energymon_get_default)
+  CONFIGURE_ENERGYMON_GET_C(energymon-default.h energymon_get_default ${CMAKE_CURRENT_BINARY_DIR}/energymon-default/energymon-get.c)
+  BUILD_UTILS(energymon energymon-default ${CMAKE_CURRENT_BINARY_DIR}/energymon-default/energymon-get.c)
 endmacro(BUILD_DEFAULT)
 
 macro(PKG_CONFIG name description requires_private libs_private)

@@ -3,6 +3,10 @@ set(LNAME energymon-msr)
 set(SOURCES ${LNAME}.c;${ENERGYMON_UTIL})
 set(DESCRIPTION "EnergyMon implementation for Intel Model Specific Register")
 
+# Dependencies
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
 # Libraries
 
 if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
@@ -27,4 +31,5 @@ endif()
 
 # Utils
 
-BUILD_UTILS(${LNAME} ${LNAME} ${LNAME}.h energymon_get_msr)
+CONFIGURE_ENERGYMON_GET_C(${LNAME}.h energymon_get_msr ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
+BUILD_UTILS(${LNAME} ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)

@@ -5,6 +5,8 @@ set(DESCRIPTION "EnergyMon implementation for Xilinx ZCU102 systems")
 
 # Dependencies
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
 # Must be set to OFF to prevent doing a try_run() during cross-compiling
 set(THREADS_PTHREAD_ARG OFF)
 find_package(Threads)
@@ -40,4 +42,5 @@ endif()
 
 # Utils
 
-BUILD_UTILS(${LNAME} ${LNAME} ${LNAME}.h energymon_get_zcu102)
+CONFIGURE_ENERGYMON_GET_C(${LNAME}.h energymon_get_zcu102 ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
+BUILD_UTILS(${LNAME} ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)

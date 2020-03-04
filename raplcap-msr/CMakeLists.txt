@@ -5,6 +5,8 @@ set(DESCRIPTION "EnergyMon implementation using libraplcap-msr")
 
 # Dependencies
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
 find_package(PkgConfig)
 if(${PKG_CONFIG_FOUND})
   pkg_search_module(RAPLCAP raplcap-msr>=0.3.0)
@@ -41,4 +43,5 @@ endif()
 
 # Utils
 
-BUILD_UTILS(${LNAME} ${LNAME} ${LNAME}.h energymon_get_raplcap_msr)
+CONFIGURE_ENERGYMON_GET_C(${LNAME}.h energymon_get_raplcap_msr ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
+BUILD_UTILS(${LNAME} ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)

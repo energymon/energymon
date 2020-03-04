@@ -1,0 +1,19 @@
+/**
+ * Utility for getting an energymon implementation defined at compile time.
+ *
+ * @author Connor Imes
+ * @date 2020-02-02
+ */
+
+#include <stdio.h>
+#include "energymon.h"
+#include "energymon-get.h"
+#include "@ENERGYMON_GET_HEADER@"
+
+int energymon_get(energymon* em) {
+  int rc = @ENERGYMON_GET_FUNCTION@(em);
+  if (rc) {
+    perror("@ENERGYMON_GET_FUNCTION@");
+  }
+  return rc;
+}

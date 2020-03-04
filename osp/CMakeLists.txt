@@ -10,6 +10,8 @@ set(DESCRIPTION_POLLING "EnergyMon implementation for ODROID Smart Power with Po
 
 # Dependencies
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
 find_package(PkgConfig)
 if(${PKG_CONFIG_FOUND})
   # Check for impl with libusb backend first
@@ -101,5 +103,7 @@ endif()
 
 # Utils
 
-BUILD_UTILS(${LNAME} ${LNAME} ${LNAME}.h energymon_get_osp)
-BUILD_UTILS(${LNAME_POLLING} ${LNAME_POLLING} ${LNAME_POLLING}.h energymon_get_osp_polling)
+CONFIGURE_ENERGYMON_GET_C(${LNAME}.h energymon_get_osp ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
+BUILD_UTILS(${LNAME} ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
+CONFIGURE_ENERGYMON_GET_C(${LNAME_POLLING}.h energymon_get_osp_polling ${CMAKE_CURRENT_BINARY_DIR}/${LNAME_POLLING}/energymon-get.c)
+BUILD_UTILS(${LNAME_POLLING} ${LNAME_POLLING} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME_POLLING}/energymon-get.c)

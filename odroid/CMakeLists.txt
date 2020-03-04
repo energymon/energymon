@@ -9,6 +9,8 @@ set(DESCRIPTION_IOCTL "EnergyMon implementation for ODROID systems using ioctl")
 
 # Dependencies
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
 # Must be set to OFF to prevent doing a try_run() during cross-compiling
 set(THREADS_PTHREAD_ARG OFF)
 find_package(Threads)
@@ -63,5 +65,7 @@ endif()
 
 # Utils
 
-BUILD_UTILS(${LNAME} ${LNAME} ${LNAME}.h energymon_get_odroid)
-BUILD_UTILS(${LNAME_IOCTL} ${LNAME_IOCTL} ${LNAME_IOCTL}.h energymon_get_odroid_ioctl)
+CONFIGURE_ENERGYMON_GET_C(${LNAME}.h energymon_get_odroid ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
+BUILD_UTILS(${LNAME} ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
+CONFIGURE_ENERGYMON_GET_C(${LNAME_IOCTL}.h energymon_get_odroid_ioctl ${CMAKE_CURRENT_BINARY_DIR}/${LNAME_IOCTL}/energymon-get.c)
+BUILD_UTILS(${LNAME_IOCTL} ${LNAME_IOCTL} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME_IOCTL}/energymon-get.c)

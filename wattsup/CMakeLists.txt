@@ -1,5 +1,7 @@
 # Dependencies
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
 # Must be set to OFF to prevent doing a try_run() during cross-compiling
 set(THREADS_PTHREAD_ARG OFF)
 find_package(Threads)
