@@ -4,18 +4,20 @@
 
 ### Added
 
-* raplcap-msr: new implementation using libraplcap-msr (more features than `msr` and `rapl` implementations)
+* raplcap-msr: New implementation using libraplcap-msr (more features than `msr` and `rapl` implementations)
 * utils [#44]: Build utilities for all implementations, not just energymon-default
+* test: Build tests for all implementations, not just energymon-default
 
 ### Changed
 
-* More pedantic formatting in man pages
+* man pages: More pedantic formatting
+* RELEASES: Reformat file
 
 ### Fixed
 
-* Fixed [#14]: Print useful CMake error when bad ENERGYMON_BUILD_DEFAULT value is set
+* cmake [#14]: Print useful CMake error when bad ENERGYMON_BUILD_DEFAULT value is set
 * rapl: Powercap directory paths use lower case hex values, not decimal values
-* zcu102: potential memory leak in 'get_sensor_directories' under failure conditions
+* zcu102: Potential memory leak in 'get_sensor_directories' under failure conditions
 
 
 ## [v0.2.4] - 2018-06-01
