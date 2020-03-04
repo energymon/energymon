@@ -52,6 +52,7 @@ include_directories(${PROJECT_SOURCE_DIR}/common)
 # Utilities
 
 add_subdirectory(utils)
+add_subdirectory(test)
 
 
 # Macros
@@ -74,6 +75,7 @@ macro(BUILD_DEFAULT source deplibs definitions)
   install(FILES ${CMAKE_SOURCE_DIR}/inc/energymon-default.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
   CONFIGURE_ENERGYMON_GET_C(energymon-default.h energymon_get_default ${CMAKE_CURRENT_BINARY_DIR}/energymon-default/energymon-get.c)
   BUILD_UTILS(energymon energymon-default ${CMAKE_CURRENT_BINARY_DIR}/energymon-default/energymon-get.c)
+  BUILD_TESTS(energymon energymon-default ${CMAKE_CURRENT_BINARY_DIR}/energymon-default/energymon-get.c)
 endmacro(BUILD_DEFAULT)
 
 macro(PKG_CONFIG name description requires_private libs_private)
@@ -123,15 +125,6 @@ if(NOT TARGET energymon-default AND NOT ${ENERGYMON_BUILD_DEFAULT} MATCHES "NONE
           "No build target for ENERGYMON_BUILD_DEFAULT=${ENERGYMON_BUILD_DEFAULT}\n"
           "Specified implementation may be unknown, unsupported for the target system, or skipped due to missing build dependencies\n"
           "Retry with a supported value or set ENERGYMON_BUILD_DEFAULT=NONE")
-endif()
-
-
-# Binaries and tests
-
-if(TARGET energymon-default)
-  if (ENERGYMON_BUILD_TESTS)
-    add_subdirectory(test)
-  endif()
 endif()
 
 

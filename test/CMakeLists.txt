@@ -1,7 +1,13 @@
 # Tests
 
-add_executable(interface-test interface_test.c)
-target_link_libraries(interface-test energymon-default)
+macro(BUILD_TESTS name lib energymon_get_c)
+  if (NOT ENERGYMON_BUILD_TESTS)
+    return()
+  endif()
 
-add_executable(interval-test interval_test.c)
-target_link_libraries(interval-test energymon-default)
+  add_executable(${name}-interface-test ${CMAKE_SOURCE_DIR}/test/interface_test.c ${energymon_get_c})
+  target_link_libraries(${name}-interface-test ${lib})
+
+  add_executable(${name}-interval-test ${CMAKE_SOURCE_DIR}/test/interval_test.c ${energymon_get_c})
+  target_link_libraries(${name}-interval-test ${lib})
+endmacro(BUILD_TESTS)

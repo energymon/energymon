@@ -8,7 +8,8 @@
 #else
 #include <unistd.h>
 #endif
-#include "energymon-default.h"
+#include "energymon.h"
+#include "energymon-get.h"
 
 int main(int argc, char** argv) {
   char source[100];
@@ -27,8 +28,7 @@ int main(int argc, char** argv) {
     return EINVAL;
   }
 
-  if (energymon_get_default(&em)) {
-    perror("energymon_get_default");
+  if (energymon_get(&em)) {
     return 1;
   }
 

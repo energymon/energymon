@@ -1,7 +1,8 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <stdio.h>
-#include "energymon-default.h"
+#include "energymon.h"
+#include "energymon-get.h"
 
 int main(void) {
   energymon em;
@@ -11,8 +12,7 @@ int main(void) {
   uint64_t precision;
   int exclusive;
 
-  if (energymon_get_default(&em)) {
-    perror("energymon_get_default");
+  if (energymon_get(&em)) {
     return 1;
   }
 
