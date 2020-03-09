@@ -44,5 +44,5 @@ endif()
 # Utils
 
 CONFIGURE_ENERGYMON_GET_C(${LNAME}.h energymon_get_raplcap_msr ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
-BUILD_UTILS(${LNAME} ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
+BUILD_UTILS(${SNAME} ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
 BUILD_TESTS(${LNAME} ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
