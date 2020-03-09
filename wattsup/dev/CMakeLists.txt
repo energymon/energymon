@@ -40,4 +40,4 @@ endif()
 
 CONFIGURE_ENERGYMON_GET_C(energymon-wattsup.h energymon_get_wattsup ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
 BUILD_UTILS(${SNAME} ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
-BUILD_TESTS(${LNAME} ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
+BUILD_TESTS(${SNAME} ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)

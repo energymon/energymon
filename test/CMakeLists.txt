@@ -1,13 +1,20 @@
 # Tests
 
-macro(BUILD_TESTS name lib energymon_get_c)
+function(BUILD_TESTS name lib energymon_get_c)
   if (NOT ENERGYMON_BUILD_TESTS)
     return()
   endif()
 
-  add_executable(${name}-interface-test ${CMAKE_SOURCE_DIR}/test/interface_test.c ${energymon_get_c})
-  target_link_libraries(${name}-interface-test ${lib})
+  if(${name} STREQUAL "default")
+    # special case - default implementation
+    set(TEST_PREFIX "energymon")
+  else()
+    set(TEST_PREFIX "energymon-${name}")
+  endif()
 
-  add_executable(${name}-interval-test ${CMAKE_SOURCE_DIR}/test/interval_test.c ${energymon_get_c})
-  target_link_libraries(${name}-interval-test ${lib})
-endmacro(BUILD_TESTS)
+  add_executable(${TEST_PREFIX}-interface-test ${CMAKE_SOURCE_DIR}/test/interface_test.c ${energymon_get_c})
+  target_link_libraries(${TEST_PREFIX}-interface-test ${lib})
+
+  add_executable(${TEST_PREFIX}-interval-test ${CMAKE_SOURCE_DIR}/test/interval_test.c ${energymon_get_c})
+  target_link_libraries(${TEST_PREFIX}-interval-test ${lib})
+endfunction(BUILD_TESTS)
