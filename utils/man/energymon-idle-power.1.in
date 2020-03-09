@@ -1,17 +1,17 @@
-.TH "ENERGYMON\-IDLE\-POWER" "1" "2018-11-04" "energymon" "EnergyMon Utilities"
+.TH "@MAN_BINARY_PREFIX_UPPER@\-IDLE\-POWER" "1" "2020-03-09" "energymon" "EnergyMon Utilities"
 .SH "NAME"
 .LP
-energymon\-idle\-power \- measure system idle power
+@MAN_BINARY_PREFIX@\-idle\-power \- measure system idle power
 .SH "SYNPOSIS"
 .LP
-\fBenergymon\-idle\-power\fP
+\fB@MAN_BINARY_PREFIX@\-idle\-power\fP
 [\fIOPTION\fP]... [\fISECONDS\fP]
 .SH "DESCRIPTION"
 .LP
 Intended to measure the idle power of the system by doing nothing.
 In fact, it just measures the average power during the \fISECONDS\fP
 specified (10 by default), regardless of whether the system is actually idle.
-Uses the default EnergyMon implementation.
+Uses the @MAN_IMPL@ EnergyMon implementation.
 .LP
 The \fISECONDS\fP value must be a positive integer.
 Note that if \fISECONDS\fP is too short for the EnergyMon implementation to get
@@ -23,16 +23,16 @@ updated energy readings, the average power will be reported as 0.
 Prints the help screen.
 .SH "EXAMPLES"
 .TP
-\fBenergymon\-idle\-power\fP
+\fB@MAN_BINARY_PREFIX@\-idle\-power\fP
 Measure average power for 10 seconds.
 .TP
-\fBenergymon\-idle\-power 5\fP
+\fB@MAN_BINARY_PREFIX@\-idle\-power 5\fP
 Measure average power for 5 seconds.
 .TP
-\fBenergymon\-idle\-power 30\fP
+\fB@MAN_BINARY_PREFIX@\-idle\-power 30\fP
 Measure average power for 30 seconds.
 .SH "BUGS"
 .LP
 Report bugs upstream at <https://github.com/energymon/energymon>
 .SH "SEE ALSO"
-.BR energymon\-cmd\-profile (1)
+.BR @MAN_BINARY_PREFIX@\-cmd\-profile (1)

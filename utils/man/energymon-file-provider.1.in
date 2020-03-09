@@ -1,16 +1,16 @@
-.TH "ENERGYMON\-FILE\-PROVIDER" "1" "2018-11-04" "energymon" "EnergyMon Utilities"
+.TH "@MAN_BINARY_PREFIX_UPPER@\-FILE\-PROVIDER" "1" "2020-03-09" "energymon" "EnergyMon Utilities"
 .SH "NAME"
 .LP
-energymon\-file\-provider \- write energy readings to a file at regular
+@MAN_BINARY_PREFIX@\-file\-provider \- write energy readings to a file at regular
 intervals
 .SH "SYNPOSIS"
 .LP
-\fBenergymon\-file\-provider\fP
+\fB@MAN_BINARY_PREFIX@\-file\-provider\fP
 [\fIOPTION\fP]... [\fIFILE\fP]
 .SH "DESCRIPTION"
 .LP
 Writes energy readings to a file at regular intervals.
-Uses the default EnergyMon implementation.
+Uses the @MAN_IMPL@ EnergyMon implementation.
 .LP
 If no additional options are specified, energy readings are written to standard
 output at the implementation's minimum update interval, and the program loops
@@ -40,22 +40,22 @@ Must be greater than 0.
 Write each reading on a new line.
 .SH "EXAMPLES"
 .TP
-\fBenergymon\-file\-provider\fP
+\fB@MAN_BINARY_PREFIX@\-file\-provider\fP
 Print energy values to standard output at the implementation's update interval.
 .TP
-\fBenergymon\-file\-provider energy.log\fP
+\fB@MAN_BINARY_PREFIX@\-file\-provider energy.log\fP
 Write energy readings to \fBenergy.log\fP at the implementation's update
 interval, overwriting prior energy readings.
 .TP
-\fBenergymon\-file\-provider \-i 5000000 \-n energy.log\fP
+\fB@MAN_BINARY_PREFIX@\-file\-provider \-i 5000000 \-n energy.log\fP
 Write energy readings to \fBenergy.log\fP every 5 seconds, with a new line for
 each energy reading.
 .TP
-\fBenergymon\-file\-provider \-c 10 \-i 1000000\fP
+\fB@MAN_BINARY_PREFIX@\-file\-provider \-c 10 \-i 1000000\fP
 Print energy values to standard output every second, stopping after 10
 readings.
 .SH "BUGS"
 .LP
 Report bugs upstream at <https://github.com/energymon/energymon>
 .SH "SEE ALSO"
-.BR energymon\-power\-poller (1)
+.BR @MAN_BINARY_PREFIX@\-power\-poller (1)

@@ -1,15 +1,15 @@
-.TH "ENERGYMON\-CMD\-PROFILE" "1" "2018-11-04" "energymon" "EnergyMon Utilities"
+.TH "@MAN_BINARY_PREFIX_UPPER@\-CMD\-PROFILE" "1" "2020-03-09" "energymon" "EnergyMon Utilities"
 .SH "NAME"
 .LP
-energymon\-cmd\-profile \- profile the execution of a command
+@MAN_BINARY_PREFIX@\-cmd\-profile \- profile the execution of a command
 .SH "SYNPOSIS"
 .LP
-\fBenergymon\-cmd\-profile\fP
+\fB@MAN_BINARY_PREFIX@\-cmd\-profile\fP
 [\fIOPTION\fP]... \fICOMMAND\fP [\fIARG\fP...]
 .SH "DESCRIPTION"
 .LP
 Prints time, energy, and average power for the execution of a command.
-Uses the default EnergyMon implementation.
+Uses the @MAN_IMPL@ EnergyMon implementation.
 .SH "OPTIONS"
 .LP
 .TP
@@ -17,11 +17,11 @@ Uses the default EnergyMon implementation.
 Prints the help screen.
 .SH "EXAMPLES"
 .TP
-\fBenergymon\-cmd\-profile sleep 10\fP
+\fB@MAN_BINARY_PREFIX@\-cmd\-profile sleep 10\fP
 Profile doing nothing for 10 seconds.
 The \fBsleep\fP program is part of \fBGNU coreutils\fP.
 .TP
-\fBenergymon\-cmd\-profile stress \-c $(nproc) \-t 10\fP
+\fB@MAN_BINARY_PREFIX@\-cmd\-profile stress \-c $(nproc) \-t 10\fP
 Profile stressing the processor for 10 seconds.
 The \fBstress\fP program is a Linux command-line utility not related to or
 provided by EnergyMon.
@@ -30,4 +30,4 @@ The \fBnproc\fP program is part of \fBGNU coreutils\fP.
 .LP
 Report bugs upstream at <https://github.com/energymon/energymon>
 .SH "SEE ALSO"
-.BR energymon\-idle\-power (1)
+.BR @MAN_BINARY_PREFIX@\-idle\-power (1)

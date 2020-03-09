@@ -1,15 +1,15 @@
-.TH "ENERGYMON\-POWER\-POLLER" "1" "2018-11-04" "energymon" "EnergyMon Utilities"
+.TH "@MAN_BINARY_PREFIX_UPPER@\-POWER\-POLLER" "1" "2020-03-09" "energymon" "EnergyMon Utilities"
 .SH "NAME"
 .LP
-energymon\-power\-poller \- print average power at regular intervals
+@MAN_BINARY_PREFIX@\-power\-poller \- print average power at regular intervals
 .SH "SYNPOSIS"
 .LP
-\fBenergymon\-power\-poller\fP
+\fB@MAN_BINARY_PREFIX@\-power\-poller\fP
 [\fIOPTION\fP]...
 .SH "DESCRIPTION"
 .LP
 Prints the average power at regular intervals.
-Uses the default EnergyMon implementation.
+Uses the @MAN_IMPL@ EnergyMon implementation.
 .LP
 If no additional options are specified, average power is printed to standard
 output at the implementation's minimum update interval, and the program loops
@@ -39,20 +39,20 @@ updated energy readings, the average power will be reported as 0.
 Print out a summary at completion.
 .SH "EXAMPLES"
 .TP
-\fBenergymon\-power\-poller\fP
+\fB@MAN_BINARY_PREFIX@\-power\-poller\fP
 Measure average power at the implementation's update interval.
 .TP
-\fBenergymon\-power\-poller \-i 5000000 \-f power.log\fP
+\fB@MAN_BINARY_PREFIX@\-power\-poller \-i 5000000 \-f power.log\fP
 Measure average power every 5 seconds and write output to \fBpower.log\fP.
 .TP
-\fBenergymon\-power\-poller \-i 100000 \-c 10\fP
+\fB@MAN_BINARY_PREFIX@\-power\-poller \-i 100000 \-c 10\fP
 Measure average power every 100 milliseconds and stop after 10 readings.
 .TP
-\fBenergymon\-power\-poller \-i 50000 \-c 100 \-s\fP
+\fB@MAN_BINARY_PREFIX@\-power\-poller \-i 50000 \-c 100 \-s\fP
 Measure average power every 50 milliseconds, stop after 100 readings, and print
 a summary.
 .SH "BUGS"
 .LP
 Report bugs upstream at <https://github.com/energymon/energymon>
 .SH "SEE ALSO"
-.BR energymon\-file\-provider (1)
+.BR @MAN_BINARY_PREFIX@\-file\-provider (1)

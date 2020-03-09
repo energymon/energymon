@@ -1,24 +1,24 @@
-.TH "ENERGYMON\-OVERHEAD" "1" "2018-11-04" "energymon" "EnergyMon Utilities"
+.TH "@MAN_BINARY_PREFIX_UPPER@\-OVERHEAD" "1" "2020-03-09" "energymon" "EnergyMon Utilities"
 .SH "NAME"
 .LP
-energymon\-overhead \- measure overhead of the EnergyMon core functions
+@MAN_BINARY_PREFIX@\-overhead \- measure overhead of the EnergyMon core functions
 .SH "SYNPOSIS"
 .LP
-\fBenergymon\-overhead\fP
+\fB@MAN_BINARY_PREFIX@\-overhead\fP
 .SH "DESCRIPTION"
 .LP
 Measure the overhead of the init, read, and finish functions.
 Results are in nanoseconds.
-Uses the default EnergyMon implementation.
+Uses the @MAN_IMPL@ EnergyMon implementation.
 .LP
 Note that overhead readings can only be as precise as the system clock
 supports.
 .SH "EXAMPLES"
 .TP
-\fBenergymon\-overhead\fP
+\fB@MAN_BINARY_PREFIX@\-overhead\fP
 Measure the overhead of the init, read, and finish functions.
 .SH "BUGS"
 .LP
 Report bugs upstream at <https://github.com/energymon/energymon>
 .SH "SEE ALSO"
-.BR energymon\-info (1)
+.BR @MAN_BINARY_PREFIX@\-info (1)

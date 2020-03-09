@@ -1,25 +1,25 @@
-.TH "ENERGYMON\-INFO" "1" "2018-11-04" "energymon" "EnergyMon Utilities"
+.TH "@MAN_BINARY_PREFIX_UPPER@\-INFO" "1" "2020-03-09" "energymon" "EnergyMon Utilities"
 .SH "NAME"
 .LP
-energymon\-info \- print information from the EnergyMon interface
+@MAN_BINARY_PREFIX@\-info \- print information from the EnergyMon interface
 .SH "SYNPOSIS"
 .LP
-\fBenergymon\-info\fP
+\fB@MAN_BINARY_PREFIX@\-info\fP
 .SH "DESCRIPTION"
 .LP
 Prints information from the EnergyMon interface functions, including source
 name, exclusivity, refresh interval, energy reading precision, and a current
 energy value.
-Uses the default EnergyMon implementation.
+Uses the @MAN_IMPL@ EnergyMon implementation.
 .LP
 Even if the EnergyMon implementation fails to initialize, the program will
 attempt to read from as many functions as possible.
 .SH "EXAMPLES"
 .TP
-\fBenergymon\-info\fP
-Print information for the default EnergyMon implementation.
+\fB@MAN_BINARY_PREFIX@\-info\fP
+Print information for the @MAN_IMPL@ EnergyMon implementation.
 .SH "BUGS"
 .LP
 Report bugs upstream at <https://github.com/energymon/energymon>
 .SH "SEE ALSO"
-.BR energymon\-overhead (1)
+.BR @MAN_BINARY_PREFIX@\-overhead (1)
