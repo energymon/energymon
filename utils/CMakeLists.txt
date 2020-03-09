@@ -3,7 +3,7 @@
 function(CONFIGURE_MAN name prefix util)
   string(REPLACE "-" "\\-" MAN_BINARY_PREFIX "${prefix}")
   string(TOUPPER "${MAN_BINARY_PREFIX}" MAN_BINARY_PREFIX_UPPER)
-  set(MAN_IMPL ${name})
+  string(REPLACE "-" "\\-" MAN_IMPL "${name}")
   configure_file(
     ${CMAKE_SOURCE_DIR}/utils/man/energymon-${util}.1.in
     ${CMAKE_CURRENT_BINARY_DIR}/man/man1/${prefix}-${util}.1
