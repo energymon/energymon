@@ -29,6 +29,7 @@ Current EnergyMon implementation options are:
 * wattsup-libftdi
 * zcu102
 
+
 ## Building
 
 This project uses CMake.
@@ -84,9 +85,10 @@ cmake .. -DENERGYMON_BUILD_LIB=NONE -DENERGYMON_BUILD_DEFAULT=rapl -DBUILD_SHARE
 Boolean options:
 
  * `ENERGYMON_BUILD_SHMEM_PROVIDERS` - enable/disable building shared memory providers (True by default)
- * `ENERGYMON_BUILD_UTILITIES` - enable/disable building utility applications (True by default, dependent on building energymon-default)
- * `ENERGYMON_BUILD_TESTS` - enable/disable building test code (True by default, dependent on building energymon-default)
+ * `ENERGYMON_BUILD_UTILITIES` - enable/disable building utility applications (True by default)
+ * `ENERGYMON_BUILD_TESTS` - enable/disable building test code (True by default)
  * `ENERGYMON_BUILD_EXAMPLES` - enable/disable building examples (True by default)
+
 
 ## Installing
 
@@ -101,6 +103,7 @@ libraries in `/usr/local/lib`,
 header files in `/usr/local/include/energymon`, and
 binary files in `/usr/local/bin`.
 
+
 ## Uninstalling
 
 To remove files installed to the system, run with proper privileges:
@@ -108,6 +111,7 @@ To remove files installed to the system, run with proper privileges:
 ``` sh
 make uninstall
 ```
+
 
 ## Linking
 
@@ -131,6 +135,7 @@ include_directories(${ENERGYMON_INCLUDE_DIRS})
 add_executable(hello_world hello_world.c)
 target_link_libraries(hello_world -L${ENERGYMON_LIBDIR} ${ENERGYMON_LIBRARIES})
 ```
+
 
 ## Usage
 
@@ -156,6 +161,7 @@ See `energymon.h` and `energymon-default.h` for more detailed function descripti
   em.ffinish(&em);
 ```
 
+
 ## Tools
 
 This project includes a handful of applications.
@@ -171,6 +177,8 @@ All of the following are linked with `energymon-default`:
 * `energymon-info`: Prints information about the implementation.
 * `energymon-overhead`: Prints the latency overhead in nanoseconds of the functions `finit`, `fread`, and `ffinish`.
 
+Implementation-specific versions of these utilities are also provided.
+
 ### Shared Memory Providers
 
 Shared memory providers allow exposing energy data to one or more unprivileged applications for sources that require elevated privileges and/or exclusive access.
@@ -178,6 +186,7 @@ The providers may need to run with elevated privileges, but other applications c
 
 * `energymon-osp-polling-shmem-provider`
 * `energymon-wattsup-shmem-provider`
+
 
 ## Project Source
 
