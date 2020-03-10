@@ -2,7 +2,7 @@
 
 This implementation of the `energymon` interface wraps the [raplcap-msr](https://github.com/powercap/raplcap) library.
 This provides broader support for Intel processors than the [energymon-msr](../msr) implementation,
-including automatic socket discovery.
+including automatic RAPL instance (e.g., socket) discovery.
 
 
 ## Prerequisites
@@ -24,6 +24,16 @@ To force a particular zone, set the `ENERGYMON_RAPLCAP_MSR_ZONE` environment var
 * `UNCORE`
 * `DRAM`
 * `PSYS` or `PLATFORM`
+
+By default, all available RAPL instances will be used.
+To force only particular instances, set the `ENERGYMON_RAPLCAP_MSR_INSTANCES` environment variable with a
+comma-delimited list of IDs.
+E.g., on a quad-socket system, to use only instances (sockets) 0 and 2 (and ignore 1 and 3):
+
+```sh
+export ENERGYMON_RAPLCAP_MSR_INSTANCES=0,2
+```
+
 
 ## Linking
 

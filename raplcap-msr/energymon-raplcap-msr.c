@@ -26,6 +26,7 @@ typedef struct raplcap_msr_info {
   double j_last;
   double j_max;
   uint32_t n_overflow;
+  int is_active;
 } raplcap_msr_info;
 
 typedef struct energymon_raplcap_msr {
@@ -54,6 +55,48 @@ static int get_raplcap_zone(raplcap_zone* zone, const char* env_zone) {
   return 0;
 }
 
+static int get_active_instances(raplcap_msr_info* msrs, uint32_t n_msrs) {
+  uint32_t i;
+  char* tmp;
+  char* tok;
+  char* saveptr;
+  char* saveptr_parse = NULL;
+  const char* env_inst = getenv(ENERGYMON_RAPLCAP_MSR_INSTANCES);
+  if (env_inst == NULL) {
+    for (i = 0; i < n_msrs; i++) {
+      msrs[i].is_active = 1;
+    }
+  } else {
+    if ((tmp = strdup(env_inst)) == NULL) {
+      perror("energymon_init_raplcap_msr: strdup");
+      return -1;
+    }
+    tok = strtok_r(tmp, ",", &saveptr);
+    while (tok != NULL) {
+      i = strtoul(tok, &saveptr_parse, 0);
+      if (tok == saveptr_parse) {
+        // no conversion was actually made
+        fprintf(stderr, "energymon_init_raplcap_msr: Failed to parse env var: "ENERGYMON_RAPLCAP_MSR_INSTANCES"=%s\n",
+                env_inst);
+        free(tmp);
+        errno = EINVAL;
+        return -1;
+      }
+      if (i >= n_msrs) {
+        fprintf(stderr, "energymon_init_raplcap_msr: Env var "ENERGYMON_RAPLCAP_MSR_INSTANCES" value out of range "
+                "[0, %"PRIu32"): %"PRIu32"\n", n_msrs, i);
+        free(tmp);
+        errno = ERANGE;
+        return -1;
+      }
+      msrs[i].is_active = 1;
+      tok = strtok_r(NULL, ",", &saveptr);
+    }
+    free(tmp);
+  }
+  return 0;
+}
+
 int energymon_init_raplcap_msr(energymon* em) {
   if (em == NULL || em->state != NULL) {
     errno = EINVAL;
@@ -75,6 +118,11 @@ int energymon_init_raplcap_msr(energymon* em) {
   }
   state->n_msrs = n_msrs;
 
+  if (get_active_instances(state->msrs, state->n_msrs)) {
+    free(state);
+    return -1;
+  }
+
   const char* env_zone = getenv(ENERGYMON_RAPLCAP_MSR_ZONE);
   if (get_raplcap_zone(&state->zone, env_zone)) {
     free(state);
@@ -88,6 +136,9 @@ int energymon_init_raplcap_msr(energymon* em) {
   }
 
   for (i = 0; i < state->n_msrs; i++) {
+    if (!state->msrs[i].is_active) {
+      continue;
+    }
     // first check if zone is supported
     supp = raplcap_is_zone_supported(&state->rc, i, state->zone);
     if (supp < 0) {
@@ -130,6 +181,9 @@ uint64_t energymon_read_total_raplcap_msr(const energymon* em) {
   uint64_t total = 0;
   energymon_raplcap_msr* state = (energymon_raplcap_msr*) em->state;
   for (errno = 0, i = 0; i < state->n_msrs && !errno; i++) {
+    if (!state->msrs[i].is_active) {
+      continue;
+    }
     if ((j = raplcap_get_energy_counter(&state->rc, i, state->zone)) >= 0) {
       if (j < state->msrs[i].j_last) {
         state->msrs[i].n_overflow++;
@@ -179,6 +233,9 @@ uint64_t energymon_get_precision_raplcap_msr(const energymon* em) {
   double max = 0;
   uint32_t i;
   for (i = 0; i < state->n_msrs; i++) {
+    if (!state->msrs[i].is_active) {
+      continue;
+    }
     // precision limited by the largest units (they should all be the same though)
     if ((j = raplcap_msr_get_energy_units(&state->rc, 0, state->zone)) > max) {
       max = j;
