@@ -9,6 +9,8 @@ function(CONFIGURE_MAN name prefix util)
     ${CMAKE_CURRENT_BINARY_DIR}/man/man1/${prefix}-${util}.1
     @ONLY
   )
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/man/man1/${prefix}-${util}.1
+          DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 endfunction(CONFIGURE_MAN)
 
 function(BUILD_UTILS name lib energymon_get_c)
@@ -65,5 +67,4 @@ function(BUILD_UTILS name lib energymon_get_c)
                   ${UTIL_PREFIX}-overhead
                   ${UTIL_PREFIX}-power-poller
           DESTINATION ${CMAKE_INSTALL_BINDIR})
-  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/man/ DESTINATION ${CMAKE_INSTALL_MANDIR})
 endfunction(BUILD_UTILS)
