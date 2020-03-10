@@ -1,5 +1,5 @@
 /**
- * Read energy from X86 MSRs (Model-Specific Registers) using the RAPLCap library for MSR portability and discovery.
+ * Read energy from Intel RAPL using the raplcap-msr library.
  *
  * @author Connor Imes
  * @date 2018-05-19
@@ -211,7 +211,7 @@ int energymon_finish_raplcap_msr(energymon* em) {
 }
 
 char* energymon_get_source_raplcap_msr(char* buffer, size_t n) {
-  return energymon_strencpy(buffer, "Intel MSRs via libraplcap-msr", n);
+  return energymon_strencpy(buffer, "Intel RAPL via libraplcap-msr", n);
 }
 
 uint64_t energymon_get_interval_raplcap_msr(const energymon* em) {

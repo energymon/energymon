@@ -1,5 +1,5 @@
 /**
- * Read energy from X86 MSRs (Model-Specific Registers) using the RAPLCap library for MSR portability and discovery.
+ * Read energy from Intel RAPL using the raplcap-msr library.
  *
  * To specify which RAPL zone to use, set the environment variable ENERGYMON_RAPLCAP_MSR_ZONE to one of:
  *   "PACKAGE" (default)

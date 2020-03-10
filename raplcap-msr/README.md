@@ -1,13 +1,13 @@
 # RAPLCap MSR Energy Monitor
 
 This implementation of the `energymon` interface wraps the [raplcap-msr](https://github.com/powercap/raplcap) library.
-This provides broader support for Intel processors than the [energymon-msr](../msr) implementation,
-including automatic RAPL instance (e.g., socket) discovery.
+It provides broader Intel CPU support than the [energymon-msr](../msr) implementation, automatic RAPL instance
+(e.g., socket) discovery, and zone types other than `PLATFORM`.
 
 
 ## Prerequisites
 
-First, you must be using a system that supports Intel MSRs.
+First, you must be using a system that supports Intel RAPL MSRs.
 
 Install [raplcap-msr](https://github.com/powercap/raplcap), including development header files.
 
