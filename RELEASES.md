@@ -1,6 +1,6 @@
 # Release Notes
 
-## [Unreleased]
+## [v0.3.0] - 2020-03-10
 
 ### Added
 
@@ -116,7 +116,7 @@
 * Initial public release
 
 
-[Unreleased]: https://github.com/energymon/energymon/compare/v0.2.4...HEAD
+[v0.3.0]: https://github.com/energymon/energymon/compare/v0.2.4...v0.3.0
 [v0.2.4]: https://github.com/energymon/energymon/compare/v0.2.3...v0.2.4
 [v0.2.3]: https://github.com/energymon/energymon/compare/v0.2.2...v0.2.3
 [v0.2.2]: https://github.com/energymon/energymon/compare/v0.2.1...v0.2.2
