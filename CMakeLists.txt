@@ -11,18 +11,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -std=gnu99")
 set(ENERGYMON_UTIL ${CMAKE_SOURCE_DIR}/common/energymon-util.c)
 set(ENERGYMON_TIME_UTIL ${CMAKE_SOURCE_DIR}/common/energymon-time-util.c;${CMAKE_SOURCE_DIR}/common/ptime/ptime.c)
 
-set(ENERGYMON_BUILD_LIB "ALL" CACHE STRING "Specify a single library to build, ALL, or NONE")
-set(ENERGYMON_BUILD_DEFAULT "dummy" CACHE STRING "Default EnergyMon implementation, or NONE to disable building energymon-default")
-if (DEFAULT AND NOT ENERGYMON_BUILD_DEFAULT)
-  # for backward compatibility with old variable "DEFAULT"
-  set(ENERGYMON_BUILD_DEFAULT DEFAULT)
-endif()
-set(ENERGYMON_BUILD_SHMEM_PROVIDERS TRUE CACHE BOOL "Enable/disable building shared memory providers")
-set(ENERGYMON_BUILD_UTILITIES TRUE CACHE BOOL "Enable/disable building utility applications")
-set(ENERGYMON_BUILD_TESTS TRUE CACHE BOOL "Enable/disable building tests")
-set(ENERGYMON_BUILD_EXAMPLES TRUE CACHE BOOL "Enable/disable building example code")
-
-
 if(UNIX AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   # Determine if we should link with librt for libraries that use "clock_gettime"
   include(CheckFunctionExists)
@@ -47,6 +35,20 @@ endif()
 
 include_directories(${PROJECT_SOURCE_DIR}/inc)
 include_directories(${PROJECT_SOURCE_DIR}/common)
+
+
+# Configurable build options
+
+set(ENERGYMON_BUILD_LIB "ALL" CACHE STRING "Specify a single library to build, ALL, or NONE")
+set(ENERGYMON_BUILD_DEFAULT "dummy" CACHE STRING "Default EnergyMon implementation, or NONE to disable building energymon-default")
+if (DEFAULT AND NOT ENERGYMON_BUILD_DEFAULT)
+  # for backward compatibility with old variable "DEFAULT"
+  set(ENERGYMON_BUILD_DEFAULT DEFAULT)
+endif()
+set(ENERGYMON_BUILD_SHMEM_PROVIDERS TRUE CACHE BOOL "Enable/disable building shared memory providers")
+set(ENERGYMON_BUILD_UTILITIES TRUE CACHE BOOL "Enable/disable building utility applications")
+set(ENERGYMON_BUILD_TESTS TRUE CACHE BOOL "Enable/disable building tests")
+set(ENERGYMON_BUILD_EXAMPLES TRUE CACHE BOOL "Enable/disable building example code")
 
 
 # Utilities
