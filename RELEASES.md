@@ -5,6 +5,8 @@
 ### Fixed
 
 * rapl [#46]: Check that top-level zones are actually package (not psys) zones
+* rapl: Set errno when when no zones are found during init
+
 
 ## [v0.3.0] - 2020-03-10
 
