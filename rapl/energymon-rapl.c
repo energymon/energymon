@@ -114,21 +114,28 @@ static inline int rapl_cleanup(const energymon_rapl* state, int errno_orig) {
   return errno ? -1 : 0;
 }
 
+static inline int rapl_zone_init(rapl_zone* z, unsigned int zone) {
+  char buf[96];
+  snprintf(buf, sizeof(buf), RAPL_BASE_DIR"/intel-rapl:%x/%s",
+           zone, RAPL_ENERGY_FILE);
+  z->energy_fd = open(buf, O_RDONLY);
+  if (z->energy_fd <= 0) {
+    perror(buf);
+    return -1;
+  }
+  // it's possible the actual value is 0 (not set), so only fail on error
+  z->max_energy_range_uj = rapl_read_max_energy(zone);
+  if (z->max_energy_range_uj == 0 && errno) {
+    return -1;
+  }
+  return 0;
+}
+
 static inline int rapl_init(energymon_rapl* state, unsigned int count) {
   unsigned int i;
-  char buf[96];
   state->count = count;
   for (i = 0; i < state->count; i++) {
-    snprintf(buf, sizeof(buf), RAPL_BASE_DIR"/intel-rapl:%x/%s",
-             i, RAPL_ENERGY_FILE);
-    state->zones[i].energy_fd = open(buf, O_RDONLY);
-    if (state->zones[i].energy_fd <= 0) {
-      perror(buf);
-      return rapl_cleanup(state, errno);
-    }
-    // it's possible the actual value is 0 (not set), so only fail on error
-    state->zones[i].max_energy_range_uj = rapl_read_max_energy(i);
-    if (state->zones[i].max_energy_range_uj == 0 && errno) {
+    if (rapl_zone_init(&state->zones[i], i) < 0) {
       return rapl_cleanup(state, errno);
     }
   }
