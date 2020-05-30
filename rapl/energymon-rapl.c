@@ -28,6 +28,7 @@ int energymon_get_default(energymon* em) {
 #define RAPL_BASE_DIR "/sys/class/powercap"
 #define RAPL_ENERGY_FILE "energy_uj"
 #define RAPL_MAX_ENERGY_FILE "max_energy_range_uj"
+#define RAPL_NAME_FILE "name"
 #define RAPL_PREFIX "intel-rapl:"
 
 // Add power polling support for zones that don't support energy readings?
@@ -71,6 +72,40 @@ static inline unsigned int rapl_zone_count(void) {
   }
   errno = err_save;
   return errno ? 0 : count;
+}
+
+static inline unsigned int rapl_filter_zones(unsigned int* zone_filter,
+                                             unsigned int count) {
+  char buf[96];
+  char name[64];
+  unsigned int n_filter_matches = 0;
+  unsigned int i;
+  int fd;
+  int err_save;
+  for (i = 0; i < count; i++) {
+    snprintf(buf, sizeof(buf), RAPL_BASE_DIR"/intel-rapl:%x/%s",
+             i, RAPL_NAME_FILE);
+    errno = 0;
+    fd = open(buf, O_RDONLY);
+    if (fd > 0) {
+      if (pread(fd, name, sizeof(name), 0) > 0) {
+        if (strncmp(name, "package", sizeof("package") - 1) == 0) {
+          zone_filter[i] = 1;
+          n_filter_matches++;
+        }
+      }
+      err_save = errno;
+      if (close(fd)) {
+        perror(buf);
+      }
+      errno = err_save;
+    }
+    if (errno) {
+      perror(buf);
+      return 0;
+    }
+  }
+  return n_filter_matches;
 }
 
 /**
@@ -131,13 +166,20 @@ static inline int rapl_zone_init(rapl_zone* z, unsigned int zone) {
   return 0;
 }
 
-static inline int rapl_init(energymon_rapl* state, unsigned int count) {
+static inline int rapl_init(energymon_rapl* state, unsigned int count,
+                            unsigned int* zone_filter,
+                            unsigned int n_filter_matches) {
   unsigned int i;
-  state->count = count;
-  for (i = 0; i < state->count; i++) {
-    if (rapl_zone_init(&state->zones[i], i) < 0) {
+  unsigned int zones_idx = 0;
+  state->count = n_filter_matches;
+  for (i = 0; i < count; i++) {
+    if (zone_filter[i] == 0) {
+      continue;
+    }
+    if (rapl_zone_init(&state->zones[zones_idx], i) < 0) {
       return rapl_cleanup(state, errno);
     }
+    zones_idx++;
   }
   return 0;
 }
@@ -159,17 +201,34 @@ int energymon_init_rapl(energymon* em) {
     return -1;
   }
 
-  size_t size = sizeof(energymon_rapl) + count * sizeof(rapl_zone);
-  energymon_rapl* state = calloc(1, size);
-  if (state == NULL) {
+  unsigned int* zone_filter = calloc(count, sizeof(unsigned int));
+  if (zone_filter == NULL) {
+    return -1;
+  }
+  unsigned int n_filter_matches = rapl_filter_zones(zone_filter, count);
+  if (n_filter_matches == 0) {
+    if (!errno) {
+      errno = ENODEV;
+    }
+    fprintf(stderr, "energymon_init_rapl: No package zones found!\n");
+    free(zone_filter);
     return -1;
   }
 
-  if (rapl_init(state, count)) {
+  size_t size = sizeof(energymon_rapl) + n_filter_matches * sizeof(rapl_zone);
+  energymon_rapl* state = calloc(1, size);
+  if (state == NULL) {
+    free(zone_filter);
+    return -1;
+  }
+
+  if (rapl_init(state, count, zone_filter, n_filter_matches)) {
+    free(zone_filter);
     free(state);
     return -1;
   }
 
+  free(zone_filter);
   em->state = state;
   return 0;
 }
