@@ -154,6 +154,7 @@ int energymon_init_rapl(energymon* em) {
       perror(RAPL_BASE_DIR);
     } else {
       fprintf(stderr, "energymon_init_rapl: No RAPL zones found!\n");
+      errno = ENODEV;
     }
     return -1;
   }
