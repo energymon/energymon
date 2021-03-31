@@ -4,10 +4,6 @@ set(EXAMPLE energymon-shmem-example)
 set(SOURCES ${LNAME}.c;${ENERGYMON_UTIL})
 set(DESCRIPTION "EnergyMon over Shared Memory")
 
-# Dependencies
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-
 # Libraries
 
 if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
@@ -15,6 +11,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME)
 
   add_library(${LNAME} ${SOURCES})
+  target_include_directories(${LNAME} PRIVATE ${PROJECT_SOURCE_DIR}/inc ${PROJECT_SOURCE_DIR}/common)
   if(BUILD_SHARED_LIBS)
     set_target_properties(${LNAME} PROPERTIES VERSION ${PROJECT_VERSION}
                                               SOVERSION ${PROJECT_VERSION_MAJOR})
@@ -25,7 +22,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
 endif()
 
 if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
-  BUILD_DEFAULT("${SOURCES}" "" "" "")
+  BUILD_DEFAULT("${SOURCES}" "" "" "" "")
   PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "")
 endif()
 
@@ -33,11 +30,12 @@ endif()
 
 if(TARGET energymon-default AND ENERGYMON_BUILD_EXAMPLES)
   add_executable(${EXAMPLE} example/${EXAMPLE}.c)
+  target_include_directories(${EXAMPLE} PRIVATE ${PROJECT_SOURCE_DIR}/inc)
   target_link_libraries(${EXAMPLE} PRIVATE energymon-default)
 endif()
 
 # Utils
 
 CONFIGURE_ENERGYMON_GET_C(${LNAME}.h energymon_get_shmem ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
-BUILD_UTILS(${SNAME} ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
-BUILD_TESTS(${SNAME} ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
+BUILD_UTILS(${SNAME} "" ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
+BUILD_TESTS(${SNAME} "" ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)

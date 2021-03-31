@@ -26,9 +26,6 @@ if(UNIX)
   set(LIBM m)
 endif()
 
-include_directories(${PROJECT_SOURCE_DIR}/inc)
-include_directories(${PROJECT_SOURCE_DIR}/common)
-
 
 # Configurable build options
 
@@ -58,8 +55,10 @@ macro(CONFIGURE_ENERGYMON_GET_C get_header get_function output)
   configure_file(${PROJECT_SOURCE_DIR}/common/energymon-get.c.in ${output})
 endmacro(CONFIGURE_ENERGYMON_GET_C)
 
-macro(BUILD_DEFAULT source depdirs deplibs definitions)
+macro(BUILD_DEFAULT source incdirs depdirs deplibs definitions)
   add_library(energymon-default ${source})
+  target_include_directories(energymon-default PRIVATE ${PROJECT_SOURCE_DIR}/inc ${PROJECT_SOURCE_DIR}/common)
+  target_include_directories(energymon-default PRIVATE ${incdirs})
   target_link_directories(energymon-default PRIVATE ${depdirs})
   target_link_libraries(energymon-default PRIVATE ${deplibs})
   if(BUILD_SHARED_LIBS)
@@ -70,8 +69,8 @@ macro(BUILD_DEFAULT source depdirs deplibs definitions)
   install(TARGETS energymon-default DESTINATION ${CMAKE_INSTALL_LIBDIR})
   install(FILES ${PROJECT_SOURCE_DIR}/inc/energymon-default.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
   CONFIGURE_ENERGYMON_GET_C(energymon-default.h energymon_get_default ${CMAKE_CURRENT_BINARY_DIR}/energymon-default/energymon-get.c)
-  BUILD_UTILS(default energymon-default ${CMAKE_CURRENT_BINARY_DIR}/energymon-default/energymon-get.c)
-  BUILD_TESTS(default energymon-default ${CMAKE_CURRENT_BINARY_DIR}/energymon-default/energymon-get.c)
+  BUILD_UTILS(default "" energymon-default ${CMAKE_CURRENT_BINARY_DIR}/energymon-default/energymon-get.c)
+  BUILD_TESTS(default "" energymon-default ${CMAKE_CURRENT_BINARY_DIR}/energymon-default/energymon-get.c)
 endmacro(BUILD_DEFAULT)
 
 macro(PKG_CONFIG name description requires_private libs_private)

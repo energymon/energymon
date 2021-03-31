@@ -5,8 +5,6 @@ set(DESCRIPTION "EnergyMon implementation for Xilinx ZCU102 systems")
 
 # Dependencies
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-
 # Must be set to OFF to prevent doing a try_run() during cross-compiling
 set(THREADS_PTHREAD_ARG OFF)
 find_package(Threads)
@@ -24,6 +22,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME)
 
   add_library(${LNAME} ${SOURCES})
+  target_include_directories(${LNAME} PRIVATE ${PROJECT_SOURCE_DIR}/inc ${PROJECT_SOURCE_DIR}/common)
   target_link_libraries(${LNAME} PRIVATE Threads::Threads ${LIBRT})
   if(BUILD_SHARED_LIBS)
     set_target_properties(${LNAME} PROPERTIES VERSION ${PROJECT_VERSION}
@@ -36,12 +35,12 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
 endif()
 
 if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
-  BUILD_DEFAULT("${SOURCES}" "" "Threads::Threads;${LIBRT}" "")
+  BUILD_DEFAULT("${SOURCES}" "" "" "Threads::Threads;${LIBRT}" "")
   PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
 endif()
 
 # Utils
 
 CONFIGURE_ENERGYMON_GET_C(${LNAME}.h energymon_get_zcu102 ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
-BUILD_UTILS(${SNAME} ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
-BUILD_TESTS(${SNAME} ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
+BUILD_UTILS(${SNAME} "" ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
+BUILD_TESTS(${SNAME} "" ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)

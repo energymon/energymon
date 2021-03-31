@@ -9,8 +9,6 @@ set(DESCRIPTION_IOCTL "EnergyMon implementation for ODROID systems using ioctl")
 
 # Dependencies
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-
 # Must be set to OFF to prevent doing a try_run() during cross-compiling
 set(THREADS_PTHREAD_ARG OFF)
 find_package(Threads)
@@ -28,6 +26,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME)
 
   add_library(${LNAME} ${SOURCES})
+  target_include_directories(${LNAME} PRIVATE ${PROJECT_SOURCE_DIR}/inc ${PROJECT_SOURCE_DIR}/common)
   target_link_libraries(${LNAME} PRIVATE Threads::Threads ${LIBRT})
   if(BUILD_SHARED_LIBS)
     set_target_properties(${LNAME} PROPERTIES VERSION ${PROJECT_VERSION}
@@ -44,6 +43,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME_IOCTL)
 
   add_library(${LNAME_IOCTL} ${SOURCES_IOCTL})
+  target_include_directories(${LNAME_IOCTL} PRIVATE ${PROJECT_SOURCE_DIR}/inc ${PROJECT_SOURCE_DIR}/common)
   target_link_libraries(${LNAME_IOCTL} PRIVATE Threads::Threads ${LIBRT})
   if(BUILD_SHARED_LIBS)
     set_target_properties(${LNAME_IOCTL} PROPERTIES VERSION ${PROJECT_VERSION}
@@ -56,19 +56,19 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
 endif()
 
 if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
-  BUILD_DEFAULT("${SOURCES}" "" "Threads::Threads;${LIBRT}" "")
+  BUILD_DEFAULT("${SOURCES}" "" "" "Threads::Threads;${LIBRT}" "")
   PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
 elseif(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME_IOCTL OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME_IOCTL)
-  BUILD_DEFAULT("${SOURCES_IOCTL}" "" "Threads::Threads;${LIBRT}" "")
+  BUILD_DEFAULT("${SOURCES_IOCTL}" "" "" "Threads::Threads;${LIBRT}" "")
   PKG_CONFIG("energymon-default" "${DESCRIPTION_IOCTL}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
 endif()
 
 # Utils
 
 CONFIGURE_ENERGYMON_GET_C(${LNAME}.h energymon_get_odroid ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
-BUILD_UTILS(${SNAME} ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
-BUILD_TESTS(${SNAME} ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
+BUILD_UTILS(${SNAME} "" ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
+BUILD_TESTS(${SNAME} "" ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
 
 CONFIGURE_ENERGYMON_GET_C(${LNAME_IOCTL}.h energymon_get_odroid_ioctl ${CMAKE_CURRENT_BINARY_DIR}/${LNAME_IOCTL}/energymon-get.c)
-BUILD_UTILS(${SNAME_IOCTL} ${LNAME_IOCTL} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME_IOCTL}/energymon-get.c)
-BUILD_TESTS(${SNAME_IOCTL} ${LNAME_IOCTL} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME_IOCTL}/energymon-get.c)
+BUILD_UTILS(${SNAME_IOCTL} "" ${LNAME_IOCTL} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME_IOCTL}/energymon-get.c)
+BUILD_TESTS(${SNAME_IOCTL} "" ${LNAME_IOCTL} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME_IOCTL}/energymon-get.c)

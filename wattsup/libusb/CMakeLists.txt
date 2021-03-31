@@ -17,8 +17,6 @@ if(NOT LIBUSB_1_FOUND)
   return()
 endif()
 
-include_directories(.. ${LIBUSB_1_INCLUDE_DIRS})
-
 # Libraries
 
 if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
@@ -26,6 +24,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME)
 
   add_library(${LNAME} ${SOURCES_LIBUSB})
+  target_include_directories(${LNAME} PRIVATE ${PROJECT_SOURCE_DIR}/inc ${PROJECT_SOURCE_DIR}/common .. ${LIBUSB_1_INCLUDE_DIRS})
   target_link_libraries(${LNAME} PRIVATE Threads::Threads ${LIBRT} ${LIBUSB_1_LIBRARIES})
   if(BUILD_SHARED_LIBS)
     set_target_properties(${LNAME} PROPERTIES VERSION ${PROJECT_VERSION}
@@ -37,6 +36,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
   set(BUILD_ATTACH_KERNEL TRUE)
   if(UNIX)
     add_executable(${SHMEM_PROVIDER} ../energymon-wattsup-shmem-provider.c)
+    target_include_directories(${SHMEM_PROVIDER} PRIVATE ${PROJECT_SOURCE_DIR}/inc)
     target_link_libraries(${SHMEM_PROVIDER} PRIVATE ${LNAME})
     install(TARGETS ${SHMEM_PROVIDER} DESTINATION ${CMAKE_INSTALL_BINDIR})
   endif()
@@ -44,7 +44,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
 endif()
 
 if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
-  BUILD_DEFAULT("${SOURCES_LIBUSB}" "" "Threads::Threads;${LIBRT};${LIBUSB_1_LIBRARIES}" "")
+  BUILD_DEFAULT("${SOURCES_LIBUSB}" "${LIBUSB_1_INCLUDE_DIRS}" "" "Threads::Threads;${LIBRT};${LIBUSB_1_LIBRARIES}" "")
   PKG_CONFIG("energymon-default" "${DESCRIPTION_LIBUSB}" "libusb-1.0" "${PKG_CONFIG_PRIVATE_LIBS}")
   set(BUILD_ATTACH_KERNEL TRUE)
 endif()
@@ -53,6 +53,7 @@ endif()
 
 if(BUILD_ATTACH_KERNEL)
   add_executable(energymon-wattsup-attach-kernel wattsup-attach-kernel.c)
+  target_include_directories(energymon-wattsup-attach-kernel PRIVATE ${LIBUSB_1_INCLUDE_DIRS})
   target_link_libraries(energymon-wattsup-attach-kernel PRIVATE ${LIBUSB_1_LIBRARIES})
   install(TARGETS energymon-wattsup-attach-kernel DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
@@ -60,5 +61,5 @@ endif()
 # Utils
 
 CONFIGURE_ENERGYMON_GET_C(energymon-wattsup.h energymon_get_wattsup ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
-BUILD_UTILS(${SNAME} ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
-BUILD_TESTS(${SNAME} ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
+BUILD_UTILS(${SNAME} ".." ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
+BUILD_TESTS(${SNAME} ".." ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)

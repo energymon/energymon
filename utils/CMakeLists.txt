@@ -13,7 +13,7 @@ function(CONFIGURE_MAN name prefix util)
           DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 endfunction(CONFIGURE_MAN)
 
-function(BUILD_UTILS name lib energymon_get_c)
+function(BUILD_UTILS name incdirs lib energymon_get_c)
   if(NOT ENERGYMON_BUILD_UTILITIES)
     return()
   endif()
@@ -28,35 +28,59 @@ function(BUILD_UTILS name lib energymon_get_c)
   add_executable(${UTIL_PREFIX}-cmd-profile ${PROJECT_SOURCE_DIR}/utils/energymon-cmd-profile.c
                                             ${energymon_get_c}
                                             ${ENERGYMON_TIME_UTIL})
+  target_include_directories(${UTIL_PREFIX}-cmd-profile PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+                                                                ${PROJECT_SOURCE_DIR}/inc
+                                                                ${PROJECT_SOURCE_DIR}/common)
+  target_include_directories(${UTIL_PREFIX}-cmd-profile PRIVATE ${incdirs})
   target_link_libraries(${UTIL_PREFIX}-cmd-profile PRIVATE ${lib} ${LIBRT})
   CONFIGURE_MAN(${name} ${UTIL_PREFIX} cmd-profile)
 
   add_executable(${UTIL_PREFIX}-file-provider ${PROJECT_SOURCE_DIR}/utils/energymon-file-provider.c
                                               ${energymon_get_c}
                                               ${ENERGYMON_TIME_UTIL})
+  target_include_directories(${UTIL_PREFIX}-file-provider PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+                                                                  ${PROJECT_SOURCE_DIR}/inc
+                                                                  ${PROJECT_SOURCE_DIR}/common)
+  target_include_directories(${UTIL_PREFIX}-file-provider PRIVATE ${incdirs})
   target_link_libraries(${UTIL_PREFIX}-file-provider PRIVATE ${lib} ${LIBRT})
   CONFIGURE_MAN(${name} ${UTIL_PREFIX} file-provider)
 
   add_executable(${UTIL_PREFIX}-idle-power ${PROJECT_SOURCE_DIR}/utils/energymon-idle-power.c
                                            ${energymon_get_c}
                                            ${ENERGYMON_TIME_UTIL})
+  target_include_directories(${UTIL_PREFIX}-idle-power PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+                                                               ${PROJECT_SOURCE_DIR}/inc
+                                                               ${PROJECT_SOURCE_DIR}/common)
+  target_include_directories(${UTIL_PREFIX}-idle-power PRIVATE ${incdirs})
   target_link_libraries(${UTIL_PREFIX}-idle-power PRIVATE ${lib} ${LIBRT})
   CONFIGURE_MAN(${name} ${UTIL_PREFIX} idle-power)
 
   add_executable(${UTIL_PREFIX}-info ${PROJECT_SOURCE_DIR}/utils/energymon-info.c
                                      ${energymon_get_c})
+  target_include_directories(${UTIL_PREFIX}-info PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+                                                         ${PROJECT_SOURCE_DIR}/inc
+                                                         ${PROJECT_SOURCE_DIR}/common)
+  target_include_directories(${UTIL_PREFIX}-info PRIVATE ${incdirs})
   target_link_libraries(${UTIL_PREFIX}-info PRIVATE ${lib})
   CONFIGURE_MAN(${name} ${UTIL_PREFIX} info)
 
   add_executable(${UTIL_PREFIX}-overhead ${PROJECT_SOURCE_DIR}/utils/energymon-overhead.c
                                          ${energymon_get_c}
                                          ${ENERGYMON_TIME_UTIL})
+  target_include_directories(${UTIL_PREFIX}-overhead PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+                                                             ${PROJECT_SOURCE_DIR}/inc
+                                                             ${PROJECT_SOURCE_DIR}/common)
+  target_include_directories(${UTIL_PREFIX}-overhead PRIVATE ${incdirs})
   target_link_libraries(${UTIL_PREFIX}-overhead PRIVATE ${lib} ${LIBRT})
   CONFIGURE_MAN(${name} ${UTIL_PREFIX} overhead)
 
   add_executable(${UTIL_PREFIX}-power-poller ${PROJECT_SOURCE_DIR}/utils/energymon-power-poller.c
                                              ${energymon_get_c}
                                              ${ENERGYMON_TIME_UTIL})
+  target_include_directories(${UTIL_PREFIX}-power-poller PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+                                                                 ${PROJECT_SOURCE_DIR}/inc
+                                                                 ${PROJECT_SOURCE_DIR}/common)
+  target_include_directories(${UTIL_PREFIX}-power-poller PRIVATE ${incdirs})
   target_link_libraries(${UTIL_PREFIX}-power-poller PRIVATE ${lib} ${LIBRT} ${LIBM})
   CONFIGURE_MAN(${name} ${UTIL_PREFIX} power-poller)
 

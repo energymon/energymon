@@ -5,8 +5,6 @@ set(DESCRIPTION "EnergyMon implementation using libraplcap-msr")
 
 # Dependencies
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-
 find_package(PkgConfig)
 if(${PKG_CONFIG_FOUND})
   pkg_search_module(RAPLCAP raplcap-msr>=0.3.0)
@@ -16,7 +14,6 @@ if(NOT RAPLCAP_FOUND)
   message(WARNING "${LNAME}: Missing raplcap-msr - skipping this project")
   return()
 endif()
-include_directories(${RAPLCAP_INCLUDE_DIRS})
 
 # Libraries
 
@@ -25,6 +22,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME)
 
   add_library(${LNAME} ${SOURCES})
+  target_include_directories(${LNAME} PRIVATE ${PROJECT_SOURCE_DIR}/inc ${PROJECT_SOURCE_DIR}/common ${RAPLCAP_INCLUDE_DIRS})
   target_link_directories(${LNAME} PRIVATE ${RAPLCAP_LIBDIR})
   target_link_libraries(${LNAME} PRIVATE ${RAPLCAP_LIBRARIES})
   if(BUILD_SHARED_LIBS)
@@ -38,12 +36,12 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
 endif()
 
 if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
-  BUILD_DEFAULT("${SOURCES}" "${RAPLCAP_LIBDIR}" "${RAPLCAP_LIBRARIES}" "")
+  BUILD_DEFAULT("${SOURCES}" "${RAPLCAP_INCLUDE_DIRS}" "${RAPLCAP_LIBDIR}" "${RAPLCAP_LIBRARIES}" "")
   PKG_CONFIG("energymon-default" "${DESCRIPTION}" "${RAPLCAP_LIBRARIES}" "")
 endif()
 
 # Utils
 
 CONFIGURE_ENERGYMON_GET_C(${LNAME}.h energymon_get_raplcap_msr ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
-BUILD_UTILS(${SNAME} ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
-BUILD_TESTS(${SNAME} ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
+BUILD_UTILS(${SNAME} "" ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
+BUILD_TESTS(${SNAME} "" ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
