@@ -2,6 +2,27 @@ os:
   - linux
   - osx
 
+matrix:
+  include:
+    # Different distros and compilers on amd64
+    - dist: focal
+      arch: amd64
+      compiler: gcc
+    - dist: focal
+      arch: amd64
+      compiler: clang
+    # Different architectures, gcc only
+    - dist: focal
+      arch: arm64
+    - dist: focal
+      arch: ppc64le
+    - dist: focal
+      arch: s390x
+  exclude:
+    # Doesn't have min cmake version
+    - dist: xenial
+    - dist: bionic
+
 language: c
 
 compiler:
