@@ -15,7 +15,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME)
 
   add_library(${LNAME} ${SOURCES})
-  target_link_libraries(${LNAME} PRIVATE ${CMAKE_THREAD_LIBS_INIT} ${LIBRT})
+  target_link_libraries(${LNAME} PRIVATE Threads::Threads ${LIBRT})
   if(BUILD_SHARED_LIBS)
     set_target_properties(${LNAME} PROPERTIES VERSION ${PROJECT_VERSION}
                                               SOVERSION ${PROJECT_VERSION_MAJOR})
@@ -32,7 +32,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
 endif()
 
 if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
-  BUILD_DEFAULT("${SOURCES}" "" "${CMAKE_THREAD_LIBS_INIT};${LIBRT}" "")
+  BUILD_DEFAULT("${SOURCES}" "" "Threads::Threads;${LIBRT}" "")
   PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
 endif()
 
