@@ -18,6 +18,7 @@ matrix:
       arch: ppc64le
     - dist: focal
       arch: s390x
+    - os: osx
   exclude:
     # Doesn't have min cmake version
     - dist: xenial
