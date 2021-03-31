@@ -10,10 +10,10 @@ set(FTDI_IMPL libftdi1)
 
 find_package(PkgConfig)
 if(${PKG_CONFIG_FOUND})
-  pkg_search_module(LIBFTDI libftdi1)
+  pkg_search_module(LIBFTDI IMPORTED_TARGET libftdi1)
   if(NOT LIBFTDI_FOUND)
     set(FTDI_IMPL libftdi)
-    pkg_search_module(LIBFTDI libftdi)
+    pkg_search_module(LIBFTDI IMPORTED_TARGET libftdi)
   endif()
 endif()
 
@@ -30,13 +30,13 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME)
 
   add_library(${LNAME} ${SOURCES_LIBFTDI})
-  target_include_directories(${LNAME} PRIVATE ${PROJECT_SOURCE_DIR}/inc ${PROJECT_SOURCE_DIR}/common .. ${LIBFTDI_INCLUDE_DIRS})
-  target_link_libraries(${LNAME} PRIVATE Threads::Threads ${LIBRT} ${LIBFTDI_LIBRARIES})
+  target_include_directories(${LNAME} PRIVATE ${PROJECT_SOURCE_DIR}/inc ${PROJECT_SOURCE_DIR}/common ..)
+  target_link_libraries(${LNAME} PRIVATE Threads::Threads ${LIBRT} PkgConfig::LIBFTDI)
   if(BUILD_SHARED_LIBS)
     set_target_properties(${LNAME} PROPERTIES VERSION ${PROJECT_VERSION}
                                               SOVERSION ${PROJECT_VERSION_MAJOR})
   endif()
-  PKG_CONFIG("${LNAME}" "${DESCRIPTION_LIBFTDI}" "${FTDI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
+  PKG_CONFIG("${LNAME}" "${DESCRIPTION_FTDI}" "${FTDI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
   install(TARGETS ${LNAME} DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
   if(UNIX AND ENERGYMON_BUILD_SHMEM_PROVIDERS)
@@ -49,8 +49,8 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
 endif()
 
 if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
-  BUILD_DEFAULT("${SOURCES_LIBFTDI}" "..;${LIBFTDI_INCLUDE_DIRS}" "" "Threads::Threads;${LIBRT};${LIBFTDI_LIBRARIES}" "")
-  PKG_CONFIG("energymon-default" "${DESCRIPTION_LIBFTDI}" "${FTDI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
+  BUILD_DEFAULT("${SOURCES_LIBFTDI}" ".." "" "Threads::Threads;${LIBRT};PkgConfig::LIBFTDI" "")
+  PKG_CONFIG("energymon-default" "${DESCRIPTION_FTDI}" "${FTDI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
 endif()
 
 # Utils

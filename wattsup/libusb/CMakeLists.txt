@@ -8,7 +8,7 @@ set(SHMEM_PROVIDER ${LNAME}-shmem-provider)
 
 find_package(PkgConfig)
 if(${PKG_CONFIG_FOUND})
-  pkg_search_module(LIBUSB_1 libusb-1.0)
+  pkg_search_module(LIBUSB_1 IMPORTED_TARGET libusb-1.0)
 endif()
 
 if(NOT LIBUSB_1_FOUND)
@@ -24,8 +24,8 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME)
 
   add_library(${LNAME} ${SOURCES_LIBUSB})
-  target_include_directories(${LNAME} PRIVATE ${PROJECT_SOURCE_DIR}/inc ${PROJECT_SOURCE_DIR}/common .. ${LIBUSB_1_INCLUDE_DIRS})
-  target_link_libraries(${LNAME} PRIVATE Threads::Threads ${LIBRT} ${LIBUSB_1_LIBRARIES})
+  target_include_directories(${LNAME} PRIVATE ${PROJECT_SOURCE_DIR}/inc ${PROJECT_SOURCE_DIR}/common ..)
+  target_link_libraries(${LNAME} PRIVATE Threads::Threads ${LIBRT} PkgConfig::LIBUSB_1)
   if(BUILD_SHARED_LIBS)
     set_target_properties(${LNAME} PROPERTIES VERSION ${PROJECT_VERSION}
                                               SOVERSION ${PROJECT_VERSION_MAJOR})
@@ -44,7 +44,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
 endif()
 
 if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
-  BUILD_DEFAULT("${SOURCES_LIBUSB}" "${LIBUSB_1_INCLUDE_DIRS}" "" "Threads::Threads;${LIBRT};${LIBUSB_1_LIBRARIES}" "")
+  BUILD_DEFAULT("${SOURCES_LIBUSB}" "" "" "Threads::Threads;${LIBRT};PkgConfig::LIBUSB_1" "")
   PKG_CONFIG("energymon-default" "${DESCRIPTION_LIBUSB}" "libusb-1.0" "${PKG_CONFIG_PRIVATE_LIBS}")
   set(BUILD_ATTACH_KERNEL TRUE)
 endif()
@@ -53,8 +53,7 @@ endif()
 
 if(BUILD_ATTACH_KERNEL)
   add_executable(energymon-wattsup-attach-kernel wattsup-attach-kernel.c)
-  target_include_directories(energymon-wattsup-attach-kernel PRIVATE ${LIBUSB_1_INCLUDE_DIRS})
-  target_link_libraries(energymon-wattsup-attach-kernel PRIVATE ${LIBUSB_1_LIBRARIES})
+  target_link_libraries(energymon-wattsup-attach-kernel PRIVATE PkgConfig::LIBUSB_1)
   install(TARGETS energymon-wattsup-attach-kernel DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 

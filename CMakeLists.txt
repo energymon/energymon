@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.6)
 
 project(energymon VERSION 0.3.1
                   LANGUAGES C)
@@ -56,10 +56,10 @@ macro(CONFIGURE_ENERGYMON_GET_C get_header get_function output)
 endmacro(CONFIGURE_ENERGYMON_GET_C)
 
 macro(BUILD_DEFAULT source incdirs depdirs deplibs definitions)
+  # depdirs not currently used
   add_library(energymon-default ${source})
   target_include_directories(energymon-default PRIVATE ${PROJECT_SOURCE_DIR}/inc ${PROJECT_SOURCE_DIR}/common)
   target_include_directories(energymon-default PRIVATE ${incdirs})
-  target_link_directories(energymon-default PRIVATE ${depdirs})
   target_link_libraries(energymon-default PRIVATE ${deplibs})
   if(BUILD_SHARED_LIBS)
     set_target_properties(energymon-default PROPERTIES VERSION ${PROJECT_VERSION}

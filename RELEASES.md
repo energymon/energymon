@@ -4,7 +4,7 @@
 
 ### Changed
 
-* Increased minimum CMake version from 2.8.5 to 3.13
+* Increased minimum CMake version from 2.8.5 to 3.6
 
 
 ## [v0.3.1] - 2020-10-27

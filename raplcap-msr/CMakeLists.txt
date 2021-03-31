@@ -7,7 +7,7 @@ set(DESCRIPTION "EnergyMon implementation using libraplcap-msr")
 
 find_package(PkgConfig)
 if(${PKG_CONFIG_FOUND})
-  pkg_search_module(RAPLCAP raplcap-msr>=0.3.0)
+  pkg_search_module(RAPLCAP IMPORTED_TARGET raplcap-msr>=0.3.0)
 endif()
 if(NOT RAPLCAP_FOUND)
   # fail gracefully
@@ -22,22 +22,21 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME)
 
   add_library(${LNAME} ${SOURCES})
-  target_include_directories(${LNAME} PRIVATE ${PROJECT_SOURCE_DIR}/inc ${PROJECT_SOURCE_DIR}/common ${RAPLCAP_INCLUDE_DIRS})
-  target_link_directories(${LNAME} PRIVATE ${RAPLCAP_LIBRARY_DIRS})
-  target_link_libraries(${LNAME} PRIVATE ${RAPLCAP_LIBRARIES})
+  target_include_directories(${LNAME} PRIVATE ${PROJECT_SOURCE_DIR}/inc ${PROJECT_SOURCE_DIR}/common)
+  target_link_libraries(${LNAME} PRIVATE PkgConfig::RAPLCAP)
   if(BUILD_SHARED_LIBS)
     set_target_properties(${LNAME} PROPERTIES VERSION ${PROJECT_VERSION}
                                               SOVERSION ${PROJECT_VERSION_MAJOR})
   endif()
-  PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "${RAPLCAP_LIBRARIES}" "")
+  PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "raplcap-msr" "")
   install(TARGETS ${LNAME} DESTINATION ${CMAKE_INSTALL_LIBDIR})
   install(FILES ${LNAME}.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
 
 endif()
 
 if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
-  BUILD_DEFAULT("${SOURCES}" "${RAPLCAP_INCLUDE_DIRS}" "${RAPLCAP_LIBRARY_DIRS}" "${RAPLCAP_LIBRARIES}" "")
-  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "${RAPLCAP_LIBRARIES}" "")
+  BUILD_DEFAULT("${SOURCES}" "" "" "PkgConfig::RAPLCAP" "")
+  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "raplcap-msr" "")
 endif()
 
 # Utils

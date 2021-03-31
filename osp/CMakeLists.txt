@@ -15,21 +15,21 @@ if(${PKG_CONFIG_FOUND})
   # Check for impl with libusb backend first
   # hidapi docs only specify it for Linux and FreeBSD, but libusb is quite portable
   set(HIDAPI_IMPL hidapi-libusb)
-  pkg_search_module(HIDAPI ${HIDAPI_IMPL})
+  pkg_search_module(HIDAPI IMPORTED_TARGET ${HIDAPI_IMPL})
   if(NOT HIDAPI_FOUND)
     # Now look for more platform-specific implementations
     if(${CMAKE_SYSTEM_NAME} MATCHES "Linux|Android")
       # Check for impl with hidraw backend
       set(HIDAPI_IMPL hidapi-hidraw)
-      pkg_search_module(HIDAPI ${HIDAPI_IMPL})
+      pkg_search_module(HIDAPI IMPORTED_TARGET ${HIDAPI_IMPL})
     elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
       # Check for impl with IOHidManager backend
       set(HIDAPI_IMPL hidapi)
-      pkg_search_module(HIDAPI ${HIDAPI_IMPL})
+      pkg_search_module(HIDAPI IMPORTED_TARGET ${HIDAPI_IMPL})
     elseif(WIN32)
       # Check for impl with dll backend (hidapi.dll)
       set(HIDAPI_IMPL hidapi)
-      pkg_search_module(HIDAPI ${HIDAPI_IMPL})
+      pkg_search_module(HIDAPI IMPORTED_TARGET ${HIDAPI_IMPL})
     endif()
   endif()
 endif()
@@ -56,14 +56,13 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME)
 
   add_library(${LNAME} ${SOURCES})
-  target_include_directories(${LNAME} PRIVATE ${PROJECT_SOURCE_DIR}/inc ${PROJECT_SOURCE_DIR}/common ${HIDAPI_INCLUDE_DIRS})
-  target_link_directories(${LNAME} PRIVATE ${HIDAPI_LIBRARY_DIRS})
-  target_link_libraries(${LNAME} PRIVATE ${HIDAPI_LIBRARIES})
+  target_include_directories(${LNAME} PRIVATE ${PROJECT_SOURCE_DIR}/inc ${PROJECT_SOURCE_DIR}/common)
+  target_link_libraries(${LNAME} PRIVATE PkgConfig::HIDAPI)
   if(BUILD_SHARED_LIBS)
     set_target_properties(${LNAME} PROPERTIES VERSION ${PROJECT_VERSION}
                                               SOVERSION ${PROJECT_VERSION_MAJOR})
   endif()
-  PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "${HIDAPI_LIBRARIES}" "")
+  PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "${HIDAPI_IMPL}" "")
   install(TARGETS ${LNAME} DESTINATION ${CMAKE_INSTALL_LIBDIR})
   install(FILES ${LNAME}.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
 
@@ -74,15 +73,14 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME_POLLING)
 
   add_library(${LNAME_POLLING} ${SOURCES_POLLING})
-  target_include_directories(${LNAME_POLLING} PRIVATE ${PROJECT_SOURCE_DIR}/inc ${PROJECT_SOURCE_DIR}/common ${HIDAPI_INCLUDE_DIRS})
+  target_include_directories(${LNAME_POLLING} PRIVATE ${PROJECT_SOURCE_DIR}/inc ${PROJECT_SOURCE_DIR}/common)
   target_compile_definitions(${LNAME_POLLING} PRIVATE ENERGYMON_OSP_USE_POLLING)
-  target_link_directories(${LNAME_POLLING} PRIVATE ${HIDAPI_LIBRARY_DIRS})
-  target_link_libraries(${LNAME_POLLING} PRIVATE ${HIDAPI_LIBRARIES} Threads::Threads ${LIBRT})
+  target_link_libraries(${LNAME_POLLING} PRIVATE PkgConfig::HIDAPI Threads::Threads ${LIBRT})
   if(BUILD_SHARED_LIBS)
     set_target_properties(${LNAME_POLLING} PROPERTIES VERSION ${PROJECT_VERSION}
                                                       SOVERSION ${PROJECT_VERSION_MAJOR})
   endif()
-  PKG_CONFIG("${LNAME_POLLING}" "${DESCRIPTION_POLLING}" "${HIDAPI_LIBRARIES}" "${PKG_CONFIG_PRIVATE_LIBS}")
+  PKG_CONFIG("${LNAME_POLLING}" "${DESCRIPTION_POLLING}" "${HIDAPI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
   install(TARGETS ${LNAME_POLLING} DESTINATION ${CMAKE_INSTALL_LIBDIR})
   install(FILES ${LNAME_POLLING}.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
 
@@ -96,10 +94,10 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
 endif()
 
 if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
-  BUILD_DEFAULT("${SOURCES}" "${HIDAPI_INCLUDE_DIRS}" "${HIDAPI_LIBRARY_DIRS}" "${HIDAPI_LIBRARIES}" "")
-  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "${HIDAPI_LIBRARIES}" "")
+  BUILD_DEFAULT("${SOURCES}" "" "" "PkgConfig::HIDAPI" "")
+  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "${HIDAPI_IMPL}" "")
 elseif(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME_POLLING OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME_POLLING)
-  BUILD_DEFAULT("${SOURCES_POLLING}" "${HIDAPI_INCLUDE_DIRS}" "${HIDAPI_LIBRARY_DIRS}" "${HIDAPI_LIBRARIES};Threads::Threads;${LIBRT}" "ENERGYMON_OSP_USE_POLLING")
+  BUILD_DEFAULT("${SOURCES_POLLING}" "" "" "PkgConfig::HIDAPI;Threads::Threads;${LIBRT}" "ENERGYMON_OSP_USE_POLLING")
   PKG_CONFIG("energymon-default" "${DESCRIPTION_POLLING}" "${HIDAPI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
 endif()
 
