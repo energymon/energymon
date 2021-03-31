@@ -10,8 +10,8 @@ add_compile_options(-Wall)
 
 include(GNUInstallDirs)
 
-set(ENERGYMON_UTIL ${CMAKE_SOURCE_DIR}/common/energymon-util.c)
-set(ENERGYMON_TIME_UTIL ${CMAKE_SOURCE_DIR}/common/energymon-time-util.c;${CMAKE_SOURCE_DIR}/common/ptime/ptime.c)
+set(ENERGYMON_UTIL ${PROJECT_SOURCE_DIR}/common/energymon-util.c)
+set(ENERGYMON_TIME_UTIL ${PROJECT_SOURCE_DIR}/common/energymon-time-util.c;${PROJECT_SOURCE_DIR}/common/ptime/ptime.c)
 
 if(UNIX AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   # Determine if we should link with librt for libraries that use "clock_gettime"
@@ -55,7 +55,7 @@ add_subdirectory(test)
 macro(CONFIGURE_ENERGYMON_GET_C get_header get_function output)
   set(ENERGYMON_GET_HEADER ${get_header})
   set(ENERGYMON_GET_FUNCTION ${get_function})
-  configure_file(${CMAKE_SOURCE_DIR}/common/energymon-get.c.in ${output})
+  configure_file(${PROJECT_SOURCE_DIR}/common/energymon-get.c.in ${output})
 endmacro(CONFIGURE_ENERGYMON_GET_C)
 
 macro(BUILD_DEFAULT source deplibs definitions)
@@ -67,7 +67,7 @@ macro(BUILD_DEFAULT source deplibs definitions)
   endif()
   set_target_properties(energymon-default PROPERTIES COMPILE_DEFINITIONS "ENERGYMON_DEFAULT;${definitions}")
   install(TARGETS energymon-default DESTINATION ${CMAKE_INSTALL_LIBDIR})
-  install(FILES ${CMAKE_SOURCE_DIR}/inc/energymon-default.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
+  install(FILES ${PROJECT_SOURCE_DIR}/inc/energymon-default.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
   CONFIGURE_ENERGYMON_GET_C(energymon-default.h energymon_get_default ${CMAKE_CURRENT_BINARY_DIR}/energymon-default/energymon-get.c)
   BUILD_UTILS(default energymon-default ${CMAKE_CURRENT_BINARY_DIR}/energymon-default/energymon-get.c)
   BUILD_TESTS(default energymon-default ${CMAKE_CURRENT_BINARY_DIR}/energymon-default/energymon-get.c)
@@ -85,7 +85,7 @@ macro(PKG_CONFIG name description requires_private libs_private)
   set(PKG_CONFIG_LIBS "-L\${libdir} -l${name}")
   set(PKG_CONFIG_LIBS_PRIVATE "${libs_private}")
   configure_file(
-    ${CMAKE_SOURCE_DIR}/pkgconfig.in
+    ${PROJECT_SOURCE_DIR}/pkgconfig.in
     ${CMAKE_CURRENT_BINARY_DIR}/${name}.pc
     @ONLY
   )
