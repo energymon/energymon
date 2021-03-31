@@ -28,7 +28,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME)
 
   add_library(${LNAME} ${SOURCES})
-  target_link_libraries(${LNAME} ${CMAKE_THREAD_LIBS_INIT} ${LIBRT})
+  target_link_libraries(${LNAME} PRIVATE ${CMAKE_THREAD_LIBS_INIT} ${LIBRT})
   if(BUILD_SHARED_LIBS)
     set_target_properties(${LNAME} PROPERTIES VERSION ${PROJECT_VERSION}
                                               SOVERSION ${PROJECT_VERSION_MAJOR})
@@ -44,7 +44,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME_IOCTL)
 
   add_library(${LNAME_IOCTL} ${SOURCES_IOCTL})
-  target_link_libraries(${LNAME_IOCTL} ${CMAKE_THREAD_LIBS_INIT} ${LIBRT})
+  target_link_libraries(${LNAME_IOCTL} PRIVATE ${CMAKE_THREAD_LIBS_INIT} ${LIBRT})
   if(BUILD_SHARED_LIBS)
     set_target_properties(${LNAME_IOCTL} PROPERTIES VERSION ${PROJECT_VERSION}
                                                     SOVERSION ${PROJECT_VERSION_MAJOR})

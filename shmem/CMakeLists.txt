@@ -33,7 +33,7 @@ endif()
 
 if(TARGET energymon-default AND ENERGYMON_BUILD_EXAMPLES)
   add_executable(${EXAMPLE} example/${EXAMPLE}.c)
-  target_link_libraries(${EXAMPLE} energymon-default)
+  target_link_libraries(${EXAMPLE} PRIVATE energymon-default)
 endif()
 
 # Utils

@@ -13,8 +13,8 @@ function(BUILD_TESTS name lib energymon_get_c)
   endif()
 
   add_executable(${TEST_PREFIX}-interface-test ${CMAKE_SOURCE_DIR}/test/interface_test.c ${energymon_get_c})
-  target_link_libraries(${TEST_PREFIX}-interface-test ${lib})
+  target_link_libraries(${TEST_PREFIX}-interface-test PRIVATE ${lib})
 
   add_executable(${TEST_PREFIX}-interval-test ${CMAKE_SOURCE_DIR}/test/interval_test.c ${energymon_get_c})
-  target_link_libraries(${TEST_PREFIX}-interval-test ${lib})
+  target_link_libraries(${TEST_PREFIX}-interval-test PRIVATE ${lib})
 endfunction(BUILD_TESTS)

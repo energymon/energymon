@@ -60,7 +60,7 @@ endmacro(CONFIGURE_ENERGYMON_GET_C)
 
 macro(BUILD_DEFAULT source deplibs definitions)
   add_library(energymon-default ${source})
-  target_link_libraries(energymon-default ${deplibs})
+  target_link_libraries(energymon-default PRIVATE ${deplibs})
   if(BUILD_SHARED_LIBS)
     set_target_properties(energymon-default PROPERTIES VERSION ${PROJECT_VERSION}
                                                        SOVERSION ${PROJECT_VERSION_MAJOR})

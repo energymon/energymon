@@ -26,7 +26,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME)
 
   add_library(${LNAME} ${SOURCES_LIBUSB})
-  target_link_libraries(${LNAME} ${CMAKE_THREAD_LIBS_INIT} ${LIBRT} ${LIBUSB_1_LIBRARIES})
+  target_link_libraries(${LNAME} PRIVATE ${CMAKE_THREAD_LIBS_INIT} ${LIBRT} ${LIBUSB_1_LIBRARIES})
   if(BUILD_SHARED_LIBS)
     set_target_properties(${LNAME} PROPERTIES VERSION ${PROJECT_VERSION}
                                               SOVERSION ${PROJECT_VERSION_MAJOR})
@@ -37,7 +37,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
   set(BUILD_ATTACH_KERNEL TRUE)
   if(UNIX)
     add_executable(${SHMEM_PROVIDER} ../energymon-wattsup-shmem-provider.c)
-    target_link_libraries(${SHMEM_PROVIDER} ${LNAME})
+    target_link_libraries(${SHMEM_PROVIDER} PRIVATE ${LNAME})
     install(TARGETS ${SHMEM_PROVIDER} DESTINATION ${CMAKE_INSTALL_BINDIR})
   endif()
 
@@ -53,7 +53,7 @@ endif()
 
 if(BUILD_ATTACH_KERNEL)
   add_executable(energymon-wattsup-attach-kernel wattsup-attach-kernel.c)
-  target_link_libraries(energymon-wattsup-attach-kernel ${LIBUSB_1_LIBRARIES})
+  target_link_libraries(energymon-wattsup-attach-kernel PRIVATE ${LIBUSB_1_LIBRARIES})
   install(TARGETS energymon-wattsup-attach-kernel DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 

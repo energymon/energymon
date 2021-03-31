@@ -28,36 +28,36 @@ function(BUILD_UTILS name lib energymon_get_c)
   add_executable(${UTIL_PREFIX}-cmd-profile ${CMAKE_SOURCE_DIR}/utils/energymon-cmd-profile.c
                                             ${energymon_get_c}
                                             ${ENERGYMON_TIME_UTIL})
-  target_link_libraries(${UTIL_PREFIX}-cmd-profile ${lib} ${LIBRT})
+  target_link_libraries(${UTIL_PREFIX}-cmd-profile PRIVATE ${lib} ${LIBRT})
   CONFIGURE_MAN(${name} ${UTIL_PREFIX} cmd-profile)
 
   add_executable(${UTIL_PREFIX}-file-provider ${CMAKE_SOURCE_DIR}/utils/energymon-file-provider.c
                                               ${energymon_get_c}
                                               ${ENERGYMON_TIME_UTIL})
-  target_link_libraries(${UTIL_PREFIX}-file-provider ${lib} ${LIBRT})
+  target_link_libraries(${UTIL_PREFIX}-file-provider PRIVATE ${lib} ${LIBRT})
   CONFIGURE_MAN(${name} ${UTIL_PREFIX} file-provider)
 
   add_executable(${UTIL_PREFIX}-idle-power ${CMAKE_SOURCE_DIR}/utils/energymon-idle-power.c
                                            ${energymon_get_c}
                                            ${ENERGYMON_TIME_UTIL})
-  target_link_libraries(${UTIL_PREFIX}-idle-power ${lib} ${LIBRT})
+  target_link_libraries(${UTIL_PREFIX}-idle-power PRIVATE ${lib} ${LIBRT})
   CONFIGURE_MAN(${name} ${UTIL_PREFIX} idle-power)
 
   add_executable(${UTIL_PREFIX}-info ${CMAKE_SOURCE_DIR}/utils/energymon-info.c
                                      ${energymon_get_c})
-  target_link_libraries(${UTIL_PREFIX}-info ${lib})
+  target_link_libraries(${UTIL_PREFIX}-info PRIVATE ${lib})
   CONFIGURE_MAN(${name} ${UTIL_PREFIX} info)
 
   add_executable(${UTIL_PREFIX}-overhead ${CMAKE_SOURCE_DIR}/utils/energymon-overhead.c
                                          ${energymon_get_c}
                                          ${ENERGYMON_TIME_UTIL})
-  target_link_libraries(${UTIL_PREFIX}-overhead ${lib} ${LIBRT})
+  target_link_libraries(${UTIL_PREFIX}-overhead PRIVATE ${lib} ${LIBRT})
   CONFIGURE_MAN(${name} ${UTIL_PREFIX} overhead)
 
   add_executable(${UTIL_PREFIX}-power-poller ${CMAKE_SOURCE_DIR}/utils/energymon-power-poller.c
                                              ${energymon_get_c}
                                              ${ENERGYMON_TIME_UTIL})
-  target_link_libraries(${UTIL_PREFIX}-power-poller ${lib} ${LIBRT} ${LIBM})
+  target_link_libraries(${UTIL_PREFIX}-power-poller PRIVATE ${lib} ${LIBRT} ${LIBM})
   CONFIGURE_MAN(${name} ${UTIL_PREFIX} power-poller)
 
   install(TARGETS ${UTIL_PREFIX}-cmd-profile

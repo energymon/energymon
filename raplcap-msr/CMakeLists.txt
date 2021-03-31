@@ -25,7 +25,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME)
 
   add_library(${LNAME} ${SOURCES})
-  target_link_libraries(${LNAME} -L${RAPLCAP_LIBDIR} ${RAPLCAP_LIBRARIES})
+  target_link_libraries(${LNAME} PRIVATE -L${RAPLCAP_LIBDIR} ${RAPLCAP_LIBRARIES})
   if(BUILD_SHARED_LIBS)
     set_target_properties(${LNAME} PROPERTIES VERSION ${PROJECT_VERSION}
                                               SOVERSION ${PROJECT_VERSION_MAJOR})

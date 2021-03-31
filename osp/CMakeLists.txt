@@ -59,7 +59,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME)
 
   add_library(${LNAME} ${SOURCES})
-  target_link_libraries(${LNAME} -L${HIDAPI_LIBDIR} ${HIDAPI_LIBRARIES})
+  target_link_libraries(${LNAME} PRIVATE -L${HIDAPI_LIBDIR} ${HIDAPI_LIBRARIES})
   if(BUILD_SHARED_LIBS)
     set_target_properties(${LNAME} PROPERTIES VERSION ${PROJECT_VERSION}
                                               SOVERSION ${PROJECT_VERSION_MAJOR})
@@ -76,7 +76,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
 
   add_library(${LNAME_POLLING} ${SOURCES_POLLING})
   set_target_properties(${LNAME_POLLING} PROPERTIES COMPILE_DEFINITIONS "ENERGYMON_OSP_USE_POLLING")
-  target_link_libraries(${LNAME_POLLING} -L${HIDAPI_LIBDIR} ${HIDAPI_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LIBRT})
+  target_link_libraries(${LNAME_POLLING} PRIVATE -L${HIDAPI_LIBDIR} ${HIDAPI_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LIBRT})
   if(BUILD_SHARED_LIBS)
     set_target_properties(${LNAME_POLLING} PROPERTIES VERSION ${PROJECT_VERSION}
                                                       SOVERSION ${PROJECT_VERSION_MAJOR})
@@ -87,7 +87,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
 
   if (ENERGYMON_BUILD_SHMEM_PROVIDERS)
     add_executable(${SHMEM_PROVIDER} energymon-osp-polling-shmem-provider.c)
-    target_link_libraries(${SHMEM_PROVIDER} ${LNAME_POLLING})
+    target_link_libraries(${SHMEM_PROVIDER} PRIVATE ${LNAME_POLLING})
     install(TARGETS ${SHMEM_PROVIDER} DESTINATION ${CMAKE_INSTALL_BINDIR})
   endif()
 
