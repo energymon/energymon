@@ -1,12 +1,14 @@
-cmake_minimum_required(VERSION 2.8.5)
+cmake_minimum_required(VERSION 3.1)
 
-project(energymon)
-set(VERSION_MAJOR 0)
-set(VERSION_MINOR 3)
-set(VERSION_PATCH 1)
-set(PROJECT_VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
+project(energymon VERSION 0.3.1
+                  LANGUAGES C)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -std=gnu99")
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS ON)
+add_compile_options(-Wall)
+
+include(GNUInstallDirs)
 
 set(ENERGYMON_UTIL ${CMAKE_SOURCE_DIR}/common/energymon-util.c)
 set(ENERGYMON_TIME_UTIL ${CMAKE_SOURCE_DIR}/common/energymon-time-util.c;${CMAKE_SOURCE_DIR}/common/ptime/ptime.c)
@@ -22,15 +24,6 @@ endif()
 
 if(UNIX)
   set(LIBM m)
-endif()
-
-if(CMAKE_HOST_UNIX)
-  include(GNUInstallDirs)
-else()
-  set(CMAKE_INSTALL_LIBDIR lib)
-  set(CMAKE_INSTALL_INCLUDEDIR include)
-  set(CMAKE_INSTALL_BINDIR bin)
-  set(CMAKE_INSTALL_MANDIR share/man)
 endif()
 
 include_directories(${PROJECT_SOURCE_DIR}/inc)
@@ -70,7 +63,7 @@ macro(BUILD_DEFAULT source deplibs definitions)
   target_link_libraries(energymon-default ${deplibs})
   if(BUILD_SHARED_LIBS)
     set_target_properties(energymon-default PROPERTIES VERSION ${PROJECT_VERSION}
-                                                       SOVERSION ${VERSION_MAJOR})
+                                                       SOVERSION ${PROJECT_VERSION_MAJOR})
   endif()
   set_target_properties(energymon-default PROPERTIES COMPILE_DEFINITIONS "ENERGYMON_DEFAULT;${definitions}")
   install(TARGETS energymon-default DESTINATION ${CMAKE_INSTALL_LIBDIR})

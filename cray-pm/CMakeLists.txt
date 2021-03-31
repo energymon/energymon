@@ -22,7 +22,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
   add_library(${LNAME} ${SOURCES})
   if(BUILD_SHARED_LIBS)
     set_target_properties(${LNAME} PROPERTIES VERSION ${PROJECT_VERSION}
-                                              SOVERSION ${VERSION_MAJOR})
+                                              SOVERSION ${PROJECT_VERSION_MAJOR})
   endif()
   PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "" "")
   install(TARGETS ${LNAME} DESTINATION ${CMAKE_INSTALL_LIBDIR})

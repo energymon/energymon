@@ -1,5 +1,12 @@
 # Release Notes
 
+## [Unreleased]
+
+### Changed
+
+* Increased minimum CMake version from 2.8.5 to 3.1
+
+
 ## [v0.3.1] - 2020-10-27
 
 ### Fixed
@@ -124,6 +131,7 @@
 * Initial public release
 
 
+[Unreleased]: https://github.com/energymon/energymon/compare/v0.3.1...HEAD
 [v0.3.1]: https://github.com/energymon/energymon/compare/v0.3.0...v0.3.1
 [v0.3.0]: https://github.com/energymon/energymon/compare/v0.2.4...v0.3.0
 [v0.2.4]: https://github.com/energymon/energymon/compare/v0.2.3...v0.2.4

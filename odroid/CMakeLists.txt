@@ -31,7 +31,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
   target_link_libraries(${LNAME} ${CMAKE_THREAD_LIBS_INIT} ${LIBRT})
   if(BUILD_SHARED_LIBS)
     set_target_properties(${LNAME} PROPERTIES VERSION ${PROJECT_VERSION}
-                                              SOVERSION ${VERSION_MAJOR})
+                                              SOVERSION ${PROJECT_VERSION_MAJOR})
   endif()
   PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
   install(TARGETS ${LNAME} DESTINATION ${CMAKE_INSTALL_LIBDIR})
@@ -47,7 +47,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
   target_link_libraries(${LNAME_IOCTL} ${CMAKE_THREAD_LIBS_INIT} ${LIBRT})
   if(BUILD_SHARED_LIBS)
     set_target_properties(${LNAME_IOCTL} PROPERTIES VERSION ${PROJECT_VERSION}
-                                                    SOVERSION ${VERSION_MAJOR})
+                                                    SOVERSION ${PROJECT_VERSION_MAJOR})
   endif()
   PKG_CONFIG("${LNAME_IOCTL}" "${DESCRIPTION_IOCTL}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
   install(TARGETS ${LNAME_IOCTL} DESTINATION ${CMAKE_INSTALL_LIBDIR})
