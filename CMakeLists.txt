@@ -66,7 +66,7 @@ macro(BUILD_DEFAULT source depdirs deplibs definitions)
     set_target_properties(energymon-default PROPERTIES VERSION ${PROJECT_VERSION}
                                                        SOVERSION ${PROJECT_VERSION_MAJOR})
   endif()
-  set_target_properties(energymon-default PROPERTIES COMPILE_DEFINITIONS "ENERGYMON_DEFAULT;${definitions}")
+  target_compile_definitions(energymon-default PRIVATE "ENERGYMON_DEFAULT;${definitions}")
   install(TARGETS energymon-default DESTINATION ${CMAKE_INSTALL_LIBDIR})
   install(FILES ${PROJECT_SOURCE_DIR}/inc/energymon-default.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
   CONFIGURE_ENERGYMON_GET_C(energymon-default.h energymon_get_default ${CMAKE_CURRENT_BINARY_DIR}/energymon-default/energymon-get.c)
