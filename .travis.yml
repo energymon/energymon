@@ -2,6 +2,8 @@ os:
   - linux
   - osx
 
+osx_image: xcode12.2
+
 matrix:
   include:
     # Different distros and compilers on amd64
@@ -48,7 +50,7 @@ addons:
     packages:
       - libftdi
       - hidapi
-    update: true
+    # update: true
 
 install:
   # raplcap dependency
