@@ -132,7 +132,7 @@ function(add_energymon_library TARGET SHORT_NAME)
   set(ENERGYMON_GET_FUNCTION ${ARG_ENERGYMON_GET_FUNCTION})
   configure_file(${PROJECT_SOURCE_DIR}/common/energymon-get.c.in ${ARG_ENERGYMON_GET_C_OUTPUT})
   add_energymon_tests(${SHORT_NAME} ${TARGET} ${ARG_ENERGYMON_GET_C_OUTPUT})
-  BUILD_UTILS(${SHORT_NAME} ${TARGET} ${ARG_ENERGYMON_GET_C_OUTPUT})
+  add_energymon_utils(${SHORT_NAME} ${TARGET} ${ARG_ENERGYMON_GET_C_OUTPUT})
 endfunction()
 
 # Forwards through to add_energymon_library, but the only argument should be SOURCES
