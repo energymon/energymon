@@ -1,7 +1,7 @@
 set(SNAME wattsup-libusb)
 set(LNAME energymon-wattsup-libusb)
-set(SOURCES_LIBUSB ../energymon-wattsup.c;wattsup-driver-libusb.c;${ENERGYMON_UTIL};${ENERGYMON_TIME_UTIL})
-set(DESCRIPTION_LIBUSB "EnergyMon implementation for WattsUp? Power meters using libusb-1.0")
+set(SOURCES ../energymon-wattsup.c;wattsup-driver-libusb.c;${ENERGYMON_UTIL};${ENERGYMON_TIME_UTIL})
+set(DESCRIPTION "EnergyMon implementation for WattsUp? Power meters using libusb-1.0")
 set(SHMEM_PROVIDER ${LNAME}-shmem-provider)
 
 # Dependencies
@@ -24,7 +24,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME)
 
   add_energymon_library(${LNAME} ${SNAME}
-                        SOURCES ${SOURCES_LIBUSB}
+                        SOURCES ${SOURCES}
                         PUBLIC_HEADER ../energymon-wattsup.h
                         PUBLIC_BUILD_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/..
                         ENERGYMON_GET_HEADER energymon-wattsup.h
@@ -32,7 +32,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
                         ENERGYMON_GET_C_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
   target_include_directories(${LNAME} PRIVATE ..)
   target_link_libraries(${LNAME} PRIVATE Threads::Threads ${LIBRT} PkgConfig::LIBUSB_1)
-  PKG_CONFIG("${LNAME}" "${DESCRIPTION_LIBUSB}" "libusb-1.0" "${PKG_CONFIG_PRIVATE_LIBS}")
+  PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "libusb-1.0" "${PKG_CONFIG_PRIVATE_LIBS}")
 
   set(BUILD_ATTACH_KERNEL TRUE)
   if(UNIX)
@@ -46,10 +46,10 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
 endif()
 
 if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
-  add_energymon_default_library(SOURCES ${SOURCES_LIBUSB})
+  add_energymon_default_library(SOURCES ${SOURCES})
   target_include_directories(energymon-default PRIVATE ..)
   target_link_libraries(energymon-default PRIVATE Threads::Threads ${LIBRT} PkgConfig::LIBUSB_1)
-  PKG_CONFIG("energymon-default" "${DESCRIPTION_LIBUSB}" "libusb-1.0" "${PKG_CONFIG_PRIVATE_LIBS}")
+  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "libusb-1.0" "${PKG_CONFIG_PRIVATE_LIBS}")
   set(BUILD_ATTACH_KERNEL TRUE)
 endif()
 
