@@ -15,43 +15,36 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL SNAME OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME)
 
-  add_library(${LNAME} ${SOURCES})
-  target_include_directories(${LNAME} PRIVATE ${PROJECT_SOURCE_DIR}/inc ${PROJECT_SOURCE_DIR}/common)
-  if(BUILD_SHARED_LIBS)
-    set_target_properties(${LNAME} PROPERTIES VERSION ${PROJECT_VERSION}
-                                              SOVERSION ${PROJECT_VERSION_MAJOR})
-  endif()
+  add_energymon_library(${LNAME} ${SNAME}
+                        SOURCES ${SOURCES}
+                        PUBLIC_HEADER ${LNAME}.h ${LNAME}-energy.h ${LNAME}-accel_energy.h ${LNAME}-cpu_energy.h ${LNAME}-memory_energy.h
+                        PUBLIC_BUILD_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
+                        ENERGYMON_GET_HEADER ${LNAME}.h
+                        ENERGYMON_GET_FUNCTION "energymon_get_cray_pm"
+                        ENERGYMON_GET_C_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
   PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "" "")
-  install(TARGETS ${LNAME} DESTINATION ${CMAKE_INSTALL_LIBDIR})
-  install(FILES ${LNAME}.h
-                ${LNAME}-energy.h
-                ${LNAME}-accel_energy.h
-                ${LNAME}-cpu_energy.h
-                ${LNAME}-memory_energy.h
-          DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
 
 endif()
 
-# We have to set preprocessor definitions other than "ENERGYMON_BUILD_DEFAULT" when building default impl b/c we compile multiple impls in the library
+# We have to set preprocessor definitions other than "ENERGYMON_DEFAULT" when building default impl b/c we compile multiple impls in the library
 if(ENERGYMON_BUILD_DEFAULT STREQUAL "cray-pm" OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
-  BUILD_DEFAULT("${SOURCES}" "" "" "" "ENERGYMON_BUILD_DEFAULT_CRAY_PM")
+  add_energymon_default_library(SOURCES ${SOURCES})
+  target_compile_definitions(energymon-default PRIVATE "ENERGYMON_DEFAULT_CRAY_PM")
   PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "")
 elseif(ENERGYMON_BUILD_DEFAULT STREQUAL "cray-pm-energy" OR ENERGYMON_BUILD_DEFAULT STREQUAL "energymon-cray-pm-energy")
-  BUILD_DEFAULT("${SOURCES}" "" "" "" "ENERGYMON_BUILD_DEFAULT_CRAY_PM_ENERGY")
+  add_energymon_default_library(SOURCES ${SOURCES})
+  target_compile_definitions(energymon-default PRIVATE "ENERGYMON_DEFAULT_CRAY_PM_ENERGY")
   PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "")
 elseif(ENERGYMON_BUILD_DEFAULT STREQUAL "cray-pm-accel_energy" OR ENERGYMON_BUILD_DEFAULT STREQUAL "energymon-cray-pm-accel_energy")
-  BUILD_DEFAULT("${SOURCES}" "" "" "" "ENERGYMON_BUILD_DEFAULT_CRAY_PM_ACCEL_ENERGY")
+  add_energymon_default_library(SOURCES ${SOURCES})
+  target_compile_definitions(energymon-default PRIVATE "ENERGYMON_DEFAULT_CRAY_PM_ACCEL_ENERGY")
   PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "")
 elseif(ENERGYMON_BUILD_DEFAULT STREQUAL "cray-pm-cpu_energy" OR ENERGYMON_BUILD_DEFAULT STREQUAL "energymon-cray-pm-cpu_energy")
-  BUILD_DEFAULT("${SOURCES}" "" "" "" "ENERGYMON_BUILD_DEFAULT_CRAY_PM_CPU_ENERGY")
+  add_energymon_default_library(SOURCES ${SOURCES})
+  target_compile_definitions(energymon-default PRIVATE "ENERGYMON_DEFAULT_CRAY_PM_CPU_ENERGY")
   PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "")
 elseif(ENERGYMON_BUILD_DEFAULT STREQUAL "cray-pm-memory_energy" OR ENERGYMON_BUILD_DEFAULT STREQUAL "energymon-cray-pm-memory_energy")
-  BUILD_DEFAULT("${SOURCES}" "" "" "" "ENERGYMON_BUILD_DEFAULT_CRAY_PM_MEMORY_ENERGY")
+  add_energymon_default_library(SOURCES ${SOURCES})
+  target_compile_definitions(energymon-default PRIVATE "ENERGYMON_DEFAULT_CRAY_PM_MEMORY_ENERGY")
   PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "")
 endif()
-
-# Utils
-
-CONFIGURE_ENERGYMON_GET_C(${LNAME}.h energymon_get_cray_pm ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
-BUILD_UTILS(${SNAME} "" ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
-BUILD_TESTS(${SNAME} "" ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)

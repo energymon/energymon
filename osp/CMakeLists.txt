@@ -55,16 +55,15 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL SNAME OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME)
 
-  add_library(${LNAME} ${SOURCES})
-  target_include_directories(${LNAME} PRIVATE ${PROJECT_SOURCE_DIR}/inc ${PROJECT_SOURCE_DIR}/common)
+  add_energymon_library(${LNAME} ${SNAME}
+                        SOURCES ${SOURCES}
+                        PUBLIC_HEADER ${LNAME}.h
+                        PUBLIC_BUILD_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
+                        ENERGYMON_GET_HEADER ${LNAME}.h
+                        ENERGYMON_GET_FUNCTION "energymon_get_osp"
+                        ENERGYMON_GET_C_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
   target_link_libraries(${LNAME} PRIVATE PkgConfig::HIDAPI)
-  if(BUILD_SHARED_LIBS)
-    set_target_properties(${LNAME} PROPERTIES VERSION ${PROJECT_VERSION}
-                                              SOVERSION ${PROJECT_VERSION_MAJOR})
-  endif()
   PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "${HIDAPI_IMPL}" "")
-  install(TARGETS ${LNAME} DESTINATION ${CMAKE_INSTALL_LIBDIR})
-  install(FILES ${LNAME}.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
 
 endif()
 
@@ -72,41 +71,35 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL SNAME_POLLING OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME_POLLING)
 
-  add_library(${LNAME_POLLING} ${SOURCES_POLLING})
-  target_include_directories(${LNAME_POLLING} PRIVATE ${PROJECT_SOURCE_DIR}/inc ${PROJECT_SOURCE_DIR}/common)
+  add_energymon_library(${LNAME_POLLING} ${SNAME_POLLING}
+                        SOURCES ${SOURCES_POLLING}
+                        PUBLIC_HEADER ${LNAME_POLLING}.h
+                        PUBLIC_BUILD_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
+                        ENERGYMON_GET_HEADER ${LNAME_POLLING}.h
+                        ENERGYMON_GET_FUNCTION "energymon_get_osp_polling"
+                        ENERGYMON_GET_C_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${LNAME_POLLING}/energymon-get.c)
   target_compile_definitions(${LNAME_POLLING} PRIVATE ENERGYMON_OSP_USE_POLLING)
   target_link_libraries(${LNAME_POLLING} PRIVATE PkgConfig::HIDAPI Threads::Threads ${LIBRT})
-  if(BUILD_SHARED_LIBS)
-    set_target_properties(${LNAME_POLLING} PROPERTIES VERSION ${PROJECT_VERSION}
-                                                      SOVERSION ${PROJECT_VERSION_MAJOR})
-  endif()
   PKG_CONFIG("${LNAME_POLLING}" "${DESCRIPTION_POLLING}" "${HIDAPI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
-  install(TARGETS ${LNAME_POLLING} DESTINATION ${CMAKE_INSTALL_LIBDIR})
-  install(FILES ${LNAME_POLLING}.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
 
   if (ENERGYMON_BUILD_SHMEM_PROVIDERS)
     add_executable(${SHMEM_PROVIDER} energymon-osp-polling-shmem-provider.c)
     target_include_directories(${SHMEM_PROVIDER} PRIVATE ${PROJECT_SOURCE_DIR}/inc)
     target_link_libraries(${SHMEM_PROVIDER} PRIVATE ${LNAME_POLLING})
-    install(TARGETS ${SHMEM_PROVIDER} DESTINATION ${CMAKE_INSTALL_BINDIR})
+    install(TARGETS ${SHMEM_PROVIDER}
+            EXPORT EnergyMonTargets
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
   endif()
 
 endif()
 
 if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
-  BUILD_DEFAULT("${SOURCES}" "" "" "PkgConfig::HIDAPI" "")
+  add_energymon_default_library(SOURCES ${SOURCES})
+  target_link_libraries(energymon-default PRIVATE PkgConfig::HIDAPI)
   PKG_CONFIG("energymon-default" "${DESCRIPTION}" "${HIDAPI_IMPL}" "")
 elseif(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME_POLLING OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME_POLLING)
-  BUILD_DEFAULT("${SOURCES_POLLING}" "" "" "PkgConfig::HIDAPI;Threads::Threads;${LIBRT}" "ENERGYMON_OSP_USE_POLLING")
+  add_energymon_default_library(SOURCES ${SOURCES_POLLING})
+  target_compile_definitions(energymon-default PRIVATE ENERGYMON_OSP_USE_POLLING)
+  target_link_libraries(energymon-default PRIVATE PkgConfig::HIDAPI Threads::Threads ${LIBRT})
   PKG_CONFIG("energymon-default" "${DESCRIPTION_POLLING}" "${HIDAPI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
 endif()
-
-# Utils
-
-CONFIGURE_ENERGYMON_GET_C(${LNAME}.h energymon_get_osp ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
-BUILD_UTILS(${SNAME} "" ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
-BUILD_TESTS(${SNAME} "" ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
-
-CONFIGURE_ENERGYMON_GET_C(${LNAME_POLLING}.h energymon_get_osp_polling ${CMAKE_CURRENT_BINARY_DIR}/${LNAME_POLLING}/energymon-get.c)
-BUILD_UTILS(${SNAME_POLLING} "" ${LNAME_POLLING} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME_POLLING}/energymon-get.c)
-BUILD_TESTS(${SNAME_POLLING} "" ${LNAME_POLLING} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME_POLLING}/energymon-get.c)

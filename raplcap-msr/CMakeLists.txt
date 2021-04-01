@@ -21,26 +21,20 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL SNAME OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME)
 
-  add_library(${LNAME} ${SOURCES})
-  target_include_directories(${LNAME} PRIVATE ${PROJECT_SOURCE_DIR}/inc ${PROJECT_SOURCE_DIR}/common)
+  add_energymon_library(${LNAME} ${SNAME}
+                        SOURCES ${SOURCES}
+                        PUBLIC_HEADER ${LNAME}.h
+                        PUBLIC_BUILD_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
+                        ENERGYMON_GET_HEADER ${LNAME}.h
+                        ENERGYMON_GET_FUNCTION "energymon_get_raplcap_msr"
+                        ENERGYMON_GET_C_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
   target_link_libraries(${LNAME} PRIVATE PkgConfig::RAPLCAP)
-  if(BUILD_SHARED_LIBS)
-    set_target_properties(${LNAME} PROPERTIES VERSION ${PROJECT_VERSION}
-                                              SOVERSION ${PROJECT_VERSION_MAJOR})
-  endif()
   PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "raplcap-msr" "")
-  install(TARGETS ${LNAME} DESTINATION ${CMAKE_INSTALL_LIBDIR})
-  install(FILES ${LNAME}.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
 
 endif()
 
 if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
-  BUILD_DEFAULT("${SOURCES}" "" "" "PkgConfig::RAPLCAP" "")
+  add_energymon_default_library(SOURCES ${SOURCES})
+  target_link_libraries(energymon-default PRIVATE PkgConfig::RAPLCAP)
   PKG_CONFIG("energymon-default" "${DESCRIPTION}" "raplcap-msr" "")
 endif()
-
-# Utils
-
-CONFIGURE_ENERGYMON_GET_C(${LNAME}.h energymon_get_raplcap_msr ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
-BUILD_UTILS(${SNAME} "" ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
-BUILD_TESTS(${SNAME} "" ${LNAME} ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)

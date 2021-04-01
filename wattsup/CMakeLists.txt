@@ -19,10 +19,3 @@ if(UNIX OR WIN32)
   add_subdirectory(libftdi)
   add_subdirectory(libusb)
 endif()
-
-# Install
-
-# Don't install headers if no implementation is built
-if(TARGET energymon-wattsup OR TARGET energymon-wattsup-libftdi OR TARGET energymon-wattsup-libusb)
-  install(FILES energymon-wattsup.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
-endif()

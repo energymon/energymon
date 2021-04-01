@@ -41,6 +41,29 @@ set(ENERGYMON_BUILD_TESTS TRUE CACHE BOOL "Enable/disable building tests")
 set(ENERGYMON_BUILD_EXAMPLES TRUE CACHE BOOL "Enable/disable building example code")
 
 
+# CMake package helpers
+
+include(CMakePackageConfigHelpers)
+set(ENERGYMON_CMAKE_CONFIG_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/energymon)
+set(CONFIG_TARGETS_FILE EnergyMonTargets.cmake)
+configure_package_config_file(
+  ${PROJECT_SOURCE_DIR}/Config.cmake.in
+  ${CMAKE_BINARY_DIR}/EnergyMonConfig.cmake
+  INSTALL_DESTINATION ${ENERGYMON_CMAKE_CONFIG_DIR}
+)
+write_basic_package_version_file(
+  ${CMAKE_BINARY_DIR}/EnergyMonConfigVersion.cmake
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY SameMajorVersion
+)
+install(FILES ${CMAKE_BINARY_DIR}/EnergyMonConfig.cmake
+              ${CMAKE_BINARY_DIR}/EnergyMonConfigVersion.cmake
+        DESTINATION ${ENERGYMON_CMAKE_CONFIG_DIR})
+install(EXPORT EnergyMonTargets
+        DESTINATION ${ENERGYMON_CMAKE_CONFIG_DIR}
+        NAMESPACE EnergyMon::)
+
+
 # Utilities
 
 add_subdirectory(utils)
@@ -48,30 +71,6 @@ add_subdirectory(test)
 
 
 # Macros
-
-macro(CONFIGURE_ENERGYMON_GET_C get_header get_function output)
-  set(ENERGYMON_GET_HEADER ${get_header})
-  set(ENERGYMON_GET_FUNCTION ${get_function})
-  configure_file(${PROJECT_SOURCE_DIR}/common/energymon-get.c.in ${output})
-endmacro(CONFIGURE_ENERGYMON_GET_C)
-
-macro(BUILD_DEFAULT source incdirs depdirs deplibs definitions)
-  # depdirs not currently used
-  add_library(energymon-default ${source})
-  target_include_directories(energymon-default PRIVATE ${PROJECT_SOURCE_DIR}/inc ${PROJECT_SOURCE_DIR}/common)
-  target_include_directories(energymon-default PRIVATE ${incdirs})
-  target_link_libraries(energymon-default PRIVATE ${deplibs})
-  if(BUILD_SHARED_LIBS)
-    set_target_properties(energymon-default PROPERTIES VERSION ${PROJECT_VERSION}
-                                                       SOVERSION ${PROJECT_VERSION_MAJOR})
-  endif()
-  target_compile_definitions(energymon-default PRIVATE "ENERGYMON_DEFAULT;${definitions}")
-  install(TARGETS energymon-default DESTINATION ${CMAKE_INSTALL_LIBDIR})
-  install(FILES ${PROJECT_SOURCE_DIR}/inc/energymon-default.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
-  CONFIGURE_ENERGYMON_GET_C(energymon-default.h energymon_get_default ${CMAKE_CURRENT_BINARY_DIR}/energymon-default/energymon-get.c)
-  BUILD_UTILS(default "" energymon-default ${CMAKE_CURRENT_BINARY_DIR}/energymon-default/energymon-get.c)
-  BUILD_TESTS(default "" energymon-default ${CMAKE_CURRENT_BINARY_DIR}/energymon-default/energymon-get.c)
-endmacro(BUILD_DEFAULT)
 
 macro(PKG_CONFIG name description requires_private libs_private)
   set(PKG_CONFIG_PREFIX "${CMAKE_INSTALL_PREFIX}")
@@ -91,6 +90,60 @@ macro(PKG_CONFIG name description requires_private libs_private)
   )
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${name}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 endmacro(PKG_CONFIG)
+
+
+# Functions
+
+function(add_energymon_library TARGET SHORT_NAME)
+  # Parse arguments
+  set(options)
+  set(oneValueArgs ENERGYMON_GET_HEADER
+                   ENERGYMON_GET_FUNCTION
+                   ENERGYMON_GET_C_OUTPUT)
+  set(multiValueArgs SOURCES
+                     PUBLIC_HEADER
+                     PUBLIC_BUILD_INCLUDE_DIRS)
+  cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+  if(NOT "${ARG_UNPARSED_ARGUMENTS}" STREQUAL "")
+      message(FATAL_ERROR "add_energymon_library: unrecognized args: ${ARG_UNPARSED_ARGUMENTS}")
+  endif()
+
+  # Create library
+  add_library(${TARGET} ${ARG_SOURCES})
+  target_include_directories(${TARGET} PRIVATE ${PROJECT_SOURCE_DIR}/common)
+  target_include_directories(${TARGET} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/inc>
+                                              $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>)
+  foreach(d IN LISTS ARG_PUBLIC_BUILD_INCLUDE_DIRS)
+    target_include_directories(${TARGET} PUBLIC $<BUILD_INTERFACE:${d}>)
+  endforeach()
+  set_target_properties(${TARGET} PROPERTIES PUBLIC_HEADER "${PROJECT_SOURCE_DIR}/inc/energymon.h;${ARG_PUBLIC_HEADER}")
+  if(BUILD_SHARED_LIBS)
+    set_target_properties(${TARGET} PROPERTIES VERSION ${PROJECT_VERSION}
+                                               SOVERSION ${PROJECT_VERSION_MAJOR})
+  endif()
+  install(TARGETS ${TARGET}
+          EXPORT EnergyMonTargets
+          LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
+
+  # Tests and Utils
+  set(ENERGYMON_GET_HEADER ${ARG_ENERGYMON_GET_HEADER})
+  set(ENERGYMON_GET_FUNCTION ${ARG_ENERGYMON_GET_FUNCTION})
+  configure_file(${PROJECT_SOURCE_DIR}/common/energymon-get.c.in ${ARG_ENERGYMON_GET_C_OUTPUT})
+  BUILD_TESTS(${SHORT_NAME} ${TARGET} ${ARG_ENERGYMON_GET_C_OUTPUT})
+  BUILD_UTILS(${SHORT_NAME} ${TARGET} ${ARG_ENERGYMON_GET_C_OUTPUT})
+endfunction()
+
+# Forwards through to add_energymon_library, but the only argument should be SOURCES
+function(add_energymon_default_library)
+  add_energymon_library(energymon-default default ${ARGV}
+                        PUBLIC_HEADER ${PROJECT_SOURCE_DIR}/inc/energymon-default.h
+                        ENERGYMON_GET_HEADER energymon-default.h
+                        ENERGYMON_GET_FUNCTION "energymon_get_default"
+                        ENERGYMON_GET_C_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/energymon-default/energymon-get.c)
+  target_compile_definitions(energymon-default PRIVATE "ENERGYMON_DEFAULT")
+endfunction()
 
 
 # Libraries
@@ -121,11 +174,6 @@ if(NOT TARGET energymon-default AND NOT ${ENERGYMON_BUILD_DEFAULT} MATCHES "NONE
           "Specified implementation may be unknown, unsupported for the target system, or skipped due to missing build dependencies\n"
           "Retry with a supported value or set ENERGYMON_BUILD_DEFAULT=NONE")
 endif()
-
-
-# Install
-
-install(FILES inc/energymon.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
 
 
 # Uninstall
