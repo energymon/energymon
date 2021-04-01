@@ -2,12 +2,22 @@
 
 ## [Unreleased]
 
+### Added
+
+* CMake package config helpers to find EnergyMon libraries without requiring pkg-config
+* Additional Travis CI architectures
+
 ### Changed
 
 * Overhaul of CMake build system
   * Increased minimum CMake version from 2.8.5 to 3.6
   * Refactor library and binary target creation
   * Export targets during install
+
+### Fixed
+
+* cray-pm: building as default libraries used wrong macro, causing build failures
+* wattsup-libftdi: Description field in pkg-config file was empty
 
 
 ## [v0.3.1] - 2020-10-27
