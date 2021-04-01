@@ -13,6 +13,7 @@
   * Increased minimum CMake version from 2.8.5 to 3.6
   * Refactor library and binary target creation
   * Export targets during install
+* rapl: document Linux kernel changes/differences in README
 
 ### Fixed
 
