@@ -6,6 +6,7 @@
 
 * CMake package config helpers to find EnergyMon libraries without requiring pkg-config
 * Additional Travis CI architectures
+* raplcap-msr: support for multi-die packages
 
 ### Changed
 
@@ -14,6 +15,7 @@
   * Refactor library and binary target creation
   * Export targets during install
 * rapl: document Linux kernel changes/differences in README
+* raplcap-msr: update minimum dependency version to 0.5.0
 
 ### Fixed
 

@@ -7,7 +7,7 @@ set(DESCRIPTION "EnergyMon implementation using libraplcap-msr")
 
 find_package(PkgConfig)
 if(${PKG_CONFIG_FOUND})
-  pkg_search_module(RAPLCAP IMPORTED_TARGET raplcap-msr>=0.3.0)
+  pkg_search_module(RAPLCAP IMPORTED_TARGET raplcap-msr>=0.5.0)
 endif()
 if(NOT RAPLCAP_FOUND)
   # fail gracefully
