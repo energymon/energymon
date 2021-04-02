@@ -16,6 +16,7 @@ Current EnergyMon implementation options are:
 
 * dummy [default]
 * cray-pm
+* ibmpowernv-power
 * msr
 * odroid
 * odroid-ioctl

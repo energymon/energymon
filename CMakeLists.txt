@@ -8,6 +8,8 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 add_compile_options(-Wall)
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
 include(GNUInstallDirs)
 
 set(ENERGYMON_UTIL ${PROJECT_SOURCE_DIR}/common/energymon-util.c)
@@ -151,6 +153,7 @@ endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux|Android")
   add_subdirectory(cray-pm)
+  add_subdirectory(ibmpowernv)
   add_subdirectory(msr)
   add_subdirectory(odroid)
   add_subdirectory(rapl)
@@ -193,6 +196,11 @@ if (ENERGYMON_INSTALL_CMAKE_PACKAGES)
   install(FILES ${CMAKE_BINARY_DIR}/EnergyMonConfig.cmake
                 ${CMAKE_BINARY_DIR}/EnergyMonConfigVersion.cmake
           DESTINATION ${ENERGYMON_CMAKE_CONFIG_DIR})
+  if(NOT BUILD_SHARED_LIBS)
+    install(DIRECTORY ${PROJECT_SOURCE_DIR}/cmake/
+            DESTINATION ${ENERGYMON_CMAKE_CONFIG_DIR}/Modules
+            FILES_MATCHING PATTERN "Find*.cmake")
+  endif()
   install(EXPORT EnergyMonTargets
           DESTINATION ${ENERGYMON_CMAKE_CONFIG_DIR}
           NAMESPACE EnergyMon::)
