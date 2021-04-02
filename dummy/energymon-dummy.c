@@ -40,6 +40,7 @@ int energymon_finish_dummy(energymon* em) {
     errno = EINVAL;
     return -1;
   }
+  errno = 0;
   return 0;
 }
 

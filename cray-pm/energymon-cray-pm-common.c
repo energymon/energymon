@@ -40,6 +40,7 @@ uint64_t energymon_cray_pm_common_read_total(const energymon* em) {
   }
   const energymon_cray_pm_common* state = (energymon_cray_pm_common*) em->state;
   uint64_t joules = 0;
+  errno = 0;
   rewind(state->f);
   if (fscanf(state->f, "%"PRIu64" J", &joules) != 1) {
     return 0;

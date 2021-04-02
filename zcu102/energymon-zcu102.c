@@ -286,6 +286,7 @@ uint64_t energymon_read_total_zcu102(const energymon* em) {
     errno = EINVAL;
     return 0;
   }
+  errno = 0;
   return ((energymon_zcu102*) em->state)->total_uj;
 }
 

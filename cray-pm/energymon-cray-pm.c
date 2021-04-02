@@ -153,6 +153,7 @@ uint64_t energymon_read_total_cray_pm(const energymon* em) {
   }
   // don't let the counters update in the middle of reading - check freshness
   while (fresh_start != fresh_end) {
+    errno = 0;
     joules = 0;
     rewind(state->f_freshness);
     if (fscanf(state->f_freshness, "%"PRIu64, &fresh_start) != 1) {

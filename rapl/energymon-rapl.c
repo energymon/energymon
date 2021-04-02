@@ -277,6 +277,7 @@ uint64_t energymon_read_total_rapl(const energymon* em) {
     errno = EINVAL;
     return 0;
   }
+  errno = 0;
   return rapl_read_total_energy_uj(em->state);
 }
 

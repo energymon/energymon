@@ -361,6 +361,7 @@ uint64_t energymon_read_total_wattsup(const energymon* em) {
     return 0;
   }
   energymon_wattsup* state = (energymon_wattsup*) em->state;
+  errno = 0;
   if (state->use_estimates) {
     lock_acquire(&state->lock);
     state->exec_us = energymon_gettime_elapsed_us(&state->last_us);

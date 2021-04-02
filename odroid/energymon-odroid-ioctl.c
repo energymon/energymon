@@ -233,6 +233,7 @@ uint64_t energymon_read_total_odroid_ioctl(const energymon* em) {
     errno = EINVAL;
     return 0;
   }
+  errno = 0;
   return ((energymon_odroid_ioctl*) em->state)->total_uj;
 }
 
