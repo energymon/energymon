@@ -108,8 +108,7 @@ typedef struct energymon_osp {
   pthread_t thread;
   int poll;
 #else
-  uint64_t overflow_surplus;
-  unsigned int n_overflow;
+  double wh_surplus;
 #endif
 } energymon_osp;
 
@@ -417,12 +416,7 @@ uint64_t energymon_read_total_osp(const energymon* em) {
     printf("ODROID Smart Power: detected overflow at %f Wh\n", wh);
 #endif
     // force an overflow
-    while (wh >= OSP_WATTHOUR_MAX) {
-      wh -= OSP_WATTHOUR_MAX;
-      state->n_overflow++;
-    }
-    // save diff between wh and OSP_WATTHOUR_MAX so it's not lost after reset
-    state->overflow_surplus += wh;
+    state->wh_surplus += wh;
     wh = 0;
     // restart device counter
     if (em_osp_request_startstop(state, NULL)) {
@@ -432,8 +426,7 @@ uint64_t energymon_read_total_osp(const energymon* em) {
       perror("energymon_read_total_osp: em_osp_request_startstop: start");
     }
   }
-  return UJOULES_PER_WATTHOUR *
-         (wh + state->n_overflow * OSP_WATTHOUR_MAX + state->overflow_surplus);
+  return UJOULES_PER_WATTHOUR * (wh + state->wh_surplus);
 #endif
 }
 

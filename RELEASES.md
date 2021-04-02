@@ -20,6 +20,7 @@
 ### Fixed
 
 * cray-pm: building as default libraries used wrong macro, causing build failures
+* osp: some cumulative energy unaccounted for during overflow detection (precision loss)
 * wattsup-libftdi: Description field in pkg-config file was empty
 
 
