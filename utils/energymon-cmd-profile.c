@@ -108,7 +108,7 @@ int main(int argc, char** argv) {
 
   time_total_ns = time_end_ns - time_start_ns;
   energy_total_uj = energy_end_uj - energy_start_uj;
-  watts = energy_total_uj * 1000.0 / time_total_ns;
+  watts = time_total_ns > 0 ? (energy_total_uj * 1000.0 / time_total_ns) : 0;
   printf("Time (ns): %"PRIu64"\n", time_total_ns);
   printf("Energy (uJ): %"PRIu64"\n", energy_total_uj);
   printf("Power (W): %f\n", watts);
