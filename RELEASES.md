@@ -16,6 +16,7 @@
   * Export targets during install
 * rapl: document Linux kernel changes/differences in README
 * raplcap-msr: update minimum dependency version to 0.5.0
+* idle-power: now accepts idle time in fractional seconds
 
 ### Fixed
 

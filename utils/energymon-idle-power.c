@@ -28,12 +28,13 @@ static void print_usage(int exit_code) {
           "Usage: energymon-idle-power [OPTION]... [SECONDS]\n"
           "Options:\n"
           "  -h, --help               Print this message and exit\n"
-          "By default, SECONDS = %"PRIu64"\n", (DEFAULT_SLEEP_US / 1000000));
+          "By default, SECONDS = %f\n", ((double) DEFAULT_SLEEP_US / 1000000));
   exit(exit_code);
 }
 
 int main(int argc, char** argv) {
   energymon em;
+  double seconds;
   uint64_t sleep_us = DEFAULT_SLEEP_US;
   uint64_t time_start_ns;
   uint64_t time_end_ns;
@@ -53,7 +54,11 @@ int main(int argc, char** argv) {
     }
   }
   if (optind < argc) {
-    sleep_us = strtoull(argv[optind], NULL, 0) * 1000000;
+    if ((seconds = atof(argv[optind])) < 0) {
+      fprintf(stderr, "SECONDS value must be > 0, but got: %f\n", seconds);
+      exit(1);
+    }
+    sleep_us = seconds * 1000000;
   }
 
   // initialize
