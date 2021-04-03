@@ -200,8 +200,8 @@ int main(int argc, char** argv) {
     fprintf(fout, "Samples: %"PRIu64"\n", n);
     fprintf(fout, "Pavg: %f\n", pavg);
     fprintf(fout, "Pmax: %f\n", pmax);
-    fprintf(fout, "Pmin: %f\n", pmin);
-    fprintf(fout, "Pstdev: %f\n", n == 1 ? 0 : (sqrt(pstd / (n - 1))));
+    fprintf(fout, "Pmin: %f\n", n > 0 ? pmin : 0);
+    fprintf(fout, "Pstdev: %f\n", n <= 1 ? 0 : (sqrt(pstd / (n - 1))));
     fprintf(fout, "Joules: %f\n", n * pavg * (interval / 1000000.0f));
   }
 
