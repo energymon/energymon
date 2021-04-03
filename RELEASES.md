@@ -4,19 +4,19 @@
 
 ### Added
 
-* CMake package config helpers to find EnergyMon libraries without requiring pkg-config
-* Additional Travis CI architectures
+* CMake: package config helpers to find EnergyMon libraries without requiring pkg-config
 * raplcap-msr: support for multi-die packages
+* Travis CI: test on additional architectures
 
 ### Changed
 
-* Overhaul of CMake build system
+* CMake: overhaul the project build system
   * Increased minimum CMake version from 2.8.5 to 3.6
   * Refactor library and binary target creation
-  * Export targets during install
+  * Export CMake targets during install
 * rapl: document Linux kernel changes/differences in README
 * raplcap-msr: update minimum dependency version to 0.5.0
-* idle-power: now accepts idle time in fractional seconds
+* energymon-idle-power: now accepts idle time in fractional seconds
 
 ### Fixed
 
@@ -24,7 +24,7 @@
 * cray-pm: building as default libraries used wrong macro, causing build failures
 * osp: some cumulative energy unaccounted for during overflow detection (precision loss)
 * wattsup-libftdi: Description field in pkg-config file was empty
-* power-poller: incorrect Pmin summary output when number of samples is 0
+* energymon-power-poller: incorrect Pmin summary output when number of samples is 0
 
 
 ## [v0.3.1] - 2020-10-27
