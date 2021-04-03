@@ -87,7 +87,9 @@ int main(int argc, char** argv) {
   }
   time_end_ns = energymon_gettime_ns();
 
-  watts = (energy_end_uj - energy_start_uj) * 1000.0 / (time_end_ns - time_start_ns);
+  watts = (time_end_ns - time_start_ns) > 0
+          ? (energy_end_uj - energy_start_uj) * 1000.0 / (time_end_ns - time_start_ns)
+          : 0;
   fprintf(stdout, "%f\n", watts);
 
   // cleanup
