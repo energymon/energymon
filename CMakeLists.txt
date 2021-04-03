@@ -110,12 +110,9 @@ function(add_energymon_library TARGET SHORT_NAME)
 
   # Create library
   add_library(${TARGET} ${ARG_SOURCES})
-  target_include_directories(${TARGET} PRIVATE ${PROJECT_SOURCE_DIR}/common)
-  target_include_directories(${TARGET} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/inc>
+  target_include_directories(${TARGET} PRIVATE ${PROJECT_SOURCE_DIR}/common
+                                       PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/inc$<SEMICOLON>${ARG_PUBLIC_BUILD_INCLUDE_DIRS}>
                                               $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>)
-  foreach(d IN LISTS ARG_PUBLIC_BUILD_INCLUDE_DIRS)
-    target_include_directories(${TARGET} PUBLIC $<BUILD_INTERFACE:${d}>)
-  endforeach()
   set_target_properties(${TARGET} PROPERTIES PUBLIC_HEADER "${PROJECT_SOURCE_DIR}/inc/energymon.h;${ARG_PUBLIC_HEADER}")
   if(BUILD_SHARED_LIBS)
     set_target_properties(${TARGET} PROPERTIES VERSION ${PROJECT_VERSION}
