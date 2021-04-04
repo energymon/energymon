@@ -39,8 +39,6 @@ if(NOT HIDAPI_FOUND)
   return()
 endif()
 
-# Must be set to OFF to prevent doing a try_run() during cross-compiling
-set(THREADS_PTHREAD_ARG OFF)
 find_package(Threads)
 if(CMAKE_THREAD_LIBS_INIT)
   list(APPEND PKG_CONFIG_PRIVATE_LIBS "${CMAKE_THREAD_LIBS_INIT}")
