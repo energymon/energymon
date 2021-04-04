@@ -29,12 +29,12 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
                         ENERGYMON_GET_FUNCTION "energymon_get_raplcap_msr"
                         ENERGYMON_GET_C_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
   target_link_libraries(${LNAME} PRIVATE PkgConfig::RAPLCAP)
-  PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "raplcap-msr" "")
+  add_energymon_pkg_config(${LNAME} "${DESCRIPTION}" "raplcap-msr" "")
 
 endif()
 
 if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
   add_energymon_default_library(SOURCES ${SOURCES})
   target_link_libraries(energymon-default PRIVATE PkgConfig::RAPLCAP)
-  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "raplcap-msr" "")
+  add_energymon_pkg_config(energymon-default "${DESCRIPTION}" "raplcap-msr" "")
 endif()

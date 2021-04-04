@@ -16,11 +16,11 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
                         ENERGYMON_GET_HEADER ${LNAME}.h
                         ENERGYMON_GET_FUNCTION "energymon_get_dummy"
                         ENERGYMON_GET_C_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
-  PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "" "")
+  add_energymon_pkg_config(${LNAME} "${DESCRIPTION}" "" "")
 
 endif()
 
 if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
   add_energymon_default_library(SOURCES ${SOURCES})
-  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "")
+  add_energymon_pkg_config(energymon-default "${DESCRIPTION}" "" "")
 endif()

@@ -46,7 +46,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
     target_compile_definitions(${LNAME} PRIVATE HAS_FTDI_TCIOFLUSH)
   endif()
   target_link_libraries(${LNAME} PRIVATE Threads::Threads ${LIBRT} PkgConfig::LIBFTDI)
-  PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "${FTDI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
+  add_energymon_pkg_config(${LNAME} "${DESCRIPTION}" "${FTDI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
 
   if(UNIX AND ENERGYMON_BUILD_SHMEM_PROVIDERS)
     add_executable(${SHMEM_PROVIDER} ../energymon-wattsup-shmem-provider.c)
@@ -65,5 +65,5 @@ if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LN
     target_compile_definitions(energymon-default PRIVATE HAS_FTDI_TCIOFLUSH)
   endif()
   target_link_libraries(energymon-default PRIVATE Threads::Threads ${LIBRT} PkgConfig::LIBFTDI)
-  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "${FTDI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
+  add_energymon_pkg_config(energymon-default "${DESCRIPTION}" "${FTDI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
 endif()

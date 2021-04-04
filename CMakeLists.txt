@@ -70,28 +70,6 @@ add_subdirectory(utils)
 add_subdirectory(test)
 
 
-# Macros
-
-macro(PKG_CONFIG name description requires_private libs_private)
-  set(PKG_CONFIG_PREFIX "${CMAKE_INSTALL_PREFIX}")
-  set(PKG_CONFIG_EXEC_PREFIX "\${prefix}")
-  set(PKG_CONFIG_LIBDIR "\${prefix}/${CMAKE_INSTALL_LIBDIR}")
-  set(PKG_CONFIG_INCLUDEDIR "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}")
-  set(PKG_CONFIG_NAME "${name}")
-  set(PKG_CONFIG_DESCRIPTION "${description}")
-  set(PKG_CONFIG_REQUIRES_PRIVATE "${requires_private}")
-  set(PKG_CONFIG_CFLAGS "-I\${includedir}")
-  set(PKG_CONFIG_LIBS "-L\${libdir} -l${name}")
-  set(PKG_CONFIG_LIBS_PRIVATE "${libs_private}")
-  configure_file(
-    ${PROJECT_SOURCE_DIR}/pkgconfig.in
-    ${CMAKE_CURRENT_BINARY_DIR}/${name}.pc
-    @ONLY
-  )
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${name}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
-endmacro(PKG_CONFIG)
-
-
 # Functions
 
 function(add_energymon_library TARGET SHORT_NAME)
@@ -140,6 +118,25 @@ function(add_energymon_default_library)
                         ENERGYMON_GET_FUNCTION "energymon_get_default"
                         ENERGYMON_GET_C_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/energymon-default/energymon-get.c)
   target_compile_definitions(energymon-default PRIVATE "ENERGYMON_DEFAULT")
+endfunction()
+
+function(add_energymon_pkg_config TARGET DESCRIPTION REQUIRES_PRIVATE LIBS_PRIVATE)
+  set(PKG_CONFIG_PREFIX "${CMAKE_INSTALL_PREFIX}")
+  set(PKG_CONFIG_EXEC_PREFIX "\${prefix}")
+  set(PKG_CONFIG_LIBDIR "\${prefix}/${CMAKE_INSTALL_LIBDIR}")
+  set(PKG_CONFIG_INCLUDEDIR "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}")
+  set(PKG_CONFIG_NAME "${TARGET}")
+  set(PKG_CONFIG_DESCRIPTION "${DESCRIPTION}")
+  string(REPLACE ";" " " PKG_CONFIG_REQUIRES_PRIVATE "${REQUIRES_PRIVATE}")
+  set(PKG_CONFIG_CFLAGS "-I\${includedir}")
+  set(PKG_CONFIG_LIBS "-L\${libdir} -l${TARGET}")
+  string(REPLACE ";" " " PKG_CONFIG_LIBS_PRIVATE "${LIBS_PRIVATE}")
+  configure_file(
+    ${PROJECT_SOURCE_DIR}/pkgconfig.in
+    ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.pc
+    @ONLY
+  )
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 endfunction()
 
 

@@ -9,10 +9,10 @@ set(DESCRIPTION "EnergyMon implementation for Xilinx ZCU102 systems")
 set(THREADS_PTHREAD_ARG OFF)
 find_package(Threads)
 if(CMAKE_THREAD_LIBS_INIT)
-  set(PKG_CONFIG_PRIVATE_LIBS "${CMAKE_THREAD_LIBS_INIT}")
+  list(APPEND PKG_CONFIG_PRIVATE_LIBS "${CMAKE_THREAD_LIBS_INIT}")
 endif()
 if(LIBRT)
-  set(PKG_CONFIG_PRIVATE_LIBS "${PKG_CONFIG_PRIVATE_LIBS} -lrt")
+  list(APPEND PKG_CONFIG_PRIVATE_LIBS "-lrt")
 endif()
 
 # Libraries
@@ -29,12 +29,12 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
                         ENERGYMON_GET_FUNCTION "energymon_get_zcu102"
                         ENERGYMON_GET_C_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
   target_link_libraries(${LNAME} PRIVATE Threads::Threads ${LIBRT})
-  PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
+  add_energymon_pkg_config(${LNAME} "${DESCRIPTION}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
 
 endif()
 
 if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
   add_energymon_default_library(SOURCES ${SOURCES})
   target_link_libraries(energymon-default PRIVATE Threads::Threads ${LIBRT})
-  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
+  add_energymon_pkg_config(energymon-default "${DESCRIPTION}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
 endif()

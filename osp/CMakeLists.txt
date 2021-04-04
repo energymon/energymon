@@ -43,10 +43,10 @@ endif()
 set(THREADS_PTHREAD_ARG OFF)
 find_package(Threads)
 if(CMAKE_THREAD_LIBS_INIT)
-  set(PKG_CONFIG_PRIVATE_LIBS "${CMAKE_THREAD_LIBS_INIT}")
+  list(APPEND PKG_CONFIG_PRIVATE_LIBS "${CMAKE_THREAD_LIBS_INIT}")
 endif()
 if(LIBRT)
-  set(PKG_CONFIG_PRIVATE_LIBS "${PKG_CONFIG_PRIVATE_LIBS} -lrt")
+  list(APPEND PKG_CONFIG_PRIVATE_LIBS "-lrt")
 endif()
 
 # Libraries
@@ -63,7 +63,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
                         ENERGYMON_GET_FUNCTION "energymon_get_osp"
                         ENERGYMON_GET_C_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
   target_link_libraries(${LNAME} PRIVATE PkgConfig::HIDAPI)
-  PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "${HIDAPI_IMPL}" "")
+  add_energymon_pkg_config(${LNAME} "${DESCRIPTION}" "${HIDAPI_IMPL}" "")
 
 endif()
 
@@ -80,7 +80,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
                         ENERGYMON_GET_C_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${LNAME_POLLING}/energymon-get.c)
   target_compile_definitions(${LNAME_POLLING} PRIVATE ENERGYMON_OSP_USE_POLLING)
   target_link_libraries(${LNAME_POLLING} PRIVATE PkgConfig::HIDAPI Threads::Threads ${LIBRT})
-  PKG_CONFIG("${LNAME_POLLING}" "${DESCRIPTION_POLLING}" "${HIDAPI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
+  add_energymon_pkg_config(${LNAME_POLLING} "${DESCRIPTION_POLLING}" "${HIDAPI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
 
   if (ENERGYMON_BUILD_SHMEM_PROVIDERS)
     add_executable(${SHMEM_PROVIDER} energymon-osp-polling-shmem-provider.c)
@@ -96,10 +96,10 @@ endif()
 if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
   add_energymon_default_library(SOURCES ${SOURCES})
   target_link_libraries(energymon-default PRIVATE PkgConfig::HIDAPI)
-  PKG_CONFIG("energymon-default" "${DESCRIPTION}" "${HIDAPI_IMPL}" "")
+  add_energymon_pkg_config(energymon-default "${DESCRIPTION}" "${HIDAPI_IMPL}" "")
 elseif(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME_POLLING OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME_POLLING)
   add_energymon_default_library(SOURCES ${SOURCES_POLLING})
   target_compile_definitions(energymon-default PRIVATE ENERGYMON_OSP_USE_POLLING)
   target_link_libraries(energymon-default PRIVATE PkgConfig::HIDAPI Threads::Threads ${LIBRT})
-  PKG_CONFIG("energymon-default" "${DESCRIPTION_POLLING}" "${HIDAPI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
+  add_energymon_pkg_config(energymon-default "${DESCRIPTION_POLLING}" "${HIDAPI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
 endif()
