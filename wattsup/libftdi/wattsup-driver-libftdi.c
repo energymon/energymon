@@ -77,8 +77,14 @@ energymon_wattsup_ctx* wattsup_connect(const char* dev_file, unsigned int timeou
     return init_failed("ftdi_set_line_property", ctx, 1);
   }
   // flush buffers
+#if HAS_FTDI_TCIOFLUSH
+  if (ftdi_tcioflush(ctx->ctx)) {
+    return init_failed("ftdi_tcioflush", ctx, 1);
+#else
+  // ftdi_usb_purge_buffers is deprecated starting in libftdi 1.5 (2020-07-07)
   if (ftdi_usb_purge_buffers(ctx->ctx)) {
     return init_failed("ftdi_usb_purge_buffers", ctx, 1);
+#endif
   }
 
   return ctx;

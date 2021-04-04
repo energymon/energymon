@@ -16,6 +16,7 @@
   * Export CMake targets during install
 * rapl: document Linux kernel changes/differences in README
 * raplcap-msr: update minimum dependency version to 0.5.0
+* wattsup-libftdi [#47]: prefer `ftdi_tcioflush` if available (`ftdi_usb_purge_buffers` deprecated in libftdi 1.5)
 * energymon-idle-power: now accepts idle time in fractional seconds
 
 ### Fixed
@@ -158,6 +159,7 @@
 [v0.2.3]: https://github.com/energymon/energymon/compare/v0.2.2...v0.2.3
 [v0.2.2]: https://github.com/energymon/energymon/compare/v0.2.1...v0.2.2
 [v0.2.1]: https://github.com/energymon/energymon/compare/v0.2.0...v0.2.1
+[#47]: https://github.com/energymon/energymon/issues/47
 [#46]: https://github.com/energymon/energymon/issues/46
 [#44]: https://github.com/energymon/energymon/issues/44
 [#40]: https://github.com/energymon/energymon/issues/40

@@ -23,6 +23,11 @@ if(NOT LIBFTDI_FOUND)
   return()
 endif()
 
+# check for ftdi_tcioflush
+try_compile(HAS_FTDI_TCIOFLUSH ${CMAKE_CURRENT_BINARY_DIR}/has_ftdi_tcioflush
+            SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/has_ftdi_tcioflush.c
+            LINK_LIBRARIES PkgConfig::LIBFTDI)
+
 # Libraries
 
 if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
@@ -37,6 +42,9 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
                         ENERGYMON_GET_FUNCTION "energymon_get_wattsup"
                         ENERGYMON_GET_C_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
   target_include_directories(${LNAME} PRIVATE ..)
+  if(HAS_FTDI_TCIOFLUSH)
+    target_compile_definitions(${LNAME} PRIVATE HAS_FTDI_TCIOFLUSH)
+  endif()
   target_link_libraries(${LNAME} PRIVATE Threads::Threads ${LIBRT} PkgConfig::LIBFTDI)
   PKG_CONFIG("${LNAME}" "${DESCRIPTION}" "${FTDI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
 
@@ -53,6 +61,9 @@ endif()
 if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
   add_energymon_default_library(SOURCES ${SOURCES})
   target_include_directories(energymon-default PRIVATE ..)
+  if(HAS_FTDI_TCIOFLUSH)
+    target_compile_definitions(energymon-default PRIVATE HAS_FTDI_TCIOFLUSH)
+  endif()
   target_link_libraries(energymon-default PRIVATE Threads::Threads ${LIBRT} PkgConfig::LIBFTDI)
   PKG_CONFIG("energymon-default" "${DESCRIPTION}" "${FTDI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
 endif()
