@@ -40,28 +40,35 @@ set(ENERGYMON_BUILD_UTILITIES TRUE CACHE BOOL "Enable/disable building utility a
 set(ENERGYMON_BUILD_TESTS TRUE CACHE BOOL "Enable/disable building tests")
 set(ENERGYMON_BUILD_EXAMPLES TRUE CACHE BOOL "Enable/disable building example code")
 
+set(ENERGYMON_INSTALL_CMAKE_PACKAGES FALSE CACHE BOOL "[Experimental] Enable/disable installing cmake package configuration files")
+
 
 # CMake package helpers
 
-include(CMakePackageConfigHelpers)
-set(ENERGYMON_CMAKE_CONFIG_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/energymon)
-set(CONFIG_TARGETS_FILE EnergyMonTargets.cmake)
-configure_package_config_file(
-  ${PROJECT_SOURCE_DIR}/Config.cmake.in
-  ${CMAKE_BINARY_DIR}/EnergyMonConfig.cmake
-  INSTALL_DESTINATION ${ENERGYMON_CMAKE_CONFIG_DIR}
-)
-write_basic_package_version_file(
-  ${CMAKE_BINARY_DIR}/EnergyMonConfigVersion.cmake
-  VERSION ${PROJECT_VERSION}
-  COMPATIBILITY SameMajorVersion
-)
-install(FILES ${CMAKE_BINARY_DIR}/EnergyMonConfig.cmake
-              ${CMAKE_BINARY_DIR}/EnergyMonConfigVersion.cmake
-        DESTINATION ${ENERGYMON_CMAKE_CONFIG_DIR})
-install(EXPORT EnergyMonTargets
-        DESTINATION ${ENERGYMON_CMAKE_CONFIG_DIR}
-        NAMESPACE EnergyMon::)
+if (ENERGYMON_INSTALL_CMAKE_PACKAGES)
+  # TODO: Handle transitive dependencies like Threads::Threads, LIBRT, and optional third-party libraries
+  #       Even though these are PRIVATE dependencies, static libraries export these dependency requirements
+  #       The package config helpers must correctly locate these, if needed
+  include(CMakePackageConfigHelpers)
+  set(ENERGYMON_CMAKE_CONFIG_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/energymon)
+  set(CONFIG_TARGETS_FILE EnergyMonTargets.cmake)
+  configure_package_config_file(
+    ${PROJECT_SOURCE_DIR}/Config.cmake.in
+    ${CMAKE_BINARY_DIR}/EnergyMonConfig.cmake
+    INSTALL_DESTINATION ${ENERGYMON_CMAKE_CONFIG_DIR}
+  )
+  write_basic_package_version_file(
+    ${CMAKE_BINARY_DIR}/EnergyMonConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+  )
+  install(FILES ${CMAKE_BINARY_DIR}/EnergyMonConfig.cmake
+                ${CMAKE_BINARY_DIR}/EnergyMonConfigVersion.cmake
+          DESTINATION ${ENERGYMON_CMAKE_CONFIG_DIR})
+  install(EXPORT EnergyMonTargets
+          DESTINATION ${ENERGYMON_CMAKE_CONFIG_DIR}
+          NAMESPACE EnergyMon::)
+endif()
 
 
 # Utilities

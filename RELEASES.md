@@ -4,7 +4,6 @@
 
 ### Added
 
-* CMake: package config helpers to find EnergyMon libraries without requiring pkg-config
 * raplcap-msr: support for multi-die packages
 * Travis CI: test on additional architectures
 
