@@ -1,7 +1,7 @@
 # Tests
 
 function(add_energymon_tests SHORT_NAME TARGET_LIB ENERGYMON_GET_C)
-  if (NOT ENERGYMON_add_energymon_tests)
+  if(NOT ENERGYMON_BUILD_TESTS)
     return()
   endif()
 
