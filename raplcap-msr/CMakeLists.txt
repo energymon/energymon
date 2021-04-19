@@ -5,9 +5,10 @@ set(DESCRIPTION "EnergyMon implementation using libraplcap-msr")
 
 # Dependencies
 
+set(RAPLCAP_MIN_VERSION 0.5.0)
 find_package(PkgConfig)
 if(${PKG_CONFIG_FOUND})
-  pkg_search_module(RAPLCAP IMPORTED_TARGET raplcap-msr>=0.5.0)
+  pkg_search_module(RAPLCAP IMPORTED_TARGET raplcap-msr>=${RAPLCAP_MIN_VERSION})
 endif()
 if(NOT RAPLCAP_FOUND)
   # fail gracefully
@@ -29,12 +30,12 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
                         ENERGYMON_GET_FUNCTION "energymon_get_raplcap_msr"
                         ENERGYMON_GET_C_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
   target_link_libraries(${LNAME} PRIVATE PkgConfig::RAPLCAP)
-  add_energymon_pkg_config(${LNAME} "${DESCRIPTION}" "raplcap-msr" "")
+  add_energymon_pkg_config(${LNAME} "${DESCRIPTION}" "raplcap-msr >= ${RAPLCAP_MIN_VERSION}" "")
 
 endif()
 
 if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
   add_energymon_default_library(SOURCES ${SOURCES})
   target_link_libraries(energymon-default PRIVATE PkgConfig::RAPLCAP)
-  add_energymon_pkg_config(energymon-default "${DESCRIPTION}" "raplcap-msr" "")
+  add_energymon_pkg_config(energymon-default "${DESCRIPTION}" "raplcap-msr >= ${RAPLCAP_MIN_VERSION}" "")
 endif()
