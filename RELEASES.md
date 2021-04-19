@@ -23,6 +23,7 @@
 * Valid 0 return values from fread functions mistaken for errors when errno is already set
 * cray-pm: building as default libraries used wrong macro, causing build failures
 * osp: some cumulative energy unaccounted for during overflow detection (precision loss)
+* raplcap-msr: Requires.private field in pkg-config file should specify the minimum version for raplcap-msr dependency
 * wattsup-libftdi: Description field in pkg-config file was empty
 * energymon-power-poller: incorrect Pmin summary output when number of samples is 0
 
