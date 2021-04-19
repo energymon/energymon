@@ -27,6 +27,9 @@ endif()
 try_compile(HAS_FTDI_TCIOFLUSH ${CMAKE_CURRENT_BINARY_DIR}/has_ftdi_tcioflush
             SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/has_ftdi_tcioflush.c
             LINK_LIBRARIES PkgConfig::LIBFTDI)
+if(HAS_FTDI_TCIOFLUSH)
+  set(FTDI_IMPL "${FTDI_IMPL} >= 1.5")
+endif()
 
 # Libraries
 
