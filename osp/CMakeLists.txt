@@ -40,6 +40,12 @@ if(NOT HIDAPI_FOUND)
 endif()
 
 find_package(Threads)
+if(NOT Threads_FOUND)
+  # fail gracefully
+  message(WARNING "${LNAME}: Missing Threads library - skipping this project")
+  message(WARNING "${LNAME_POLLING}: Missing Threads library - skipping this project")
+  return()
+endif()
 if(CMAKE_THREAD_LIBS_INIT)
   list(APPEND PKG_CONFIG_PRIVATE_LIBS "${CMAKE_THREAD_LIBS_INIT}")
 endif()

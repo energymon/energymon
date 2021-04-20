@@ -4,6 +4,12 @@ set(SOURCES ../energymon-wattsup.c;wattsup-driver-dev.c;${ENERGYMON_UTIL};${ENER
 set(DESCRIPTION "EnergyMon implementation for WattsUp? Power meters")
 set(SHMEM_PROVIDER ${LNAME}-shmem-provider)
 
+if(NOT Threads_FOUND)
+  # fail gracefully
+  message(WARNING "${LNAME}: Missing Threads library - skipping this project")
+  return()
+endif()
+
 # Libraries
 
 if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR

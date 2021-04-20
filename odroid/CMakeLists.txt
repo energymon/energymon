@@ -10,6 +10,12 @@ set(DESCRIPTION_IOCTL "EnergyMon implementation for ODROID systems using ioctl")
 # Dependencies
 
 find_package(Threads)
+if(NOT Threads_FOUND)
+  # fail gracefully
+  message(WARNING "${LNAME}: Missing Threads library - skipping this project")
+  message(WARNING "${LNAME_IOCTL}: Missing Threads library - skipping this project")
+  return()
+endif()
 if(CMAKE_THREAD_LIBS_INIT)
   list(APPEND PKG_CONFIG_PRIVATE_LIBS "${CMAKE_THREAD_LIBS_INIT}")
 endif()
