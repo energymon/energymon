@@ -4,19 +4,18 @@ set(SOURCES ../energymon-wattsup.c;wattsup-driver-libusb.c;${ENERGYMON_UTIL};${E
 set(DESCRIPTION "EnergyMon implementation for WattsUp? Power meters using libusb-1.0")
 set(SHMEM_PROVIDER ${LNAME}-shmem-provider)
 
+# Dependencies
+
 if(NOT Threads_FOUND)
   # fail gracefully
   message(WARNING "${LNAME}: Missing Threads library - skipping this project")
   return()
 endif()
 
-# Dependencies
-
 find_package(PkgConfig)
 if(${PKG_CONFIG_FOUND})
   pkg_search_module(LIBUSB_1 IMPORTED_TARGET libusb-1.0)
 endif()
-
 if(NOT LIBUSB_1_FOUND)
   # fail gracefully
   message(WARNING "${LNAME}: No libusb-1.0 - skipping this project")

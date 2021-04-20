@@ -4,25 +4,23 @@ set(SOURCES ../energymon-wattsup.c;wattsup-driver-libftdi.c;${ENERGYMON_UTIL};${
 set(DESCRIPTION "EnergyMon implementation for WattsUp? Power meters using libftdi")
 set(SHMEM_PROVIDER ${LNAME}-shmem-provider)
 
+# Dependencies
+
 if(NOT Threads_FOUND)
   # fail gracefully
   message(WARNING "${LNAME}: Missing Threads library - skipping this project")
   return()
 endif()
 
-# Dependencies
-
 set(FTDI_IMPL libftdi1)
-
 find_package(PkgConfig)
 if(${PKG_CONFIG_FOUND})
-  pkg_search_module(LIBFTDI IMPORTED_TARGET libftdi1)
+  pkg_search_module(LIBFTDI IMPORTED_TARGET ${FTDI_IMPL})
   if(NOT LIBFTDI_FOUND)
     set(FTDI_IMPL libftdi)
-    pkg_search_module(LIBFTDI IMPORTED_TARGET libftdi)
+    pkg_search_module(LIBFTDI IMPORTED_TARGET ${FTDI_IMPL})
   endif()
 endif()
-
 if(NOT LIBFTDI_FOUND)
   # fail gracefully
   message(WARNING "${LNAME}: No libftdi1 or libftdi - skipping this project")
