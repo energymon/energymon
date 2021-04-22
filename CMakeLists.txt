@@ -43,34 +43,6 @@ set(ENERGYMON_BUILD_EXAMPLES TRUE CACHE BOOL "Enable/disable building example co
 set(ENERGYMON_INSTALL_CMAKE_PACKAGES FALSE CACHE BOOL "[Experimental] Enable/disable installing cmake package configuration files")
 
 
-# CMake package helpers
-
-if (ENERGYMON_INSTALL_CMAKE_PACKAGES)
-  # TODO: Handle transitive dependencies like Threads::Threads, LIBRT, and optional third-party libraries
-  #       Even though these are PRIVATE dependencies, static libraries export these dependency requirements
-  #       The package config helpers must correctly locate these, if needed
-  include(CMakePackageConfigHelpers)
-  set(ENERGYMON_CMAKE_CONFIG_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/energymon)
-  set(CONFIG_TARGETS_FILE EnergyMonTargets.cmake)
-  configure_package_config_file(
-    ${PROJECT_SOURCE_DIR}/Config.cmake.in
-    ${CMAKE_BINARY_DIR}/EnergyMonConfig.cmake
-    INSTALL_DESTINATION ${ENERGYMON_CMAKE_CONFIG_DIR}
-  )
-  write_basic_package_version_file(
-    ${CMAKE_BINARY_DIR}/EnergyMonConfigVersion.cmake
-    VERSION ${PROJECT_VERSION}
-    COMPATIBILITY SameMajorVersion
-  )
-  install(FILES ${CMAKE_BINARY_DIR}/EnergyMonConfig.cmake
-                ${CMAKE_BINARY_DIR}/EnergyMonConfigVersion.cmake
-          DESTINATION ${ENERGYMON_CMAKE_CONFIG_DIR})
-  install(EXPORT EnergyMonTargets
-          DESTINATION ${ENERGYMON_CMAKE_CONFIG_DIR}
-          NAMESPACE EnergyMon::)
-endif()
-
-
 # Utilities
 
 add_subdirectory(utils)
@@ -146,6 +118,22 @@ function(add_energymon_pkg_config TARGET DESCRIPTION REQUIRES_PRIVATE LIBS_PRIVA
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 endfunction()
 
+function(energymon_export_dependency PACKAGE)
+  set_property(GLOBAL APPEND PROPERTY ENERGYMON_CMAKE_PACKAGE_DEPENDENCIES "find_dependency(${PACKAGE})")
+endfunction()
+
+function(energymon_export_pkg_dependency PREFIX MODULE_SPEC)
+  # Parse arguments
+  set(options IMPORTED_TARGET)
+  set(oneValueArgs)
+  set(multiValueArgs)
+  cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+  if(NOT "${ARG_UNPARSED_ARGUMENTS}" STREQUAL "")
+    message(FATAL_ERROR "energymon_export_pkg_dependency: unrecognized args: ${ARG_UNPARSED_ARGUMENTS}")
+  endif()
+  set_property(GLOBAL APPEND PROPERTY ENERGYMON_CMAKE_PACKAGE_DEPENDENCIES "find_pkg_config_dependency(${PREFIX} ${ARG_IMPORTED_TARGET} ${MODULE_SPEC})")
+endfunction()
+
 
 # Libraries
 
@@ -174,6 +162,34 @@ if(NOT TARGET energymon-default AND NOT ${ENERGYMON_BUILD_DEFAULT} MATCHES "NONE
           "No build target for ENERGYMON_BUILD_DEFAULT=${ENERGYMON_BUILD_DEFAULT}\n"
           "Specified implementation may be unknown, unsupported for the target system, or skipped due to missing build dependencies\n"
           "Retry with a supported value or set ENERGYMON_BUILD_DEFAULT=NONE")
+endif()
+
+
+# CMake package helpers
+
+if (ENERGYMON_INSTALL_CMAKE_PACKAGES)
+  include(CMakePackageConfigHelpers)
+  set(ENERGYMON_CMAKE_CONFIG_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/energymon)
+  get_property(PACKAGE_CONFIG_REQUIRED_DEPENDENCIES GLOBAL PROPERTY ENERGYMON_CMAKE_PACKAGE_DEPENDENCIES)
+  list(REMOVE_DUPLICATES PACKAGE_CONFIG_REQUIRED_DEPENDENCIES)
+  string(REPLACE ";" "\n" CONFIG_FIND_DEPENDENCIES "${PACKAGE_CONFIG_REQUIRED_DEPENDENCIES}")
+  set(CONFIG_TARGETS_FILE EnergyMonTargets.cmake)
+  configure_package_config_file(
+    ${PROJECT_SOURCE_DIR}/Config.cmake.in
+    ${CMAKE_BINARY_DIR}/EnergyMonConfig.cmake
+    INSTALL_DESTINATION ${ENERGYMON_CMAKE_CONFIG_DIR}
+  )
+  write_basic_package_version_file(
+    ${CMAKE_BINARY_DIR}/EnergyMonConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+  )
+  install(FILES ${CMAKE_BINARY_DIR}/EnergyMonConfig.cmake
+                ${CMAKE_BINARY_DIR}/EnergyMonConfigVersion.cmake
+          DESTINATION ${ENERGYMON_CMAKE_CONFIG_DIR})
+  install(EXPORT EnergyMonTargets
+          DESTINATION ${ENERGYMON_CMAKE_CONFIG_DIR}
+          NAMESPACE EnergyMon::)
 endif()
 
 

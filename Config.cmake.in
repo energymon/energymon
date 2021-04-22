@@ -1,3 +1,46 @@
 @PACKAGE_INIT@
 
+include(CMakeFindDependencyMacro)
+
+# Modeled after CMake's find_dependency macro, but for pkg-config
+macro(find_pkg_config_dependency PREFIX IMPORTED_TARGET MODULE_SPEC)
+  find_dependency(PkgConfig)
+  if(NOT PkgConfig_FOUND)
+    set(${CMAKE_FIND_PACKAGE_NAME}_NOT_FOUND_MESSAGE "${CMAKE_FIND_PACKAGE_NAME} could not be found because pkg-config could not be found.")
+    set(${CMAKE_FIND_PACKAGE_NAME}_FOUND False)
+    return()
+  endif()
+
+  set(_ARG_QUIET)
+  if(${CMAKE_FIND_PACKAGE_NAME}_FIND_QUIETLY)
+    set(_ARG_QUIET QUIET)
+  endif()
+  set(_ARG_REQUIRED)
+  if(${CMAKE_FIND_PACKAGE_NAME}_FIND_REQUIRED)
+    set(_ARG_REQUIRED REQUIRED)
+  endif()
+  set(_ARG_IMPORTED_TARGET)
+  if(${IMPORTED_TARGET})
+    if(${CMAKE_VERSION} VERSION_LESS "3.6")
+      set(${CMAKE_FIND_PACKAGE_NAME}_NOT_FOUND_MESSAGE "${CMAKE_FIND_PACKAGE_NAME} could not be found because CMake >= 3.6 is required to import pkg-config dependencies.")
+      set(${CMAKE_FIND_PACKAGE_NAME}_FOUND False)
+      return()
+    endif()
+    set(_ARG_IMPORTED_TARGET IMPORTED_TARGET)
+  endif()
+
+  pkg_search_module(${PREFIX} ${_ARG_REQUIRED} ${_ARG_QUIET} ${_ARG_IMPORTED_TARGET} ${MODULE_SPEC})
+  if(NOT ${PREFIX}_FOUND)
+    set(${CMAKE_FIND_PACKAGE_NAME}_NOT_FOUND_MESSAGE "${CMAKE_FIND_PACKAGE_NAME} could not be found because pkg-config dependency ${MODULE_SPEC} could not be found.")
+    set(${CMAKE_FIND_PACKAGE_NAME}_FOUND False)
+    return()
+  endif()
+
+  set(_ARG_QUIET)
+  set(_ARG_REQUIRED)
+  set(_ARG_IMPORTED_TARGET)
+endmacro()
+
+@CONFIG_FIND_DEPENDENCIES@
+
 include(${CMAKE_CURRENT_LIST_DIR}/@CONFIG_TARGETS_FILE@)
