@@ -38,6 +38,8 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
   target_include_directories(${LNAME} PRIVATE ..)
   target_link_libraries(${LNAME} PRIVATE Threads::Threads ${LIBRT} PkgConfig::LIBUSB_1)
   add_energymon_pkg_config(${LNAME} "${DESCRIPTION}" "libusb-1.0" "${PKG_CONFIG_PRIVATE_LIBS}")
+  energymon_export_dependency(Threads)
+  energymon_export_pkg_dependency(LIBUSB_1 libusb-1.0 IMPORTED_TARGET)
 
   set(BUILD_ATTACH_KERNEL TRUE)
   if(UNIX)
@@ -55,6 +57,9 @@ if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LN
   target_include_directories(energymon-default PRIVATE ..)
   target_link_libraries(energymon-default PRIVATE Threads::Threads ${LIBRT} PkgConfig::LIBUSB_1)
   add_energymon_pkg_config(energymon-default "${DESCRIPTION}" "libusb-1.0" "${PKG_CONFIG_PRIVATE_LIBS}")
+  energymon_export_dependency(Threads)
+  energymon_export_pkg_dependency(LIBUSB_1 libusb-1.0 IMPORTED_TARGET)
+
   set(BUILD_ATTACH_KERNEL TRUE)
 endif()
 

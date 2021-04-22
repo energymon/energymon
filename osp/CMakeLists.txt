@@ -70,6 +70,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
                         ENERGYMON_GET_C_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
   target_link_libraries(${LNAME} PRIVATE PkgConfig::HIDAPI)
   add_energymon_pkg_config(${LNAME} "${DESCRIPTION}" "${HIDAPI_IMPL}" "")
+  energymon_export_pkg_dependency(HIDAPI ${HIDAPI_IMPL} IMPORTED_TARGET)
 
 endif()
 
@@ -87,6 +88,8 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
   target_compile_definitions(${LNAME_POLLING} PRIVATE ENERGYMON_OSP_USE_POLLING)
   target_link_libraries(${LNAME_POLLING} PRIVATE PkgConfig::HIDAPI Threads::Threads ${LIBRT})
   add_energymon_pkg_config(${LNAME_POLLING} "${DESCRIPTION_POLLING}" "${HIDAPI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
+  energymon_export_pkg_dependency(HIDAPI ${HIDAPI_IMPL} IMPORTED_TARGET)
+  energymon_export_dependency(Threads)
 
   if (ENERGYMON_BUILD_SHMEM_PROVIDERS)
     add_executable(${SHMEM_PROVIDER} energymon-osp-polling-shmem-provider.c)
@@ -103,9 +106,12 @@ if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LN
   add_energymon_default_library(SOURCES ${SOURCES})
   target_link_libraries(energymon-default PRIVATE PkgConfig::HIDAPI)
   add_energymon_pkg_config(energymon-default "${DESCRIPTION}" "${HIDAPI_IMPL}" "")
+  energymon_export_pkg_dependency(HIDAPI ${HIDAPI_IMPL} IMPORTED_TARGET)
 elseif(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME_POLLING OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME_POLLING)
   add_energymon_default_library(SOURCES ${SOURCES_POLLING})
   target_compile_definitions(energymon-default PRIVATE ENERGYMON_OSP_USE_POLLING)
   target_link_libraries(energymon-default PRIVATE PkgConfig::HIDAPI Threads::Threads ${LIBRT})
   add_energymon_pkg_config(energymon-default "${DESCRIPTION_POLLING}" "${HIDAPI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
+  energymon_export_pkg_dependency(HIDAPI ${HIDAPI_IMPL} IMPORTED_TARGET)
+  energymon_export_dependency(Threads)
 endif()

@@ -28,6 +28,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
   target_include_directories(${LNAME} PRIVATE ..)
   target_link_libraries(${LNAME} PRIVATE Threads::Threads ${LIBRT})
   add_energymon_pkg_config(${LNAME} "${DESCRIPTION}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
+  energymon_export_dependency(Threads)
 
   if(UNIX AND ENERGYMON_BUILD_SHMEM_PROVIDERS)
     add_executable(${SHMEM_PROVIDER} ../energymon-wattsup-shmem-provider.c)
@@ -44,4 +45,5 @@ if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LN
   target_include_directories(energymon-default PRIVATE ..)
   target_link_libraries(energymon-default PRIVATE Threads::Threads ${LIBRT})
   add_energymon_pkg_config(energymon-default "${DESCRIPTION}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
+  energymon_export_dependency(Threads)
 endif()

@@ -39,6 +39,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
                         ENERGYMON_GET_C_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
   target_link_libraries(${LNAME} PRIVATE Threads::Threads ${LIBRT})
   add_energymon_pkg_config(${LNAME} "${DESCRIPTION}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
+  energymon_export_dependency(Threads)
 
 endif()
 
@@ -55,6 +56,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
                         ENERGYMON_GET_C_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${LNAME_IOCTL}/energymon-get.c)
   target_link_libraries(${LNAME_IOCTL} PRIVATE Threads::Threads ${LIBRT})
   add_energymon_pkg_config(${LNAME_IOCTL} "${DESCRIPTION_IOCTL}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
+  energymon_export_dependency(Threads)
 
 endif()
 
@@ -62,8 +64,10 @@ if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LN
   add_energymon_default_library(SOURCES ${SOURCES})
   target_link_libraries(energymon-default PRIVATE Threads::Threads ${LIBRT})
   add_energymon_pkg_config(energymon-default "${DESCRIPTION}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
+  energymon_export_dependency(Threads)
 elseif(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME_IOCTL OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME_IOCTL)
   add_energymon_default_library(SOURCES ${SOURCES_IOCTL})
   target_link_libraries(energymon-default PRIVATE Threads::Threads ${LIBRT})
   add_energymon_pkg_config(energymon-default "${DESCRIPTION_IOCTL}" "" "${PKG_CONFIG_PRIVATE_LIBS}")
+  energymon_export_dependency(Threads)
 endif()

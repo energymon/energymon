@@ -32,7 +32,11 @@ try_compile(HAS_FTDI_TCIOFLUSH ${CMAKE_CURRENT_BINARY_DIR}/has_ftdi_tcioflush
             SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/has_ftdi_tcioflush.c
             LINK_LIBRARIES PkgConfig::LIBFTDI)
 if(HAS_FTDI_TCIOFLUSH)
-  set(FTDI_IMPL "${FTDI_IMPL} >= 1.5")
+  set(PKG_CONFIG_EXPORT_SPEC "${FTDI_IMPL}>=1.5")
+  set(PKG_CONFIG_REQUIRES_PRIVATE "${FTDI_IMPL} >= 1.5")
+else()
+  set(PKG_CONFIG_EXPORT_SPEC ${FTDI_IMPL})
+  set(PKG_CONFIG_REQUIRES_PRIVATE ${FTDI_IMPL})
 endif()
 
 # Libraries
@@ -53,7 +57,9 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
     target_compile_definitions(${LNAME} PRIVATE HAS_FTDI_TCIOFLUSH)
   endif()
   target_link_libraries(${LNAME} PRIVATE Threads::Threads ${LIBRT} PkgConfig::LIBFTDI)
-  add_energymon_pkg_config(${LNAME} "${DESCRIPTION}" "${FTDI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
+  add_energymon_pkg_config(${LNAME} "${DESCRIPTION}" "${PKG_CONFIG_REQUIRES_PRIVATE}" "${PKG_CONFIG_PRIVATE_LIBS}")
+  energymon_export_dependency(Threads)
+  energymon_export_pkg_dependency(LIBFTDI ${PKG_CONFIG_EXPORT_SPEC} IMPORTED_TARGET)
 
   if(UNIX AND ENERGYMON_BUILD_SHMEM_PROVIDERS)
     add_executable(${SHMEM_PROVIDER} ../energymon-wattsup-shmem-provider.c)
@@ -72,5 +78,7 @@ if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LN
     target_compile_definitions(energymon-default PRIVATE HAS_FTDI_TCIOFLUSH)
   endif()
   target_link_libraries(energymon-default PRIVATE Threads::Threads ${LIBRT} PkgConfig::LIBFTDI)
-  add_energymon_pkg_config(energymon-default "${DESCRIPTION}" "${FTDI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
+  add_energymon_pkg_config(energymon-default "${DESCRIPTION}" "${PKG_CONFIG_REQUIRES_PRIVATE}" "${PKG_CONFIG_PRIVATE_LIBS}")
+  energymon_export_dependency(Threads)
+  energymon_export_pkg_dependency(LIBFTDI ${PKG_CONFIG_EXPORT_SPEC} IMPORTED_TARGET)
 endif()
