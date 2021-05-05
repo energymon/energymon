@@ -4,6 +4,7 @@
 
 ### Added
 
+* ibmpowernv-power: new implementation for IBM PowerNV systems (targeted for OLCF Summit)
 * raplcap-msr: support for multi-die packages
 * Travis CI: test on additional architectures
 

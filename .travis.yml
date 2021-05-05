@@ -46,6 +46,7 @@ addons:
       - libusb-1.0-0-dev
       - libftdi-dev
       - libhidapi-dev
+      - libsensors4-dev
   homebrew:
     packages:
       - libftdi
