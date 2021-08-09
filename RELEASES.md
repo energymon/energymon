@@ -4,7 +4,7 @@
 
 ### Fixed
 
-* zcu102: save errno when cleaning up after init failure
+* odroid, odroid-ioctl, zcu102: save errno when cleaning up after init failure
 
 
 ## [v0.4.0] - 2021-05-12

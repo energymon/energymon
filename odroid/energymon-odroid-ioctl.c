@@ -207,8 +207,10 @@ int energymon_init_odroid_ioctl(energymon* em) {
 
   // open and enable the sensors
   if (open_all_sensors(state)) {
+    err_save = errno;
     close_all_sensors(state);
     free(state);
+    errno = err_save;
     return -1;
   }
 
