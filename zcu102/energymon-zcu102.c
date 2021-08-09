@@ -232,6 +232,7 @@ int energymon_init_zcu102(energymon* em) {
   unsigned int i;
   char file[64];
   unsigned int count;
+  int err_save;
 
   // find the sensors
   char** sensor_dirs = get_sensor_directories(&count);
@@ -258,8 +259,10 @@ int energymon_init_zcu102(energymon* em) {
     state->fds[i] = open(file, O_RDONLY);
     if (state->fds[i] < 0) {
       perror(file);
+      err_save = errno;
       free_sensor_directories(sensor_dirs, state->count);
       energymon_finish_zcu102(em);
+      errno = err_save;
       return -1;
     }
   }
@@ -274,7 +277,9 @@ int energymon_init_zcu102(energymon* em) {
   state->poll_sensors = 1;
   errno = pthread_create(&state->thread, NULL, zcu102_poll_sensors, state);
   if (errno) {
+    err_save = errno;
     energymon_finish_zcu102(em);
+    errno = err_save;
     return -1;
   }
 
