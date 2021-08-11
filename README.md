@@ -118,25 +118,46 @@ make uninstall
 
 ## Linking
 
-The best approach for linking with any EnergyMon library is to use [pkg-config](http://www.freedesktop.org/wiki/Software/pkg-config/).
-This is especially useful if building and linking to static libraries to ensure that you link with transitive dependencies.
+### CMake
 
-For example, to link with `energymon-default`, whose implementation is not always known in advance:
+Projects that use `CMake` can find the `EnergyMon` package and link against imported targets, which automatically applies properties like header search paths and transitive dependencies:
 
-```
-pkg-config energymon-default --libs --static
-```
-
-If your project is using `CMake`, you can use pkg-config to find the library and necessary flags.
-For example, to find `energymon-default`, its headers, and to link with it and any transitive dependencies:
-
-``` cmake
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(ENERGYMON REQUIRED energymon-default)
-include_directories(${ENERGYMON_INCLUDE_DIRS})
+```cmake
+find_package(EnergyMon REQUIRED)
 
 add_executable(hello_world hello_world.c)
-target_link_libraries(hello_world -L${ENERGYMON_LIBDIR} ${ENERGYMON_LIBRARIES})
+target_link_libraries(hello_world PRIVATE EnergyMon::energymon-default)
+```
+
+### pkg-config
+
+A more general approach for linking with an EnergyMon library is to use [pkg-config](http://www.freedesktop.org/wiki/Software/pkg-config/):
+
+```sh
+cc $(pkg-config energymon-default --cflags) hello_world.c \
+   $(pkg-config energymon-default --libs --static) -o hello_world
+```
+
+or in a Makefile:
+
+```Makefile
+CFLAGS += $(shell pkg-config --cflags energymon-default)
+LDFLAGS += $(shell pkg-config --libs --static energymon-default)
+
+hello_world: hello_world.c
+	$(CC) $(CFLAGS) hello_world.c -o $@ $(LDFLAGS)
+```
+
+If shared object libraries are installed, don't include the `--static` option.
+
+Projects that use `CMake >= 3.6` can alternatively use a pkg-config `IMPORTED_TARGET`, rather than the direct CMake imports documented above:
+
+```cmake
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(EnergyMonDefault REQUIRED IMPORTED_TARGET energymon-default)
+
+add_executable(hello_world hello_world.c)
+target_link_libraries(hello_world PRIVATE PkgConfig::EnergyMonDefault)
 ```
 
 
