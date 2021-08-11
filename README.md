@@ -14,21 +14,23 @@ If you are using a different platform, change the commands accordingly.
 
 Current EnergyMon implementation options are:
 
-* dummy [default]
-* cray-pm
-* ibmpowernv-power
-* msr
-* odroid
-* odroid-ioctl
-* osp
-* osp-polling
-* rapl
-* raplcap-msr
-* shmem
-* wattsup
-* wattsup-libusb
-* wattsup-libftdi
-* zcu102
+* **dummy** [default]: Mock implementation
+* **cray-pm**: Cray XC30 and XC40 systems (e.g., NERSC Cori) via Linux sysfs files
+* **ibmpowernv-power**: IBM PowerNV systems (e.g., OLCF Summit) via Linux sysfs files
+* **msr**: Intel RAPL via Linux Model-Specific Register device files (supports most non-Atom CPUs)
+* **odroid**: Hardkernel ODROID XU+E and XU3 systems (with INA-231 power sensors) via Linux sysfs files
+* **odroid-ioctl**: Hardkernel ODROID XU+E and XU3 systems (with INA-231 power sensors) via `ioctl` on Linux device files
+* **osp**: Hardkernel ODROID Smart Power meters (coarse-grained energy counter) via `HIDAPI`
+* **osp-polling**: Hardkernel ODROID Smart Power meters (finer-grained power sensor) via `HIDAPI`
+* **rapl**: Intel RAPL via Linux powercap sysfs files
+* **raplcap-msr**: Intel RAPL via `libraplcap-msr` (more capable than `msr` implementation above)
+* **shmem**: Shared memory client via an EnergyMon shared memory provider
+* **wattsup**: Watts Up Pro meter via Linux device files
+* **wattsup-libusb**: Watts Up Pro meter via `libusb`
+* **wattsup-libftdi**: Watts Up Pro meter via `libftdi`
+* **zcu102**: Xilinx Zynq UltraScale+ ZCU102 systems (with INA-226 power sensors) via Linux sysfs files
+
+See the README files in subdirectories for implementation specifics, including dependencies.
 
 
 ## Building
