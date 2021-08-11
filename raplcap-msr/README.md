@@ -2,7 +2,7 @@
 
 This implementation of the `energymon` interface wraps the [raplcap-msr](https://github.com/powercap/raplcap) library.
 It provides broader Intel CPU support than the [energymon-msr](../msr) implementation, automatic RAPL instance
-(e.g., socket) discovery, and zone types other than `PLATFORM`.
+(e.g., package/die) discovery, and zone types other than `PACKAGE`.
 
 
 ## Prerequisites
