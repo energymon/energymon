@@ -31,8 +31,6 @@ int energymon_get_default(energymon* em) {
 #define RAPL_NAME_FILE "name"
 #define RAPL_PREFIX "intel-rapl:"
 
-// Add power polling support for zones that don't support energy readings?
-
 typedef struct rapl_zone {
   uint64_t max_energy_range_uj;
   uint64_t energy_last;
