@@ -2,10 +2,49 @@
 
 EnergyMon provides a general C interface for energy monitoring utilities.
 
-For details, please see the following publication and reference as appropriate:
+If using this project for other scientific works or publications, please reference:
 
 * Connor Imes, Lars Bergstrom, and Henry Hoffmann. "A Portable Interface for Runtime Energy Monitoring". In: FSE. 2016. DOI: https://doi.org/10.1145/2950290.2983956
+  <details>
+  <summary>[BibTex]</summary>
+
+  ```BibTex
+  @inproceedings{imes2016energymon,
+    author = {Imes, Connor and Bergstrom, Lars and Hoffmann, Henry},
+    title = {A Portable Interface for Runtime Energy Monitoring},
+    year = {2016},
+    isbn = {9781450342186},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/2950290.2983956},
+    doi = {10.1145/2950290.2983956},
+    booktitle = {Proceedings of the 2016 24th ACM SIGSOFT International Symposium on Foundations of Software Engineering},
+    pages = {968–974},
+    numpages = {7},
+    keywords = {portable energy measurement},
+    location = {Seattle, WA, USA},
+    series = {FSE 2016}
+  }
+  ```
+
+  </details>
 * You may also find an extended analysis in the [Tech Report](https://cs.uchicago.edu/research/publications/techreports/TR-2016-08).
+  <details>
+  <summary>[BibTex]</summary>
+
+  ```BibTex
+  @techreport{imes2016energymon-tr,
+    author = {Imes, Connor and Bergstrom, Lars and Hoffmann, Henry},
+    title = {A Portable Interface for Runtime Energy Monitoring: Extended Analysis},
+    institution = {University of Chicago, Department of Computer Science},
+    number = {TR-2016-08},
+    year = {2016},
+    month = sep,
+    address = {Chicago, IL, USA}
+  }
+  ```
+
+  </details>
 
 Applications using some libraries may need to be executed using elevated privileges.
 
