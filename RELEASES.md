@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+* ibmpowernv: new implementation for IBM PowerNV systems (targeted for OLCF Summit)
+
 ### Fixed
 
 * odroid, odroid-ioctl, zcu102: save errno when cleaning up after init failure
