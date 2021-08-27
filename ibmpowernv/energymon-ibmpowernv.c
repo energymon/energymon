@@ -1,5 +1,5 @@
 /**
- * Read energy from the ibmpowernv kernel module "power" subfeature.
+ * Read energy from the ibmpowernv kernel module "energy" or "power" subfeature.
  * See: https://www.kernel.org/doc/html/latest/hwmon/ibmpowernv.html
  *
  * Note: hwmon sysfs exposes power in microWatts, but libsensors uses Watts.
@@ -9,7 +9,6 @@
  */
 #include <errno.h>
 #include <inttypes.h>
-#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,14 +16,23 @@
 #include <sensors.h>
 #include <error.h>
 #include "energymon.h"
+#ifdef ENERGYMON_IBMPOWERNV_USE_POWER
+#include <pthread.h>
 #include "energymon-ibmpowernv-power.h"
 #include "energymon-time-util.h"
+#else
+#include "energymon-ibmpowernv.h"
+#endif
 #include "energymon-util.h"
 
 #ifdef ENERGYMON_DEFAULT
 #include "energymon-default.h"
 int energymon_get_default(energymon* em) {
+#ifdef ENERGYMON_IBMPOWERNV_USE_POWER
   return energymon_get_ibmpowernv_power(em);
+#else
+  return energymon_get_ibmpowernv(em);
+#endif
 }
 #endif
 
@@ -55,16 +63,19 @@ int energymon_get_default(energymon* em) {
 #endif
 
 typedef struct energymon_ibmpowernv {
-  // thread variables
-  pthread_t thread;
-  int poll_sensors;
   // libsensors context
   const sensors_chip_name* cn;
   int subfeat_nr;
+#ifdef ENERGYMON_IBMPOWERNV_USE_POWER
+  // thread variables
+  pthread_t thread;
+  int poll_sensors;
   // total energy estimate
   uint64_t total_uj;
+#endif
 } energymon_ibmpowernv;
 
+#ifdef ENERGYMON_IBMPOWERNV_USE_POWER
 /**
  * pthread function to poll the sensors at regular intervals.
  */
@@ -95,6 +106,7 @@ static void* ibmpowernv_poll_sensor(void* args) {
   }
   return (void*) NULL;
 }
+#endif
 
 static int init_libsensors(void) {
   const char* input;
@@ -150,7 +162,11 @@ static int open_sensor(energymon_ibmpowernv* state) {
       continue;
     }
     for (f = 0; (feat = sensors_get_features(cn, &f));) {
+#ifdef ENERGYMON_IBMPOWERNV_USE_POWER
       if (feat->type != SENSORS_FEATURE_POWER) {
+#else
+      if (feat->type != SENSORS_FEATURE_ENERGY) {
+#endif
         continue;
       }
       if (!(label = sensors_get_label(cn, feat))) {
@@ -168,7 +184,11 @@ static int open_sensor(energymon_ibmpowernv* state) {
       }
       free(label);
       for (s = 0; (subfeat = sensors_get_all_subfeatures(cn, feat, &s));) {
+#ifdef ENERGYMON_IBMPOWERNV_USE_POWER
         if (subfeat->type != SENSORS_SUBFEATURE_POWER_INPUT) {
+#else
+        if (subfeat->type != SENSORS_SUBFEATURE_ENERGY_INPUT) {
+#endif
           continue;
         }
         if (!(subfeat->flags & SENSORS_MODE_R)) {
@@ -190,13 +210,16 @@ static void close_sensor(energymon_ibmpowernv* state) {
   state->cn = NULL;
 }
 
+#ifdef ENERGYMON_IBMPOWERNV_USE_POWER
 int energymon_init_ibmpowernv_power(energymon* em) {
+#else
+int energymon_init_ibmpowernv(energymon* em) {
+#endif
   if (em == NULL || em->state != NULL) {
     errno = EINVAL;
     return -1;
   }
 
-  int err_save;
   energymon_ibmpowernv* state = calloc(1, sizeof(energymon_ibmpowernv));
   if (state == NULL) {
     return -1;
@@ -214,6 +237,8 @@ int energymon_init_ibmpowernv_power(energymon* em) {
   }
   em->state = state;
 
+#ifdef ENERGYMON_IBMPOWERNV_USE_POWER
+  int err_save;
   // start sensor polling thread
   state->poll_sensors = 1;
   errno = pthread_create(&state->thread, NULL, ibmpowernv_poll_sensor, state);
@@ -226,20 +251,46 @@ int energymon_init_ibmpowernv_power(energymon* em) {
     errno = err_save;
     return -1;
   }
+#endif
 
   return 0;
 }
 
+#ifdef ENERGYMON_IBMPOWERNV_USE_POWER
 uint64_t energymon_read_total_ibmpowernv_power(const energymon* em) {
+#else
+uint64_t energymon_read_total_ibmpowernv(const energymon* em) {
+#endif
   if (em == NULL || em->state == NULL) {
     errno = EINVAL;
     return 0;
   }
   errno = 0;
-  return ((energymon_ibmpowernv*) em->state)->total_uj;
+  const energymon_ibmpowernv* state = (energymon_ibmpowernv*) em->state;
+#ifdef ENERGYMON_IBMPOWERNV_USE_POWER
+  return state->total_uj;
+#else
+  double j = 0;
+  int rc;
+  if ((rc = sensors_get_value(state->cn, state->subfeat_nr, &j))) {
+    fprintf(stderr, "sensors_get_value: %s\n", sensors_strerror(rc));
+    if (!errno) {
+      // we don't really know the error, but we'll encourage user to retry
+      errno = EAGAIN;
+    }
+    return 0;
+  }
+  // sysfs value was a u64 in uJ, which libsensors converted to a double in J
+  // some precision may have been lost, but there shouldn't be any rollover
+  return (uint64_t) (j * 1000000);
+#endif
 }
 
+#ifdef ENERGYMON_IBMPOWERNV_USE_POWER
 int energymon_finish_ibmpowernv_power(energymon* em) {
+#else
+int energymon_finish_ibmpowernv(energymon* em) {
+#endif
   if (em == NULL || em->state == NULL) {
     errno = EINVAL;
     return -1;
@@ -247,6 +298,7 @@ int energymon_finish_ibmpowernv_power(energymon* em) {
 
   int err_save = 0;
   energymon_ibmpowernv* state = (energymon_ibmpowernv*) em->state;
+#ifdef ENERGYMON_IBMPOWERNV_USE_POWER
   if (state->poll_sensors) {
     // stop sensors polling thread and cleanup
     state->poll_sensors = 0;
@@ -255,6 +307,7 @@ int energymon_finish_ibmpowernv_power(energymon* em) {
 #endif
     err_save = pthread_join(state->thread, NULL);
   }
+#endif
   close_sensor(state);
   cleanup_libsensors();
   free(em->state);
@@ -263,11 +316,20 @@ int energymon_finish_ibmpowernv_power(energymon* em) {
   return errno ? -1 : 0;
 }
 
+#ifdef ENERGYMON_IBMPOWERNV_USE_POWER
 char* energymon_get_source_ibmpowernv_power(char* buffer, size_t n) {
   return energymon_strencpy(buffer, "IBM PowerNV Power Sensors", n);
+#else
+char* energymon_get_source_ibmpowernv(char* buffer, size_t n) {
+  return energymon_strencpy(buffer, "IBM PowerNV Energy Sensors", n);
+#endif
 }
 
+#ifdef ENERGYMON_IBMPOWERNV_USE_POWER
 uint64_t energymon_get_interval_ibmpowernv_power(const energymon* em) {
+#else
+uint64_t energymon_get_interval_ibmpowernv(const energymon* em) {
+#endif
   if (em == NULL) {
     // we don't need to access em, but it's still a programming error
     errno = EINVAL;
@@ -276,7 +338,11 @@ uint64_t energymon_get_interval_ibmpowernv_power(const energymon* em) {
   return ENERGYMON_IBMPOWERNV_UPDATE_INTERVAL_US;
 }
 
+#ifdef ENERGYMON_IBMPOWERNV_USE_POWER
 uint64_t energymon_get_precision_ibmpowernv_power(const energymon* em) {
+#else
+uint64_t energymon_get_precision_ibmpowernv(const energymon* em) {
+#endif
   if (em == NULL) {
     errno = EINVAL;
     return 0;
@@ -287,15 +353,24 @@ uint64_t energymon_get_precision_ibmpowernv_power(const energymon* em) {
   return ENERGYMON_IBMPOWERNV_UPDATE_INTERVAL_US;
 }
 
+#ifdef ENERGYMON_IBMPOWERNV_USE_POWER
 int energymon_is_exclusive_ibmpowernv_power(void) {
+#else
+int energymon_is_exclusive_ibmpowernv(void) {
+#endif
   return 0;
 }
 
+#ifdef ENERGYMON_IBMPOWERNV_USE_POWER
 int energymon_get_ibmpowernv_power(energymon* em) {
+#else
+int energymon_get_ibmpowernv(energymon* em) {
+#endif
   if (em == NULL) {
     errno = EINVAL;
     return -1;
   }
+#ifdef ENERGYMON_IBMPOWERNV_USE_POWER
   em->finit = &energymon_init_ibmpowernv_power;
   em->fread = &energymon_read_total_ibmpowernv_power;
   em->ffinish = &energymon_finish_ibmpowernv_power;
@@ -303,6 +378,15 @@ int energymon_get_ibmpowernv_power(energymon* em) {
   em->finterval = &energymon_get_interval_ibmpowernv_power;
   em->fprecision = &energymon_get_precision_ibmpowernv_power;
   em->fexclusive = &energymon_is_exclusive_ibmpowernv_power;
+#else
+  em->finit = &energymon_init_ibmpowernv;
+  em->fread = &energymon_read_total_ibmpowernv;
+  em->ffinish = &energymon_finish_ibmpowernv;
+  em->fsource = &energymon_get_source_ibmpowernv;
+  em->finterval = &energymon_get_interval_ibmpowernv;
+  em->fprecision = &energymon_get_precision_ibmpowernv;
+  em->fexclusive = &energymon_is_exclusive_ibmpowernv;
+  #endif
   em->state = NULL;
   return 0;
 }
