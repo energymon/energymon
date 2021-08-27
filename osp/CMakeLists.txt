@@ -35,8 +35,8 @@ if(${PKG_CONFIG_FOUND})
 endif()
 if(NOT HIDAPI_FOUND)
   # fail gracefully
-  message(WARNING "${LNAME}: Missing hidapi-libusb and ${HIDAPI_IMPL} - skipping this project")
-  message(WARNING "${LNAME_POLLING}: Missing hidapi-libusb and ${HIDAPI_IMPL} - skipping this project")
+  message(WARNING "${LNAME}: Missing HIDAPI - skipping this project")
+  message(WARNING "${LNAME_POLLING}: Missing HIDAPI - skipping this project")
   return()
 endif()
 
