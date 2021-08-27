@@ -41,6 +41,8 @@ if(NOT HIDAPI_FOUND)
 endif()
 
 if(LIBRT)
+  # both implementations have timing/sleep functionality used during device comm retries
+  list(APPEND PKG_CONFIG_PRIVATE_LIBS "-lrt")
   list(APPEND PKG_CONFIG_PRIVATE_LIBS_POLLING "-lrt")
 endif()
 
@@ -58,16 +60,16 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
                         ENERGYMON_GET_HEADER ${LNAME}.h
                         ENERGYMON_GET_FUNCTION "energymon_get_osp"
                         ENERGYMON_GET_C_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${LNAME}/energymon-get.c)
-  target_link_libraries(${LNAME} PRIVATE PkgConfig::HIDAPI)
-  add_energymon_pkg_config(${LNAME} "${DESCRIPTION}" "${HIDAPI_IMPL}" "")
+  target_link_libraries(${LNAME} PRIVATE PkgConfig::HIDAPI ${LIBRT})
+  add_energymon_pkg_config(${LNAME} "${DESCRIPTION}" "${HIDAPI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
   energymon_export_pkg_dependency(HIDAPI ${HIDAPI_IMPL} IMPORTED_TARGET)
 
 endif()
 
 if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
   add_energymon_default_library(SOURCES ${SOURCES})
-  target_link_libraries(energymon-default PRIVATE PkgConfig::HIDAPI)
-  add_energymon_pkg_config(energymon-default "${DESCRIPTION}" "${HIDAPI_IMPL}" "")
+  target_link_libraries(energymon-default PRIVATE PkgConfig::HIDAPI ${LIBRT})
+  add_energymon_pkg_config(energymon-default "${DESCRIPTION}" "${HIDAPI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
   energymon_export_pkg_dependency(HIDAPI ${HIDAPI_IMPL} IMPORTED_TARGET)
 endif()
 
