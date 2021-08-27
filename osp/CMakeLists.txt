@@ -8,7 +8,7 @@ set(SOURCES_POLLING ${SOURCES})
 set(DESCRIPTION "EnergyMon implementation for ODROID Smart Power")
 set(DESCRIPTION_POLLING "EnergyMon implementation for ODROID Smart Power with Polling")
 
-# Dependencies
+# Shared Dependencies
 
 find_package(PkgConfig)
 if(${PKG_CONFIG_FOUND})
@@ -40,22 +40,12 @@ if(NOT HIDAPI_FOUND)
   return()
 endif()
 
-find_package(Threads)
-if(NOT Threads_FOUND)
-  # fail gracefully
-  message(WARNING "${LNAME}: Missing Threads library - skipping this project")
-  message(WARNING "${LNAME_POLLING}: Missing Threads library - skipping this project")
-  return()
-endif()
-if(CMAKE_THREAD_LIBS_INIT)
-  list(APPEND PKG_CONFIG_PRIVATE_LIBS "${CMAKE_THREAD_LIBS_INIT}")
-endif()
-
 if(LIBRT)
-  list(APPEND PKG_CONFIG_PRIVATE_LIBS "-lrt")
+  list(APPEND PKG_CONFIG_PRIVATE_LIBS_POLLING "-lrt")
 endif()
 
-# Libraries
+
+# Energy Library
 
 if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL SNAME OR
@@ -74,6 +64,26 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
 
 endif()
 
+if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
+  add_energymon_default_library(SOURCES ${SOURCES})
+  target_link_libraries(energymon-default PRIVATE PkgConfig::HIDAPI)
+  add_energymon_pkg_config(energymon-default "${DESCRIPTION}" "${HIDAPI_IMPL}" "")
+  energymon_export_pkg_dependency(HIDAPI ${HIDAPI_IMPL} IMPORTED_TARGET)
+endif()
+
+
+# Power Polling Library
+
+find_package(Threads)
+if(NOT Threads_FOUND)
+  # fail gracefully
+  message(WARNING "${LNAME_POLLING}: Missing Threads library - skipping this project")
+  return()
+endif()
+if(CMAKE_THREAD_LIBS_INIT)
+  list(APPEND PKG_CONFIG_PRIVATE_LIBS_POLLING "${CMAKE_THREAD_LIBS_INIT}")
+endif()
+
 if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL SNAME_POLLING OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME_POLLING)
@@ -87,7 +97,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
                         ENERGYMON_GET_C_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${LNAME_POLLING}/energymon-get.c)
   target_compile_definitions(${LNAME_POLLING} PRIVATE ENERGYMON_OSP_USE_POLLING)
   target_link_libraries(${LNAME_POLLING} PRIVATE PkgConfig::HIDAPI Threads::Threads ${LIBRT})
-  add_energymon_pkg_config(${LNAME_POLLING} "${DESCRIPTION_POLLING}" "${HIDAPI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
+  add_energymon_pkg_config(${LNAME_POLLING} "${DESCRIPTION_POLLING}" "${HIDAPI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS_POLLING}")
   energymon_export_pkg_dependency(HIDAPI ${HIDAPI_IMPL} IMPORTED_TARGET)
   energymon_export_dependency(Threads)
 
@@ -102,16 +112,11 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
 
 endif()
 
-if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME)
-  add_energymon_default_library(SOURCES ${SOURCES})
-  target_link_libraries(energymon-default PRIVATE PkgConfig::HIDAPI)
-  add_energymon_pkg_config(energymon-default "${DESCRIPTION}" "${HIDAPI_IMPL}" "")
-  energymon_export_pkg_dependency(HIDAPI ${HIDAPI_IMPL} IMPORTED_TARGET)
-elseif(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME_POLLING OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME_POLLING)
+if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME_POLLING OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME_POLLING)
   add_energymon_default_library(SOURCES ${SOURCES_POLLING})
   target_compile_definitions(energymon-default PRIVATE ENERGYMON_OSP_USE_POLLING)
   target_link_libraries(energymon-default PRIVATE PkgConfig::HIDAPI Threads::Threads ${LIBRT})
-  add_energymon_pkg_config(energymon-default "${DESCRIPTION_POLLING}" "${HIDAPI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS}")
+  add_energymon_pkg_config(energymon-default "${DESCRIPTION_POLLING}" "${HIDAPI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS_POLLING}")
   energymon_export_pkg_dependency(HIDAPI ${HIDAPI_IMPL} IMPORTED_TARGET)
   energymon_export_dependency(Threads)
 endif()
