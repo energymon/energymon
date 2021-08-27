@@ -27,12 +27,12 @@
 #include <errno.h>
 #include <hidapi.h>
 #include <inttypes.h>
-#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "energymon.h"
 #ifdef ENERGYMON_OSP_USE_POLLING
+#include <pthread.h>
 #include "energymon-osp-polling.h"
 #else
 #include "energymon-osp.h"
