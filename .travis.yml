@@ -73,4 +73,4 @@ script:
       -Wstrict-prototypes -Wstack-protector -Wswitch -Wundef -Wwrite-strings"
   - PKG_CONFIG_PATH="../raplcap/_build/_install/lib/pkgconfig" cmake .. -DCMAKE_C_FLAGS="$CFLAGS"
   - cmake .. -DCMAKE_C_FLAGS="$CFLAGS"
-  - cmake --build .
+  - cmake --build . -j
