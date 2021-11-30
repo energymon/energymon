@@ -166,6 +166,10 @@ if(UNIX OR WIN32)
   add_subdirectory(wattsup)
 endif()
 
+if(APPLE)
+  add_subdirectory(ipg)
+endif()
+
 if(NOT TARGET energymon-default AND NOT ${ENERGYMON_BUILD_DEFAULT} MATCHES "NONE")
   message(FATAL_ERROR
           "No build target for ENERGYMON_BUILD_DEFAULT=${ENERGYMON_BUILD_DEFAULT}\n"

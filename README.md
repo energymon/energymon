@@ -57,6 +57,7 @@ Current EnergyMon implementation options are:
 * **cray-pm**: Cray XC30 and XC40 systems (e.g., NERSC Cori) via Linux sysfs files
 * **ibmpowernv**: IBM PowerNV systems (e.g., OLCF Summit) via Linux sysfs energy sensor files
 * **ibmpowernv-power**: IBM PowerNV systems (e.g., OLCF Summit) via Linux sysfs power sensor files
+* **ipg**: Intel RAPL via `Intel Power Gadget`
 * **msr**: Intel RAPL via Linux Model-Specific Register device files (supports most non-Atom CPUs)
 * **odroid**: Hardkernel ODROID XU+E and XU3 systems (with INA-231 power sensors) via Linux sysfs files
 * **odroid-ioctl**: Hardkernel ODROID XU+E and XU3 systems (with INA-231 power sensors) via `ioctl` on Linux device files
