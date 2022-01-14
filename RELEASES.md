@@ -6,6 +6,7 @@
 
 * ibmpowernv: new implementation for IBM PowerNV systems (targeted for OLCF Summit)
 * ipg: new implementation using the Intel Power Gadget 3.7 API (PowerGadgetLib.h)
+* jetson: new implementation for NVIDIA Jetson systems
 
 ### Fixed
 
