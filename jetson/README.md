@@ -19,7 +19,8 @@ Jetson models that should be supported:
 ## Usage
 
 Different platforms support varying numbers of sensor devices, with each sensor supporting up to three "rails" or "channels".
-By default, the outermost system-level power rail will be used, e.g., `VDD_IN` (most platforms), `5V_IN` (Xavier NX), or `SYS5V` (AGX Xavier Series).
+By default, the system-level power rail will be used if it's found, e.g., `VDD_IN` (most platforms) or `5V_IN` (Xavier NX).
+On the AGX Xavier Series, there's no system-level or parent rail, so all rails are used (they're in parallel to each other).
 
 To override this behavior and read from different rails, set the environment variable `ENERGYMON_JETSON_RAIL_NAMES`.
 See the "Clock Frequency and Power Management" section of the [NVIDIA Jetson Linux Driver Package (L4T)](https://docs.nvidia.com/jetson/l4t/) documentation for allowable values on each platform.

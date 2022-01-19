@@ -9,6 +9,7 @@
  * @author Connor Imes
  * @date 2021-12-16
  */
+#include <assert.h>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -58,6 +59,14 @@ int energymon_get_default(energymon* em) {
  * -----------------
  * 0x40: GPU, CPU, SOC
  * 0x41: CV, VDDRQ, SYS5V
+ * Note: There doesn't seem to be a channel for a system/parent power rail (like "VDD_IN" on other models).
+ *       From "Jetson AGX Xavier Series Product Design Guide" (Accessed 2021-01-18):
+ *         Section 5.6.2:
+ *           "These monitor the VDD_GPU, VDD_CPU, VDD_SOC (Core), VDD_CV, VDD_DDRQ, and SYS_VIN_MV Supplies".
+ *         Section 5.2:
+ *           "The SYS_VIN_HV and SYS_VIN_MV are derived from [the main] power source" (and not one from the other).
+ *       Per this text and Table 5-2, we infer that the "SYS_VIN_MV" rail supplies the "SYS5V" channel and the
+ *       "SYS_VIN_HV" rail supplies the other channels.
  *
  * TX2, TX2i, and TX2 4GB
  * ----------------------
@@ -70,6 +79,8 @@ int energymon_get_default(energymon* em) {
  * ------
  * 0x40: VDD_IN, VDD_CPU_GPU, VDD_SOC
  */
+
+#define NUM_RAILS_DEFAULT_MAX 6
 
 #define INA3221_DIR "/sys/bus/i2c/drivers/ina3221x"
 #define INA3221_DIR_TEMPLATE_BUS_ADDR INA3221_DIR"/%s"
@@ -261,16 +272,52 @@ static int walk_i2c_drivers_dir(const char* const* names, int* fds, size_t len, 
   return ret;
 }
 
-// Most devices have VDD_IN, other known models have either 5V_IN or SYS5V
-static const char* const DEFAULT_RAIL_NAMES[] =  { "VDD_IN", "5V_IN", "SYS5V" };
-static int walk_i2c_drivers_dir_for_default(int* fd, long* polling_delay_us_max) {
+/*
+ * There doesn't seem to be a consistent approach to determine the Jetson model by direct system inquiry.
+ * Instead, we use a try/catch heuristic to find default rails with an ordered search.
+ * This heuristic only works b/c names in earlier sub-arrays are mutually exclusive from names in later sub-arrays.
+ * For example, if the AGX Xavier had a "5V_IN" but also required other names, it would find "5V_IN" first in the
+ * sub-array at index 1 and never get to the correct sub-array at index 2.
+ * This heuristic approach could break down with if new Jetson models are released where the name mutual exclusion
+ * invariant is violated.
+ */
+// Most models have a system parent power rail VDD_IN
+static const char* DEFAULT_RAIL_NAMES_DEFAULT[NUM_RAILS_DEFAULT_MAX] = {"VDD_IN"};
+// The Xavier NX names its system parent power rail 5V_IN
+static const char* DEFAULT_RAIL_NAMES_XAVIER_NX[NUM_RAILS_DEFAULT_MAX] = {"5V_IN"};
+// The AGX Xavier doesn't have a system parent power rail - all its rails are in parallel
+static const char* DEFAULT_RAIL_NAMES_AGX_XAVIER[NUM_RAILS_DEFAULT_MAX] = {"GPU", "CPU", "SOC", "CV", "VDDRQ", "SYS5V"};
+static const char* const* DEFAULT_RAIL_NAMES[] =  {
+  DEFAULT_RAIL_NAMES_DEFAULT,
+  DEFAULT_RAIL_NAMES_XAVIER_NX,
+  DEFAULT_RAIL_NAMES_AGX_XAVIER,
+};
+static int walk_i2c_drivers_dir_for_default(int* fds, size_t* n_fds, long* polling_delay_us_max) {
   size_t i;
-  // search for each rail name in order
+  size_t j;
+#ifndef NDEBUG
+  size_t max_fds = *n_fds;
+#endif
+  assert(max_fds == NUM_RAILS_DEFAULT_MAX);
   for (i = 0; i < sizeof(DEFAULT_RAIL_NAMES) / sizeof(DEFAULT_RAIL_NAMES[0]); i++) {
-    if (walk_i2c_drivers_dir(&DEFAULT_RAIL_NAMES[i], fd, 1, polling_delay_us_max)) {
+    for (*n_fds = 0; *n_fds < NUM_RAILS_DEFAULT_MAX && DEFAULT_RAIL_NAMES[i][*n_fds] != NULL; (*n_fds)++) {
+      // *n_fds is being incremented
+    }
+    assert(*n_fds > 0);
+    assert(*n_fds <= max_fds);
+    if (walk_i2c_drivers_dir(DEFAULT_RAIL_NAMES[i], fds, *n_fds, polling_delay_us_max)) {
+      // cleanup is done in the calling function
       return -1;
     }
-    if (*fd > 0) {
+    if (fds[0] > 0) {
+      // verify that all channels are found
+      for (j = 0; j < *n_fds; j++) {
+        if (fds[j] <= 0) {
+          fprintf(stderr, "energymon_init_jetson: missing expected default rail: %s\n", DEFAULT_RAIL_NAMES[i][j]);
+          errno = ENODEV;
+          return -1;
+        }
+      }
       return 0;
     }
   }
@@ -439,7 +486,7 @@ int energymon_init_jetson(energymon* em) {
     }
   } else {
     // look for a default rail below
-    n_rails = 1;
+    n_rails = NUM_RAILS_DEFAULT_MAX;
   }
 
   energymon_jetson* state = calloc(1, sizeof(energymon_jetson) + n_rails * sizeof(int));
@@ -461,13 +508,15 @@ int energymon_init_jetson(energymon* em) {
     }
     free_rail_names(rail_names, n_rails);
   } else {
-    if (walk_i2c_drivers_dir_for_default(&state->fds[0], &polling_delay_us)) {
+    if (walk_i2c_drivers_dir_for_default(state->fds, &n_rails, &polling_delay_us)) {
       if (errno == ENODEV) {
-        fprintf(stderr, "energymon_init_jetson: did not find a default rail - is this a supported model?\n"
+        fprintf(stderr, "energymon_init_jetson: did not find default rail(s) - is this a supported model?\n"
                 "Try setting "ENERGYMON_JETSON_RAIL_NAMES"\n");
       }
       goto fail_rails;
     }
+    // possibly (even probably) reduce count
+    state->count = n_rails;
   }
 
   em->state = state;
