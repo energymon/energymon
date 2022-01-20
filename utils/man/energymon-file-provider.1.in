@@ -1,4 +1,4 @@
-.TH "@MAN_BINARY_PREFIX_UPPER@\-FILE\-PROVIDER" "1" "2020-03-09" "energymon" "EnergyMon Utilities"
+.TH "@MAN_BINARY_PREFIX_UPPER@\-FILE\-PROVIDER" "1" "2022-01-20" "energymon" "EnergyMon Utilities"
 .SH "NAME"
 .LP
 @MAN_BINARY_PREFIX@\-file\-provider \- write energy readings to a file at regular
@@ -31,6 +31,9 @@ Prints the help screen.
 .TP
 \fB\-c\fP, \fB\-\-count\fP=\fIN\fP
 Stop after \fIN\fP reads.
+.TP
+\fB\-F\fP, \fB\-\-force\fP
+Force updates faster than the EnergyMon claims.
 .TP
 \fB\-i\fP, \fB\-\-interval=\fP\fIUS\fP
 The update interval in microseconds.

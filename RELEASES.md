@@ -7,6 +7,7 @@
 * ibmpowernv: new implementation for IBM PowerNV systems (targeted for OLCF Summit)
 * ipg: new implementation using the Intel Power Gadget 3.7 API (PowerGadgetLib.h)
 * jetson: new implementation for NVIDIA Jetson systems
+* energymon-file-provider: -F/--force option to force updates faster than the EnergyMon implementation claims
 
 ### Fixed
 
