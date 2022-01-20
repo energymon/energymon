@@ -1,4 +1,4 @@
-.TH "@MAN_BINARY_PREFIX_UPPER@\-POWER\-POLLER" "1" "2020-03-09" "energymon" "EnergyMon Utilities"
+.TH "@MAN_BINARY_PREFIX_UPPER@\-POWER\-POLLER" "1" "2022-01-20" "energymon" "EnergyMon Utilities"
 .SH "NAME"
 .LP
 @MAN_BINARY_PREFIX@\-power\-poller \- print average power at regular intervals
@@ -28,6 +28,9 @@ Stop after \fIN\fP reads.
 .TP
 \fB\-f\fP, \fB\-\-file\fP=\fIFILE\fP
 Write the output to \fIFILE\fP.
+.TP
+\fB\-F\fP, \fB\-\-force\fP
+Force updates faster than the EnergyMon claims.
 .TP
 \fB\-i\fP, \fB\-\-interval=\fP\fIUS\fP
 The update interval in microseconds.

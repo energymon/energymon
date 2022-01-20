@@ -24,14 +24,16 @@ static const int IGNORE_INTERRUPT = 0;
 static volatile uint64_t running = 1;
 static int count = 0;
 static const char* filename = NULL;
+static int force = 0;
 static int summarize = 0;
 static uint64_t interval = 0;
 
-static const char short_options[] = "hc:f:i:s";
+static const char short_options[] = "hc:f:Fi:s";
 static const struct option long_options[] = {
   {"help",      no_argument,       NULL, 'h'},
   {"count",     required_argument, NULL, 'c'},
   {"file",      required_argument, NULL, 'f'},
+  {"force",     no_argument,       NULL, 'F'},
   {"interval",  required_argument, NULL, 'i'},
   {"summarize", no_argument,       NULL, 's'},
   {0, 0, 0, 0}
@@ -44,6 +46,7 @@ static void print_usage(int exit_code) {
           "  -h, --help               Print this message and exit\n"
           "  -c, --count=N            Stop after N reads\n"
           "  -f, --file=FILE          The output file\n"
+          "  -F, --force              Force updates faster than the EnergyMon claims\n"
           "  -i, --interval=US        The update interval in microseconds\n"
           "  -s, --summarize          Print out a summary at completion\n");
   exit(exit_code);
@@ -62,6 +65,9 @@ static void parse_args(int argc, char** argv) {
         break;
       case 'f':
         filename = optarg;
+        break;
+      case 'F':
+        force = 1;
         break;
       case 'i':
         interval = strtoull(optarg, NULL, 0);
@@ -135,10 +141,11 @@ int main(int argc, char** argv) {
   min_interval = em.finterval(&em);
   if (interval == 0) {
     interval = min_interval;
-  } else if (interval < min_interval) {
+  } else if (interval < min_interval && !force) {
     fprintf(stderr,
             "Requested interval is too short, minimum available: %"PRIu64"\n",
             min_interval);
+    fprintf(stderr, "Use -F/--force to ignore this check\n");
     em.ffinish(&em);
     return 1;
   }
