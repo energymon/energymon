@@ -46,10 +46,14 @@ int energymon_get_default(energymon* em) {
  * 0x40: VDD_IN, VDD_GPU, VDD_CPU
  * 0x42 (carrier board): VDD_MUX, VDD_5V_IO_SYS, VDD_3V3_SYS
  * 0x43 (carrier board): VDD_3V3_IO_SLP, VDD_1V8_IO, VDD_3V3_SYS_M2
+ * Note: VDD_IN supplies the main module and VDD_MUX supplies the carrier board.
+ *       They appear to branch from the main power supply, so should be in parallel.
+ *       See: https://forums.developer.nvidia.com/t/tx2-power-rail-relationships/201037
  *
- * Nano ("Jetson Nano 2GB does not have an INA3221 power monitor.")
- * ----------------------------------------------------------------
+ * Nano
+ * ----
  * 0x40: VDD_IN, VDD_GPU, VDD_CPU
+ * Note: "Jetson Nano 2GB does not have an INA3221 power monitor."
  *
  * Xavier NX
  * ---------
@@ -59,7 +63,7 @@ int energymon_get_default(energymon* em) {
  * -----------------
  * 0x40: GPU, CPU, SOC
  * 0x41: CV, VDDRQ, SYS5V
- * Note: There doesn't seem to be a channel for a system/parent power rail (like "VDD_IN" on other models).
+ * Note: There doesn't seem to be a channel for a system/parent power rail.
  *       From "Jetson AGX Xavier Series Product Design Guide" (Accessed 2021-01-18):
  *         Section 5.6.2:
  *           "These monitor the VDD_GPU, VDD_CPU, VDD_SOC (Core), VDD_CV, VDD_DDRQ, and SYS_VIN_MV Supplies".
@@ -74,6 +78,9 @@ int energymon_get_default(energymon* em) {
  * 0x41: VDD_IN, VDD_SYS_CPU, VDD_SYS_DDR
  * 0x42 (carrier board): VDD_MUX, VDD_5V_IO_SYS, VDD_3V3_SYS
  * 0x43 (carrier board): VDD_3V3_IO_SLP, VDD_1V8_IO, VDD_3V3_SYS_M2
+ * Note: VDD_IN supplies the main module and VDD_MUX supplies the carrier board.
+ *       They appear to branch from the main power supply, so should be in parallel.
+ *       See: https://forums.developer.nvidia.com/t/tx2-power-rail-relationships/201037
  *
  * TX2 NX
  * ------
@@ -272,23 +279,35 @@ static int walk_i2c_drivers_dir(const char* const* names, int* fds, size_t len, 
   return ret;
 }
 
+static void close_and_clear_fds(int* fds, size_t max_fds) {
+  int err_save = errno;
+  size_t i;
+  for (i = 0; i < max_fds; i++) {
+    if (fds[i] > 0) {
+      close(fds[i]);
+      fds[i] = 0;
+    }
+  }
+  errno = err_save;
+}
+
 /*
  * There doesn't seem to be a consistent approach to determine the Jetson model by direct system inquiry.
  * Instead, we use a try/catch heuristic to find default rails with an ordered search.
- * This heuristic only works b/c names in earlier sub-arrays are mutually exclusive from names in later sub-arrays.
- * For example, if the AGX Xavier had a "5V_IN" but also required other names, it would find "5V_IN" first in the
- * sub-array at index 1 and never get to the correct sub-array at index 2.
- * This heuristic approach could break down with if new Jetson models are released where the name mutual exclusion
- * invariant is violated.
+ * This only works if the name set in an earlier array isn't a subset of any name set in later arrays searched.
+ * It's important to order the search s.t. this invariant isn't violated, o/w sensors will be skipped.
  */
-// Most models have a system parent power rail VDD_IN
-static const char* DEFAULT_RAIL_NAMES_DEFAULT[NUM_RAILS_DEFAULT_MAX] = {"VDD_IN"};
-// The Xavier NX names its system parent power rail 5V_IN
+// The TX1 and most TX2 models have power power rails VDD_IN for the main board and VDD_MUX for the carrier board
+static const char* DEFAULT_RAIL_NAMES_TX[NUM_RAILS_DEFAULT_MAX] = {"VDD_IN", "VDD_MUX"};
+// The Nano, Xavier NX, and TX2 NX have parent power rail VDD_IN
+static const char* DEFAULT_RAIL_NAMES_VDD_IN[NUM_RAILS_DEFAULT_MAX] = {"VDD_IN"};
+// The Xavier NX has parent power rail 5V_IN
 static const char* DEFAULT_RAIL_NAMES_XAVIER_NX[NUM_RAILS_DEFAULT_MAX] = {"5V_IN"};
-// The AGX Xavier doesn't have a system parent power rail - all its rails are in parallel
+// The AGX Xavier doesn't have a parent power rail - all its rails are in parallel
 static const char* DEFAULT_RAIL_NAMES_AGX_XAVIER[NUM_RAILS_DEFAULT_MAX] = {"GPU", "CPU", "SOC", "CV", "VDDRQ", "SYS5V"};
-static const char* const* DEFAULT_RAIL_NAMES[] =  {
-  DEFAULT_RAIL_NAMES_DEFAULT,
+static const char* const* DEFAULT_RAIL_NAMES[] = {
+  DEFAULT_RAIL_NAMES_TX,
+  DEFAULT_RAIL_NAMES_VDD_IN,
   DEFAULT_RAIL_NAMES_XAVIER_NX,
   DEFAULT_RAIL_NAMES_AGX_XAVIER,
 };
@@ -310,12 +329,11 @@ static int walk_i2c_drivers_dir_for_default(int* fds, size_t* n_fds, long* polli
       return -1;
     }
     if (fds[0] > 0) {
-      // verify that all channels are found
+      // check if all channels are found
       for (j = 0; j < *n_fds; j++) {
         if (fds[j] <= 0) {
-          fprintf(stderr, "energymon_init_jetson: missing expected default rail: %s\n", DEFAULT_RAIL_NAMES[i][j]);
-          errno = ENODEV;
-          return -1;
+          close_and_clear_fds(fds, *n_fds);
+          break; // continue outer loop
         }
       }
       return 0;
@@ -541,14 +559,8 @@ int energymon_init_jetson(energymon* em) {
   return 0;
 
 fail_rails:
-  err_save = errno;
-  for (i = 0; i < state->count; i++) {
-    if (state->fds[i] > 0) {
-      close(state->fds[i]);
-    }
-  }
+  close_and_clear_fds(state->fds, state->count);
   free(state);
-  errno = err_save;
 fail_alloc:
   if (rail_names) {
     free_rail_names(rail_names, n_rails);
