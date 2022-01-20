@@ -8,8 +8,11 @@
 [\fIOPTION\fP]...
 .SH "DESCRIPTION"
 .LP
-Prints the average power at regular intervals.
+Prints the average power in Watts at regular intervals.
 Uses the @MAN_IMPL@ EnergyMon implementation.
+.LP
+Power 'P' is computed as P=E/t, where 'E' is the measured energy difference
+and 't' is the actual time elapsed between updates.
 .LP
 If no additional options are specified, average power is printed to standard
 output at the implementation's minimum update interval, and the program loops
@@ -17,6 +20,12 @@ until interrupted with \fBCTRL\-C\fP.
 Note that using the default interval is not always desirable, as it may be too
 fast and cause unnecessary overhead.
 Also, computing power at the minimum update interval can result in noisy data.
+.LP
+Variation in the number of internal EnergyMon updates between reads causes
+noise in the reported power values. If no internal updates are accomplished
+between reads, the average power will be reported as 0 and the next non-zero
+value reported may be roughly X times larger than normal, where X is similar to
+the number of preceding zero-valued reports.
 .SH "OPTIONS"
 .LP
 .TP
@@ -33,10 +42,7 @@ Write the output to \fIFILE\fP.
 Force updates faster than the EnergyMon claims.
 .TP
 \fB\-i\fP, \fB\-\-interval=\fP\fIUS\fP
-The update interval in microseconds.
-Must be greater than 0.
-Note that if \fIUS\fP is too short for the EnergyMon implementation to get
-updated energy readings, the average power will be reported as 0.
+The update interval in microseconds (\fIUS\fP > 0).
 .TP
 \fB\-s\fP, \fB\-\-summarize\fP
 Print out a summary at completion.

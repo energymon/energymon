@@ -36,12 +36,23 @@ static const struct option long_options[] = {
 
 static void print_usage(int exit_code) {
   fprintf(exit_code ? stderr : stdout,
-          "Usage: energymon-file-provider [OPTION]... [FILE]\n"
+          "Usage: energymon-file-provider [OPTION]... [FILE]\n\n"
+          "Writes energy readings in microjoules to a file at regular intervals.\n\n"
+          "If no additional options are specified, energy readings are written to standard\n"
+          "output at the implementation's minimum update interval, and the program loops\n"
+          "until interrupted with CTRL-C.\n"
+          "Note that using the default interval is not always desirable, as it may be too\n"
+          "fast and cause unnecessary overhead.\n"
+          "The data also tends to be quite noisy at the minimum update interval.\n\n"
+          "If FILE is specified, the file is overwritten with each write, so there is only\n"
+          "ever a single value.\n"
+          "To instead write a new line for each sample, specify -n/--no-rewind.\n"
+          "This option is implied when using standard output by default.\n\n"
           "Options:\n"
           "  -h, --help               Print this message and exit\n"
           "  -c, --count=N            Stop after N reads\n"
           "  -F, --force              Force updates faster than the EnergyMon claims\n"
-          "  -i, --interval=US        The update interval in microseconds\n"
+          "  -i, --interval=US        The update interval in microseconds (US > 0)\n"
           "  -n, --no-rewind          Write each reading on a new line\n");
   exit(exit_code);
 }

@@ -41,13 +41,27 @@ static const struct option long_options[] = {
 
 static void print_usage(int exit_code) {
   fprintf(exit_code ? stderr : stdout,
-          "Usage: energymon-power-poller [OPTION]...\n"
+          "Usage: energymon-power-poller [OPTION]...\n\n"
+          "Prints the average power in Watts at regular intervals.\n\n"
+          "Power 'P' is computed as P=E/t, where 'E' is the measured energy difference and\n"
+          "'t' is the actual time elapsed between updates.\n\n"
+          "If no additional options are specified, average power is printed to standard\n"
+          "output at the implementation's minimum update interval, and the program loops\n"
+          "until interrupted with CTRL-C.\n"
+          "Note that using the default interval is not always desirable, as it may be too\n"
+          "fast and cause unnecessary overhead.\n"
+          "Also, computing power at the minimum update interval can result in noisy data.\n\n"
+          "Variation in the number of internal EnergyMon updates between reads causes\n"
+          "noise in the reported power values. If no internal updates are accomplished\n"
+          "between reads, the average power will be reported as 0 and the next non-zero\n"
+          "value reported may be roughly X times larger than normal, where X is similar to\n"
+          "the number of preceding zero-valued reports.\n\n"
           "Options:\n"
           "  -h, --help               Print this message and exit\n"
           "  -c, --count=N            Stop after N reads\n"
           "  -f, --file=FILE          The output file\n"
           "  -F, --force              Force updates faster than the EnergyMon claims\n"
-          "  -i, --interval=US        The update interval in microseconds\n"
+          "  -i, --interval=US        The update interval in microseconds (> 0)\n"
           "  -s, --summarize          Print out a summary at completion\n");
   exit(exit_code);
 }

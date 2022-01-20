@@ -25,10 +25,13 @@ static const struct option long_options[] = {
 
 static void print_usage(int exit_code) {
   fprintf(exit_code ? stderr : stdout,
-          "Usage: energymon-idle-power [OPTION]... [SECONDS]\n"
+          "Usage: energymon-idle-power [OPTION]... [SECONDS]\n\n"
+          "Intended to measure the idle power of the system by doing nothing. In fact, it\n"
+          "just measures the average power during the SECONDS specified (%u by default),\n"
+          "regardless of whether the system is actually idle.\n\n"
           "Options:\n"
-          "  -h, --help               Print this message and exit\n"
-          "By default, SECONDS = %f\n", ((double) DEFAULT_SLEEP_US / 1000000));
+          "  -h, --help               Print this message and exit\n",
+          (unsigned int)(DEFAULT_SLEEP_US / 1000000));
   exit(exit_code);
 }
 

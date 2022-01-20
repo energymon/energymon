@@ -9,7 +9,7 @@ intervals
 [\fIOPTION\fP]... [\fIFILE\fP]
 .SH "DESCRIPTION"
 .LP
-Writes energy readings to a file at regular intervals.
+Writes energy readings in microjoules to a file at regular intervals.
 Uses the @MAN_IMPL@ EnergyMon implementation.
 .LP
 If no additional options are specified, energy readings are written to standard
@@ -36,8 +36,7 @@ Stop after \fIN\fP reads.
 Force updates faster than the EnergyMon claims.
 .TP
 \fB\-i\fP, \fB\-\-interval=\fP\fIUS\fP
-The update interval in microseconds.
-Must be greater than 0.
+The update interval in microseconds (\fIUS\fP > 0).
 .TP
 \fB\-n\fP, \fB\-\-no\-rewind\fP
 Write each reading on a new line.
