@@ -14,6 +14,10 @@
 #include "energymon-get.h"
 #include "energymon-time-util.h"
 
+#ifndef ENERGYMON_UTIL_PREFIX
+#define ENERGYMON_UTIL_PREFIX "energymon"
+#endif
+
 static const uint64_t DEFAULT_SLEEP_US = 10000000; // 10 seconds
 static const int IGNORE_INTERRUPT = 0;
 
@@ -25,7 +29,7 @@ static const struct option long_options[] = {
 
 static void print_usage(int exit_code) {
   fprintf(exit_code ? stderr : stdout,
-          "Usage: energymon-idle-power [OPTION]... [SECONDS]\n\n"
+          "Usage: "ENERGYMON_UTIL_PREFIX"-idle-power [OPTION]... [SECONDS]\n\n"
           "Intended to measure the idle power of the system by doing nothing. In fact, it\n"
           "just measures the average power during the SECONDS specified (%u by default),\n"
           "regardless of whether the system is actually idle.\n\n"

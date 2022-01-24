@@ -14,6 +14,10 @@
 #include "energymon-get.h"
 #include "energymon-time-util.h"
 
+#ifndef ENERGYMON_UTIL_PREFIX
+#define ENERGYMON_UTIL_PREFIX "energymon"
+#endif
+
 #define CMD_MAX_LEN 8192
 
 static const char short_options[] = "+h";
@@ -24,7 +28,7 @@ static const struct option long_options[] = {
 
 static void print_usage(int exit_code) {
   fprintf(exit_code ? stderr : stdout,
-          "Usage: energymon-cmd-profile [OPTION]... COMMAND [ARG...]\n\n"
+          "Usage: "ENERGYMON_UTIL_PREFIX"-cmd-profile [OPTION]... COMMAND [ARG...]\n\n"
           "Prints time, energy, and average power for the execution of a command.\n\n"
           "Options:\n"
           "  -h, --help               Print this message and exit\n");

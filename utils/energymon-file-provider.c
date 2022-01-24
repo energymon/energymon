@@ -17,6 +17,10 @@
 #include "energymon-get.h"
 #include "energymon-time-util.h"
 
+#ifndef ENERGYMON_UTIL_PREFIX
+#define ENERGYMON_UTIL_PREFIX "energymon"
+#endif
+
 static volatile int running = 1;
 static int count = 0;
 static const char* filename = NULL;
@@ -36,7 +40,7 @@ static const struct option long_options[] = {
 
 static void print_usage(int exit_code) {
   fprintf(exit_code ? stderr : stdout,
-          "Usage: energymon-file-provider [OPTION]... [FILE]\n\n"
+          "Usage: "ENERGYMON_UTIL_PREFIX"-file-provider [OPTION]... [FILE]\n\n"
           "Writes energy readings in microjoules to a file at regular intervals.\n\n"
           "If no additional options are specified, energy readings are written to standard\n"
           "output at the implementation's minimum update interval, and the program loops\n"

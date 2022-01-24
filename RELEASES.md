@@ -16,6 +16,7 @@
 
 * odroid, odroid-ioctl, zcu102: save errno when cleaning up after init failure
 * osp: link with librt on older systems
+* utils: use implementation-specific binary names in help messages (don't assume energymon-default name format)
 
 
 ## [v0.4.0] - 2021-05-12

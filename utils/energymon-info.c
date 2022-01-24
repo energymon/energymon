@@ -12,6 +12,10 @@
 #include "energymon.h"
 #include "energymon-get.h"
 
+#ifndef ENERGYMON_UTIL_PREFIX
+#define ENERGYMON_UTIL_PREFIX "energymon"
+#endif
+
 static const char short_options[] = "+h";
 static const struct option long_options[] = {
   {"help",      no_argument,       NULL, 'h'},
@@ -20,7 +24,7 @@ static const struct option long_options[] = {
 
 static void print_usage(int exit_code) {
   fprintf(exit_code ? stderr : stdout,
-          "Usage: energymon-info [OPTION]...\n\n"
+          "Usage: "ENERGYMON_UTIL_PREFIX"-info [OPTION]...\n\n"
           "Prints information from the EnergyMon interface functions, including source\n"
           "name, exclusivity, refresh interval, energy reading precision, and a current\n"
           "energy value.\n\n"

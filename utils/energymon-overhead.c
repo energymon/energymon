@@ -15,6 +15,10 @@
 #include "energymon-get.h"
 #include "energymon-time-util.h"
 
+#ifndef ENERGYMON_UTIL_PREFIX
+#define ENERGYMON_UTIL_PREFIX "energymon"
+#endif
+
 static const char short_options[] = "+h";
 static const struct option long_options[] = {
   {"help",      no_argument,       NULL, 'h'},
@@ -23,7 +27,7 @@ static const struct option long_options[] = {
 
 static void print_usage(int exit_code) {
   fprintf(exit_code ? stderr : stdout,
-          "Usage: energymon-overhead [OPTION]...\n\n"
+          "Usage: "ENERGYMON_UTIL_PREFIX"-overhead [OPTION]...\n\n"
           "Measure the overhead of the init, read, and finish functions. Results are in\n"
           "nanoseconds.\n\n"
           "Note that overhead readings can only be as precise as the system clock supports.\n\n"

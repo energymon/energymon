@@ -19,6 +19,10 @@
 #include "energymon-get.h"
 #include "energymon-time-util.h"
 
+#ifndef ENERGYMON_UTIL_PREFIX
+#define ENERGYMON_UTIL_PREFIX "energymon"
+#endif
+
 static const int IGNORE_INTERRUPT = 0;
 
 static volatile uint64_t running = 1;
@@ -41,7 +45,7 @@ static const struct option long_options[] = {
 
 static void print_usage(int exit_code) {
   fprintf(exit_code ? stderr : stdout,
-          "Usage: energymon-power-poller [OPTION]...\n\n"
+          "Usage: "ENERGYMON_UTIL_PREFIX"-power-poller [OPTION]...\n\n"
           "Prints the average power in Watts at regular intervals.\n\n"
           "Power 'P' is computed as P=E/t, where 'E' is the measured energy difference and\n"
           "'t' is the actual time elapsed between updates.\n\n"

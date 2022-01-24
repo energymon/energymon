@@ -29,6 +29,7 @@ function(add_energymon_utils SHORT_NAME TARGET_LIB ENERGYMON_GET_C)
                                             ${ENERGYMON_GET_C}
                                             ${ENERGYMON_TIME_UTIL})
   target_include_directories(${UTIL_PREFIX}-cmd-profile PRIVATE ${PROJECT_SOURCE_DIR}/common)
+  target_compile_definitions(${UTIL_PREFIX}-cmd-profile PRIVATE ENERGYMON_UTIL_PREFIX=\"${UTIL_PREFIX}\")
   target_link_libraries(${UTIL_PREFIX}-cmd-profile PRIVATE ${TARGET_LIB} ${LIBRT})
   configure_energymon_util_man(${SHORT_NAME} ${UTIL_PREFIX} cmd-profile)
 
@@ -36,6 +37,7 @@ function(add_energymon_utils SHORT_NAME TARGET_LIB ENERGYMON_GET_C)
                                               ${ENERGYMON_GET_C}
                                               ${ENERGYMON_TIME_UTIL})
   target_include_directories(${UTIL_PREFIX}-file-provider PRIVATE ${PROJECT_SOURCE_DIR}/common)
+  target_compile_definitions(${UTIL_PREFIX}-file-provider PRIVATE ENERGYMON_UTIL_PREFIX=\"${UTIL_PREFIX}\")
   target_link_libraries(${UTIL_PREFIX}-file-provider PRIVATE ${TARGET_LIB} ${LIBRT})
   configure_energymon_util_man(${SHORT_NAME} ${UTIL_PREFIX} file-provider)
 
@@ -43,12 +45,14 @@ function(add_energymon_utils SHORT_NAME TARGET_LIB ENERGYMON_GET_C)
                                            ${ENERGYMON_GET_C}
                                            ${ENERGYMON_TIME_UTIL})
   target_include_directories(${UTIL_PREFIX}-idle-power PRIVATE ${PROJECT_SOURCE_DIR}/common)
+  target_compile_definitions(${UTIL_PREFIX}-idle-power PRIVATE ENERGYMON_UTIL_PREFIX=\"${UTIL_PREFIX}\")
   target_link_libraries(${UTIL_PREFIX}-idle-power PRIVATE ${TARGET_LIB} ${LIBRT})
   configure_energymon_util_man(${SHORT_NAME} ${UTIL_PREFIX} idle-power)
 
   add_executable(${UTIL_PREFIX}-info ${PROJECT_SOURCE_DIR}/utils/energymon-info.c
                                      ${ENERGYMON_GET_C})
   target_include_directories(${UTIL_PREFIX}-info PRIVATE ${PROJECT_SOURCE_DIR}/common)
+  target_compile_definitions(${UTIL_PREFIX}-info PRIVATE ENERGYMON_UTIL_PREFIX=\"${UTIL_PREFIX}\")
   target_link_libraries(${UTIL_PREFIX}-info PRIVATE ${TARGET_LIB})
   configure_energymon_util_man(${SHORT_NAME} ${UTIL_PREFIX} info)
 
@@ -56,6 +60,7 @@ function(add_energymon_utils SHORT_NAME TARGET_LIB ENERGYMON_GET_C)
                                          ${ENERGYMON_GET_C}
                                          ${ENERGYMON_TIME_UTIL})
   target_include_directories(${UTIL_PREFIX}-overhead PRIVATE ${PROJECT_SOURCE_DIR}/common)
+  target_compile_definitions(${UTIL_PREFIX}-overhead PRIVATE ENERGYMON_UTIL_PREFIX=\"${UTIL_PREFIX}\")
   target_link_libraries(${UTIL_PREFIX}-overhead PRIVATE ${TARGET_LIB} ${LIBRT})
   configure_energymon_util_man(${SHORT_NAME} ${UTIL_PREFIX} overhead)
 
@@ -63,6 +68,7 @@ function(add_energymon_utils SHORT_NAME TARGET_LIB ENERGYMON_GET_C)
                                              ${ENERGYMON_GET_C}
                                              ${ENERGYMON_TIME_UTIL})
   target_include_directories(${UTIL_PREFIX}-power-poller PRIVATE ${PROJECT_SOURCE_DIR}/common)
+  target_compile_definitions(${UTIL_PREFIX}-power-poller PRIVATE ENERGYMON_UTIL_PREFIX=\"${UTIL_PREFIX}\")
   target_link_libraries(${UTIL_PREFIX}-power-poller PRIVATE ${TARGET_LIB} ${LIBRT} ${LIBM})
   configure_energymon_util_man(${SHORT_NAME} ${UTIL_PREFIX} power-poller)
 
