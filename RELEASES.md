@@ -8,6 +8,7 @@
 * ipg: new implementation using the Intel Power Gadget 3.7 API (PowerGadgetLib.h)
 * jetson: new implementation for NVIDIA Jetson systems
 * energymon-file-provider: -F/--force option to force updates faster than the EnergyMon implementation claims
+* energymon-info: -h/--help option to print help message
 * energymon-power-poller: -F/--force option to force updates faster than the EnergyMon implementation claims
 
 ### Fixed

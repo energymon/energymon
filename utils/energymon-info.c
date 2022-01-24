@@ -5,17 +5,49 @@
  * @date 2016-03-02
  */
 #include <errno.h>
+#include <getopt.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "energymon.h"
 #include "energymon-get.h"
 
-int main(void) {
+static const char short_options[] = "+h";
+static const struct option long_options[] = {
+  {"help",      no_argument,       NULL, 'h'},
+  {0, 0, 0, 0}
+};
+
+static void print_usage(int exit_code) {
+  fprintf(exit_code ? stderr : stdout,
+          "Usage: energymon-info [OPTION]...\n\n"
+          "Prints information from the EnergyMon interface functions, including source\n"
+          "name, exclusivity, refresh interval, energy reading precision, and a current\n"
+          "energy value.\n\n"
+          "Even if the EnergyMon implementation fails to initialize, the program will\n"
+          "attempt to read from as many functions as possible.\n\n"
+          "Options:\n"
+          "  -h, --help               Print this message and exit\n");
+  exit(exit_code);
+}
+
+int main(int argc, char** argv) {
   char buf[256] = { 0 };
   energymon em;
   uint64_t reading = 0;
   int ret;
+  int c;
+  while ((c = getopt_long(argc, argv, short_options, long_options, NULL)) != -1) {
+    switch (c) {
+      case 'h':
+        print_usage(0);
+        break;
+      case '?':
+      default:
+        print_usage(1);
+        break;
+    }
+  }
 
   if (energymon_get(&em)) {
     exit(1);
