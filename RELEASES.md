@@ -9,6 +9,7 @@
 * jetson: new implementation for NVIDIA Jetson systems
 * energymon-file-provider: -F/--force option to force updates faster than the EnergyMon implementation claims
 * energymon-info: -h/--help option to print help message
+* energymon-overhead: -h/--help option to print help message
 * energymon-power-poller: -F/--force option to force updates faster than the EnergyMon implementation claims
 
 ### Fixed
