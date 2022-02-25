@@ -40,24 +40,35 @@ int energymon_get_default(energymon* em) {
 /*
  * From: https://docs.nvidia.com/jetson/l4t/ - "Clock Frequency and Power Management"
  * Version: 32.6.1 (Accessed 2022-01-13)
+ * From: Inspection of L4T kernel device tree sources (https://developer.nvidia.com/embedded/linux-tegra)
+ * Version: 32.6.1 (Accessed 2022-02-25)
  *
  * TX1
  * ---
  * 0x40: VDD_IN, VDD_GPU, VDD_CPU
  * 0x42 (carrier board): VDD_MUX, VDD_5V_IO_SYS, VDD_3V3_SYS
- * 0x43 (carrier board): VDD_3V3_IO_SLP, VDD_1V8_IO, VDD_3V3_SYS_M2
+ * 0x43 (carrier board): VDD_3V3_IO, VDD_1V8_IO, VDD_M2_IN
  * Note: VDD_IN supplies the main module and VDD_MUX supplies the carrier board.
  *       They appear to branch from the main power supply, so should be in parallel.
  *       See: https://forums.developer.nvidia.com/t/tx2-power-rail-relationships/201037
+ * Note: 0x43 names differ from docs based on kernel device tree source inspection
+ *       docs specify: VDD_3V3_IO_SLP, VDD_1V8_IO, VDD_3V3_SYS_M2
+ * L4T kernel refers to this model family as "jetson"
  *
  * Nano
  * ----
- * 0x40: VDD_IN, VDD_GPU, VDD_CPU
+ * 0x40: POM_5V_IN, POM_5V_GPU, POM_5V_CPU
  * Note: "Jetson Nano 2GB does not have an INA3221 power monitor."
+ * Note: 0x40 names differ from docs based on real platform observations and kernel device tree source inspection
+ *       docs specify: VDD_IN, VDD_GPU, VDD_CPU)
+ * Note: L4T kernel refers to this model family as "porg"
  *
  * Xavier NX
  * ---------
- * 0x40: 5V_IN, VDD_CPU_GPU, VDD_SOC
+ * 0x40: VDD_IN, VDD_CPU_GPU_CV, VDD_SOC
+ * Note: 0x40 names differ from docs based on kernel device tree source inspection
+ *       docs specify: 5V_IN, VDD_CPU_GPU, VDD_SOC
+ * L4T kernel refers to this model family as "jakku"
  *
  * AGX Xavier Series
  * -----------------
@@ -71,20 +82,25 @@ int energymon_get_default(energymon* em) {
  *           "The SYS_VIN_HV and SYS_VIN_MV are derived from [the main] power source" (and not one from the other).
  *       Per this text and Table 5-2, we infer that the "SYS_VIN_MV" rail supplies the "SYS5V" channel and the
  *       "SYS_VIN_HV" rail supplies the other channels.
+ * L4T kernel refers to this model family as "galen"
  *
  * TX2, TX2i, and TX2 4GB
  * ----------------------
  * 0x40: VDD_SYS_GPU, VDD_SYS_SOC, VDD_4V0_WIFI (not on TX2i)
  * 0x41: VDD_IN, VDD_SYS_CPU, VDD_SYS_DDR
- * 0x42 (carrier board): VDD_MUX, VDD_5V_IO_SYS, VDD_3V3_SYS
+ * 0x42 (carrier board): VDD_MUX, VDD_5V0_IO_SYS, VDD_3V3_SYS
  * 0x43 (carrier board): VDD_3V3_IO_SLP, VDD_1V8_IO, VDD_3V3_SYS_M2
  * Note: VDD_IN supplies the main module and VDD_MUX supplies the carrier board.
  *       They appear to branch from the main power supply, so should be in parallel.
  *       See: https://forums.developer.nvidia.com/t/tx2-power-rail-relationships/201037
+ * Note: 0x42 names differ from docs based on kernel device tree source inspection
+ *       docs specify: VDD_MUX, VDD_5V_IO_SYS, VDD_3V3_SYS
+ * L4T kernel refers to this model family as "quill"
  *
  * TX2 NX
  * ------
  * 0x40: VDD_IN, VDD_CPU_GPU, VDD_SOC
+ * L4T kernel refers to this model family as "lanai"
  */
 
 #define NUM_RAILS_DEFAULT_MAX 6
@@ -299,16 +315,16 @@ static void close_and_clear_fds(int* fds, size_t max_fds) {
  */
 // The TX1 and most TX2 models have power power rails VDD_IN for the main board and VDD_MUX for the carrier board
 static const char* DEFAULT_RAIL_NAMES_TX[NUM_RAILS_DEFAULT_MAX] = {"VDD_IN", "VDD_MUX"};
-// The Nano, Xavier NX, and TX2 NX have parent power rail VDD_IN
+// The Xavier NX and TX2 NX have parent power rail VDD_IN
 static const char* DEFAULT_RAIL_NAMES_VDD_IN[NUM_RAILS_DEFAULT_MAX] = {"VDD_IN"};
-// The Xavier NX has parent power rail 5V_IN
-static const char* DEFAULT_RAIL_NAMES_XAVIER_NX[NUM_RAILS_DEFAULT_MAX] = {"5V_IN"};
+// The Nano has parent power rail POM_5V_IN
+static const char* DEFAULT_RAIL_NAMES_POM_5V_IN[NUM_RAILS_DEFAULT_MAX] = {"POM_5V_IN"};
 // The AGX Xavier doesn't have a parent power rail - all its rails are in parallel
 static const char* DEFAULT_RAIL_NAMES_AGX_XAVIER[NUM_RAILS_DEFAULT_MAX] = {"GPU", "CPU", "SOC", "CV", "VDDRQ", "SYS5V"};
 static const char* const* DEFAULT_RAIL_NAMES[] = {
   DEFAULT_RAIL_NAMES_TX,
   DEFAULT_RAIL_NAMES_VDD_IN,
-  DEFAULT_RAIL_NAMES_XAVIER_NX,
+  DEFAULT_RAIL_NAMES_POM_5V_IN,
   DEFAULT_RAIL_NAMES_AGX_XAVIER,
 };
 static int walk_i2c_drivers_dir_for_default(int* fds, size_t* n_fds, long* polling_delay_us_max) {
