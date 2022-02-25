@@ -8,8 +8,8 @@ The following lists the supported models and the power rail(s) used by default o
 When more than one rail is specified, their power values are aggregated.
 
 * TX1: `VDD_IN`, `VDD_MUX`
-* Nano (original only - the Jetson Nano 2GB does not have INA3221 power monitors): `VDD_IN`
-* Xavier NX: `5V_IN`
+* Nano (original only - the Jetson Nano 2GB does not have INA3221 power monitors): `POM_5V_IN`
+* Xavier NX: `VDD_IN`
 * AGX Xavier Series: `GPU`, `CPU`, `SOC`, `CV`, `VDDRQ`, `SYS5V`
 * TX2, TX2i, TX2 4GB: `VDD_IN`, `VDD_MUX`
 * TX2 NX: `VDD_IN`
@@ -28,7 +28,7 @@ Setting the `ENERGYMON_JETSON_RAIL_NAMES` environment variable to an appropriate
 Different platforms support varying numbers of sensor devices, with each sensor supporting up to three "rails" or "channels".
 
 To override the default behavior described above and read from different rails, set the environment variable `ENERGYMON_JETSON_RAIL_NAMES`.
-See the "Clock Frequency and Power Management" section of the [NVIDIA Jetson Linux Driver Package (L4T)](https://docs.nvidia.com/jetson/l4t/) documentation for allowable values on each platform.
+See [JetsonPowerRails](./JetsonPowerRails.md) for allowable values on each platform.
 A comma-delimited list is supported to aggregate power readings from multiple rails, but use caution to avoid specifying overlapping hardware sources, otherwise power/energy will be counted more than once.
 Refer to your platform's Product Design Guide to check power subsystem allocations.
 
