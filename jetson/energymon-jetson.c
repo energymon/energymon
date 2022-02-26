@@ -494,6 +494,7 @@ int energymon_init_jetson(energymon* em) {
     err_save = errno;
     energymon_finish_jetson(em);
     errno = err_save;
+    return -1;
   }
 
   // start sensors polling thread
