@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <ftdi.h>
 
-void main(void) {
+int main(void) {
   ftdi_tcioflush(NULL);
+  return 0;
 }

@@ -16,6 +16,7 @@
 
 * odroid, odroid-ioctl, zcu102: save errno when cleaning up after init failure
 * osp: link with librt on older systems
+* wattsup-libftdi: compilation fails with clang when `-Werror` option is used
 * utils: use implementation-specific binary names in help messages (don't assume energymon-default name format)
 
 
