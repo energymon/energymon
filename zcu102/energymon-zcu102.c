@@ -49,7 +49,7 @@ typedef struct energymon_zcu102 {
   int fds[];
 } energymon_zcu102;
 
-static inline long get_update_interval(char** sensors, unsigned int num) {
+static inline unsigned long get_update_interval(char** sensors, unsigned int num) {
   unsigned long ret = 0;
   unsigned long tmp;
   unsigned int i;
