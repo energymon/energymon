@@ -148,7 +148,7 @@ static int is_i2c_bus_addr_dir(const struct dirent* entry) {
          && entry->d_name[1] == '-';
 }
 
-static int walk_device_dir(const char* const* names, int* fds, size_t len, long* polling_delay_us_max,
+static int walk_device_dir(const char* const* names, int* fds, size_t len, unsigned long* polling_delay_us_max,
                            const char* bus_addr, const char* device) {
   // for each rail_name_X, open power file if its name is in list
   // there are 3 channels per device, but it's possible they aren't all connected
@@ -170,8 +170,8 @@ static int walk_device_dir(const char* const* names, int* fds, size_t len, long*
             return -1;
           }
           polling_delay_us = try_read_polling_delay_us(bus_addr, device, channel);
-          if (polling_delay_us > *polling_delay_us_max) {
-            *polling_delay_us_max = polling_delay_us;
+          if (polling_delay_us > 0 && (unsigned long) polling_delay_us > *polling_delay_us_max) {
+            *polling_delay_us_max = (unsigned long) polling_delay_us;
           }
           break;
         }
@@ -182,7 +182,7 @@ static int walk_device_dir(const char* const* names, int* fds, size_t len, long*
   return 0;
 }
 
-static int walk_bus_addr_dir(const char* const* names, int* fds, size_t len, long* polling_delay_us_max,
+static int walk_bus_addr_dir(const char* const* names, int* fds, size_t len, unsigned long* polling_delay_us_max,
                              const char* bus_addr) {
   // for each name format iio:deviceX
   DIR* dir;
@@ -207,7 +207,7 @@ static int walk_bus_addr_dir(const char* const* names, int* fds, size_t len, lon
   return ret;
 }
 
-static int walk_i2c_drivers_dir(const char* const* names, int* fds, size_t len, long* polling_delay_us_max) {
+static int walk_i2c_drivers_dir(const char* const* names, int* fds, size_t len, unsigned long* polling_delay_us_max) {
   // for each name format X-ABCDE
   DIR* dir;
   const struct dirent* entry;
@@ -261,7 +261,7 @@ static const char* const* DEFAULT_RAIL_NAMES[] = {
   DEFAULT_RAIL_NAMES_POM_5V_IN,
   DEFAULT_RAIL_NAMES_AGX_XAVIER,
 };
-static int walk_i2c_drivers_dir_for_default(int* fds, size_t* n_fds, long* polling_delay_us_max) {
+static int walk_i2c_drivers_dir_for_default(int* fds, size_t* n_fds, unsigned long* polling_delay_us_max) {
   size_t i;
   size_t j;
 #ifndef NDEBUG
@@ -406,7 +406,7 @@ static char** get_rail_names(const char* rail_names_str, size_t* n) {
   return rail_names;
 }
 
-static unsigned long get_polling_delay_us(long sysfs_polling_delay_us) {
+static unsigned long get_polling_delay_us(unsigned long sysfs_polling_delay_us) {
   unsigned long us;
   const char* polling_interval_env = getenv(ENERGYMON_JETSON_INTERVAL_US);
   if (polling_interval_env) {
@@ -442,7 +442,7 @@ int energymon_init_jetson(energymon* em) {
     return -1;
   }
 
-  long polling_delay_us = 0;
+  unsigned long polling_delay_us = 0;
   size_t i;
   int err_save;
   size_t n_rails;
