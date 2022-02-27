@@ -181,7 +181,7 @@ static char* data_packet_read(energymon_wattsup_ctx* ctx, char* buf, size_t bufs
       perror("data_packet_read: wattsup_read");
       return NULL;
     }
-    buf[len + ret] = '\0';
+    buf[len + (size_t) ret] = '\0';
 #ifdef ENERGYMON_WATTSUP_DEBUG
     fprintf(stdout, "Read %d additional characters:\n%s\n", ret, buf + len);
 #endif
