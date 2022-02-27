@@ -64,7 +64,7 @@ static inline int is_sensor_enabled(const char* file) {
   return errno ? 0 : atoi(cdata);
 }
 
-static inline long get_update_interval(char** sensors, unsigned int num) {
+static inline unsigned long get_update_interval(char** sensors, unsigned int num) {
   unsigned long ret = 0;
   unsigned long tmp;
   unsigned int i;
