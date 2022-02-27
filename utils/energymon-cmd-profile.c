@@ -47,7 +47,8 @@ int main(int argc, char** argv) {
   double watts;
   int cmd_ret;
   int i;
-  int written = 0;
+  int w;
+  size_t written = 0;
   int c;
   while ((c = getopt_long(argc, argv, short_options, long_options, NULL)) != -1) {
     switch (c) {
@@ -65,8 +66,13 @@ int main(int argc, char** argv) {
   }
 
   for (i = optind; i < argc; i++) {
-    written += snprintf(cmd + written, CMD_MAX_LEN - written, "%s%s",
-                        argv[i], (i == argc - 1 ? "" : " "));
+    w = snprintf(cmd + written, CMD_MAX_LEN - written, "%s%s", argv[i],
+                 (i == argc - 1 ? "" : " "));
+    if (w < 0) {
+      perror("snprintf");
+      exit(1);
+    }
+    written += (size_t) w;
     if (written >= CMD_MAX_LEN) {
       fprintf(stderr, "Command too long");
       exit(1);
