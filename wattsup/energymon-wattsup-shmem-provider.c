@@ -148,8 +148,8 @@ int main(int argc, char** argv) {
   
   // store the interval in shared memory
   ems->interval_us = em.finterval(&em);
-  ts.tv_sec = ems->interval_us / 1000000;
-  ts.tv_nsec = (ems->interval_us % 1000000) * 1000;
+  ts.tv_sec = (time_t) (ems->interval_us / (uint64_t) 1000000);
+  ts.tv_nsec = (long) ((ems->interval_us % (uint64_t) 1000000) * (uint64_t) 1000);
 
   // store the precision in shared memory
   ems->precision_uj = em.fprecision(&em);
