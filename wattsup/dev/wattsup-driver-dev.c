@@ -93,7 +93,7 @@ static int wattsup_set_serial_attributes(int fd) {
   // ignore framing and parity errors (there is no parity bit)
   t.c_iflag |= IGNPAR;
   // Turn off double stop bits (documentation specifies only one is used)
-  t.c_cflag &= ~CSTOPB;
+  t.c_cflag &= ~((tcflag_t) CSTOPB);
   // set the parameters
   tcsetattr(fd, TCSANOW, &t);
   // flush any data received but not read and written but not transmitted
