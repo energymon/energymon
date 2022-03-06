@@ -62,19 +62,19 @@ static const clockid_t PTIME_CLOCKID_T_MONOTONIC =
 #define ONE_BILLION  1000000000
 
 static uint64_t ptime_timespec_to_ns(struct timespec* ts) {
-  // must cast as a simple literal can overflow!
-  return ts->tv_sec * (uint64_t) ONE_BILLION + ts->tv_nsec;
+  // must cast macro value as a simple literal can overflow!
+  return (uint64_t) ts->tv_sec * (uint64_t) ONE_BILLION + (uint64_t) ts->tv_nsec;
 }
 
 static void ptime_ns_to_timespec(uint64_t ns, struct timespec* ts) {
-  ts->tv_sec = ns / (time_t) ONE_BILLION;
-  ts->tv_nsec = ns % (long) ONE_BILLION;
+  ts->tv_sec = (time_t) (ns / (uint64_t) ONE_BILLION);
+  ts->tv_nsec = (long) (ns % (uint64_t) ONE_BILLION);
 }
 
 #if defined(__MACH__) || defined(_WIN32)
 static void ptime_us_to_timespec(uint64_t us, struct timespec* ts) {
-  ts->tv_sec = us / (time_t) ONE_MILLION;
-  ts->tv_nsec = (us % (long) ONE_MILLION) * (long) ONE_THOUSAND;
+  ts->tv_sec = (time_t) (us / (uint64_t) ONE_MILLION);
+  ts->tv_nsec = (long) ((us % (uint64_t) ONE_MILLION) * (uint64_t) ONE_THOUSAND);
 }
 #endif
 
@@ -164,7 +164,7 @@ static int nanosleep_win32(struct timespec* ts, struct timespec* rem) {
   LARGE_INTEGER li;
   // negative value indicates relative time
   // rounds up to the next 100th nanosecond if needed
-  li.QuadPart = -((ns / 100) + (ns % 100 > 0 ? 1 : 0));
+  li.QuadPart = -(LONGLONG) ((ns / 100) + (ns % 100 > 0 ? 1 : 0));
   if ((timer = CreateWaitableTimer(NULL, TRUE, NULL)) == NULL) {
     return -1;
   }
@@ -285,8 +285,8 @@ int ptime_sleep_us_no_interrupt(uint64_t us, volatile const int* ignore_interrup
   if (clock_gettime(PTIME_CLOCKID_T_MONOTONIC, &ts)) {
     return -1;
   }
-  ts.tv_sec += us / (time_t) ONE_MILLION;
-  ts.tv_nsec += (us % (long) ONE_MILLION) * (long) ONE_THOUSAND;
+  ts.tv_sec += (time_t) (us / (uint64_t) ONE_MILLION);
+  ts.tv_nsec += (long) ((us % (uint64_t) ONE_MILLION) * (uint64_t) ONE_THOUSAND);
   if (ts.tv_nsec >= (long) ONE_BILLION) {
     ts.tv_nsec -= (long) ONE_BILLION;
     ts.tv_sec++;
