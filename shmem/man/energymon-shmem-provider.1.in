@@ -1,0 +1,48 @@
+.TH "@MAN_BINARY_PREFIX_UPPER@\-SHMEM\-PROVIDER" "1" "2022-03-12" "energymon" "EnergyMon Utilities"
+.SH "NAME"
+.LP
+@MAN_BINARY_PREFIX@\-shmem\-provider \- provide EnergyMon readings over
+shared memory
+.SH "SYNPOSIS"
+.LP
+\fB@MAN_BINARY_PREFIX@\-shmem\-provider\fP
+[\fIOPTION\fP]...
+.SH "DESCRIPTION"
+.LP
+Provide EnergyMon readings over shared memory, e.g., for use by
+\fBlibenergymon\-shmem\fP.
+Uses the @MAN_IMPL@ EnergyMon implementation.
+.LP
+Both the provider and the consumer must agree on the \fIpath\fP and \fIid\fP
+used to create the IPC shared memory key, as required by \fBftok(3)\fP.
+.LP
+If the consumer is \fBlibenergymon\-shmem\fP, the shared memory provider must
+be running before the energymon context is initialized.
+To specify \fIpath\fP and \fIid\fP values for \fBlibenergymon\-shmem\fP, set
+the \fBENERGYMON_SHMEM_DIR\fP and \fBENERGYMON_SHMEM_ID\fP environment
+variables, respectively.
+.SH "OPTIONS"
+.LP
+.TP
+\fB\-h\fP, \fB\-\-help\fP
+Prints the help screen.
+.TP
+\fB\-d\fP, \fB\-\-dir\fP=\fIPATH\fP
+The shared memory path (default = ".").
+.TP
+\fB\-i\fP, \fB\-\-id\fP=\fIID\fP
+The shared memory identifier (default = 1).
+\fIID\fP must be in range [1, 255].
+.SH "EXAMPLES"
+.TP
+\fB@MAN_BINARY_PREFIX@\-shmem\-provider\fP
+Run the shared memory provider with default options.
+.TP
+\fB@MAN_BINARY_PREFIX@\-shmem\-provider \-d "/tmp/shmem" -i 10\fP
+Run the shared memory provider with shared memory path "/tmp/shmem" and
+shared memory identifier 10.
+.SH "BUGS"
+.LP
+Report bugs upstream at <https://github.com/energymon/energymon>
+.SH "SEE ALSO"
+.BR ftok (3)

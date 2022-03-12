@@ -28,6 +28,19 @@ endif()
 
 # Shared Memory Providers
 
+function(configure_energymon_shmem_provider_man SHORT_NAME UTIL_PREFIX)
+  string(REPLACE "-" "\\-" MAN_BINARY_PREFIX "${UTIL_PREFIX}")
+  string(TOUPPER "${MAN_BINARY_PREFIX}" MAN_BINARY_PREFIX_UPPER)
+  string(REPLACE "-" "\\-" MAN_IMPL "${SHORT_NAME}")
+  configure_file(
+    ${PROJECT_SOURCE_DIR}/shmem/man/energymon-shmem-provider.1.in
+    ${CMAKE_CURRENT_BINARY_DIR}/man/man1/${UTIL_PREFIX}-shmem-provider.1
+    @ONLY
+  )
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/man/man1/${UTIL_PREFIX}-shmem-provider.1
+          DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+endfunction()
+
 function(add_energymon_shmem_provider SHORT_NAME TARGET_LIB ENERGYMON_GET_C)
   if(NOT ENERGYMON_BUILD_SHMEM_PROVIDERS OR NOT UNIX)
     return()
@@ -42,6 +55,7 @@ function(add_energymon_shmem_provider SHORT_NAME TARGET_LIB ENERGYMON_GET_C)
   install(TARGETS ${UTIL_PREFIX}-shmem-provider
           EXPORT EnergyMonTargets
           RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+  configure_energymon_shmem_provider_man(${SHORT_NAME} ${UTIL_PREFIX})
 endfunction()
 
 # Binaries
