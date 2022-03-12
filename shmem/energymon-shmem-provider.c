@@ -58,6 +58,12 @@ static void print_usage(int exit_code) {
   exit(exit_code);
 }
 
+static void enforce_key_proj_id(void) {
+  if (key_proj_id <= 0 || key_proj_id > 255) {
+    print_usage(EINVAL);
+  }
+}
+
 static void parse_args(int argc, char** argv) {
   const char* key_proj_id_env;
   int c;
@@ -71,9 +77,7 @@ static void parse_args(int argc, char** argv) {
         break;
       case 'i':
         key_proj_id = atoi(optarg);
-        if (key_proj_id < 0) {
-          print_usage(EINVAL);
-        }
+        enforce_key_proj_id();
         break;
       case '?':
       default:
@@ -93,6 +97,7 @@ static void parse_args(int argc, char** argv) {
       key_proj_id = ENERGYMON_SHMEM_ID_DEFAULT;
     } else {
       key_proj_id = atoi(key_proj_id_env);
+      enforce_key_proj_id();
     }
   }
 }
