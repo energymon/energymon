@@ -6,6 +6,7 @@
  */
 #define _GNU_SOURCE
 #include <errno.h>
+#include <getopt.h>
 #include <inttypes.h>
 #include <signal.h>
 #include <stdio.h>
@@ -29,6 +30,14 @@ static const char* key_dir = NULL;
 static int key_proj_id = -1;
 static int shm_id;
 
+static const char short_options[] = "hd:i:";
+static const struct option long_options[] = {
+  {"help",      no_argument,       NULL, 'h'},
+  {"dir",       required_argument, NULL, 'd'},
+  {"id",        required_argument, NULL, 'i'},
+  {0, 0, 0, 0}
+};
+
 static void print_usage(int exit_code) {
   fprintf(exit_code ? stderr : stdout,
           "Usage: "ENERGYMON_UTIL_PREFIX"-shmem-provider [OPTION]...\n\n"
@@ -50,26 +59,26 @@ static void print_usage(int exit_code) {
 }
 
 static void parse_args(int argc, char** argv) {
-  int i;
   const char* key_proj_id_env;
-  for (i = 1; i < argc; i++) {
-    if (!strcmp("-h", argv[i]) || !strcmp("--help", argv[i])) {
-      print_usage(0);
-    } else if (!strcmp("-d", argv[i]) || !strcmp("--dir", argv[i])) {
-      if (++i == argc) {
+  int c;
+  while ((c = getopt_long(argc, argv, short_options, long_options, NULL)) != -1) {
+    switch (c) {
+      case 'h':
+        print_usage(0);
+        break;
+      case 'd':
+        key_dir = optarg;
+        break;
+      case 'i':
+        key_proj_id = atoi(optarg);
+        if (key_proj_id < 0) {
+          print_usage(EINVAL);
+        }
+        break;
+      case '?':
+      default:
         print_usage(EINVAL);
-      }
-      key_dir = argv[i];
-    } else if (!strcmp("-i", argv[i]) || !strcmp("--id", argv[i])) {
-      if (++i == argc) {
-        print_usage(EINVAL);
-      }
-      key_proj_id = atoi(argv[i]);
-      if (key_proj_id < 0) {
-        print_usage(EINVAL);
-      }
-    } else {
-      print_usage(EINVAL);
+        break;
     }
   }
   if (key_dir == NULL) {
