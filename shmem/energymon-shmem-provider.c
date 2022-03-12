@@ -30,13 +30,22 @@ static int key_proj_id = -1;
 static int shm_id;
 
 static void print_usage(int exit_code) {
-  printf("Usage: "ENERGYMON_UTIL_PREFIX"-shmem-provider [OPTIONS]\n");
-  printf("  -d --dir      The shared memory directory\n");
-  printf("                default = \"%s\"\n", ENERGYMON_SHMEM_DIR_DEFAULT);
-  printf("  -i --id       The shared memory identifier\n");
-  printf("                default = %d\n", ENERGYMON_SHMEM_ID_DEFAULT);
-  printf("  -h, --help    Print this message\n");
-  printf("\n");
+  fprintf(exit_code ? stderr : stdout,
+          "Usage: "ENERGYMON_UTIL_PREFIX"-shmem-provider [OPTION]...\n\n"
+          "Provide EnergyMon readings over shared memory, e.g., for use by\n"
+          "libenergymon-shmem.\n\n"
+          "Both the provider and the consumer must agree on the path and id used to create\n"
+          "the IPC shared memory key, as required by ftok(3).\n\n"
+          "If the consumer is libenergymon-shmem, the shared memory provider must be\n"
+          "running before the energymon context is initialized. To specify path and id\n"
+          "values for libenergymon-shmem, set the ENERGYMON_SHMEM_DIR and\n"
+          "ENERGYMON_SHMEM_ID environment variables, respectively.\n\n"
+          "Options:\n"
+          "  -h, --help               Print this message and exit\n"
+          "  -d, --dir=PATH           The shared memory path (default = \"%s\")\n"
+          "  -i, --id=ID              The shared memory identifier (default = %d)\n"
+          "                           ID must be in range [1, 255]\n",
+          ENERGYMON_SHMEM_DIR_DEFAULT, ENERGYMON_SHMEM_ID_DEFAULT);
   exit(exit_code);
 }
 
