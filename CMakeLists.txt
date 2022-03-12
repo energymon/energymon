@@ -55,7 +55,7 @@ add_subdirectory(test)
 
 function(add_energymon_library TARGET SHORT_NAME)
   # Parse arguments
-  set(options)
+  set(options BUILD_SHMEM_PROVIDER)
   set(oneValueArgs ENERGYMON_GET_HEADER
                    ENERGYMON_GET_FUNCTION
                    ENERGYMON_GET_C_OUTPUT)
@@ -89,6 +89,11 @@ function(add_energymon_library TARGET SHORT_NAME)
   configure_file(${PROJECT_SOURCE_DIR}/common/energymon-get.c.in ${ARG_ENERGYMON_GET_C_OUTPUT})
   add_energymon_tests(${SHORT_NAME} ${TARGET} ${ARG_ENERGYMON_GET_C_OUTPUT})
   add_energymon_utils(${SHORT_NAME} ${TARGET} ${ARG_ENERGYMON_GET_C_OUTPUT})
+
+  # shmem provider
+  if(ARG_BUILD_SHMEM_PROVIDER)
+    add_energymon_shmem_provider(${SHORT_NAME} ${TARGET} ${ARG_ENERGYMON_GET_C_OUTPUT})
+  endif()
 endfunction()
 
 # Forwards through to add_energymon_library, but the only argument should be SOURCES

@@ -2,7 +2,6 @@ set(SNAME wattsup-libusb)
 set(LNAME energymon-wattsup-libusb)
 set(SOURCES ../energymon-wattsup.c;wattsup-driver-libusb.c;${ENERGYMON_UTIL};${ENERGYMON_TIME_UTIL})
 set(DESCRIPTION "EnergyMon implementation for WattsUp? Power meters using libusb-1.0")
-set(SHMEM_PROVIDER ${LNAME}-shmem-provider)
 
 # Dependencies
 
@@ -29,6 +28,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME)
 
   add_energymon_library(${LNAME} ${SNAME}
+                        BUILD_SHMEM_PROVIDER
                         SOURCES ${SOURCES}
                         PUBLIC_HEADER ../energymon-wattsup.h
                         PUBLIC_BUILD_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/..
@@ -42,13 +42,6 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
   energymon_export_pkg_dependency(LIBUSB_1 libusb-1.0 IMPORTED_TARGET)
 
   set(BUILD_ATTACH_KERNEL TRUE)
-  if(UNIX)
-    add_executable(${SHMEM_PROVIDER} ../energymon-wattsup-shmem-provider.c)
-    target_link_libraries(${SHMEM_PROVIDER} PRIVATE ${LNAME})
-    install(TARGETS ${SHMEM_PROVIDER}
-            EXPORT EnergyMonTargets
-            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-  endif()
 
 endif()
 

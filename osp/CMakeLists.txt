@@ -2,7 +2,6 @@ set(SNAME osp)
 set(LNAME energymon-osp)
 set(SNAME_POLLING osp-polling)
 set(LNAME_POLLING energymon-osp-polling)
-set(SHMEM_PROVIDER ${LNAME_POLLING}-shmem-provider)
 set(SOURCES ${LNAME}.c;${ENERGYMON_UTIL};${ENERGYMON_TIME_UTIL})
 set(SOURCES_POLLING ${SOURCES})
 set(DESCRIPTION "EnergyMon implementation for ODROID Smart Power")
@@ -91,6 +90,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME_POLLING)
 
   add_energymon_library(${LNAME_POLLING} ${SNAME_POLLING}
+                        BUILD_SHMEM_PROVIDER
                         SOURCES ${SOURCES_POLLING}
                         PUBLIC_HEADER ${LNAME_POLLING}.h
                         PUBLIC_BUILD_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
@@ -102,15 +102,6 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
   add_energymon_pkg_config(${LNAME_POLLING} "${DESCRIPTION_POLLING}" "${HIDAPI_IMPL}" "${PKG_CONFIG_PRIVATE_LIBS_POLLING}")
   energymon_export_pkg_dependency(HIDAPI ${HIDAPI_IMPL} IMPORTED_TARGET)
   energymon_export_dependency(Threads)
-
-  if (ENERGYMON_BUILD_SHMEM_PROVIDERS)
-    add_executable(${SHMEM_PROVIDER} energymon-osp-polling-shmem-provider.c)
-    target_include_directories(${SHMEM_PROVIDER} PRIVATE ${PROJECT_SOURCE_DIR}/inc)
-    target_link_libraries(${SHMEM_PROVIDER} PRIVATE ${LNAME_POLLING})
-    install(TARGETS ${SHMEM_PROVIDER}
-            EXPORT EnergyMonTargets
-            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-  endif()
 
 endif()
 

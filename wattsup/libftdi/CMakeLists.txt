@@ -2,7 +2,6 @@ set(SNAME wattsup-libftdi)
 set(LNAME energymon-wattsup-libftdi)
 set(SOURCES ../energymon-wattsup.c;wattsup-driver-libftdi.c;${ENERGYMON_UTIL};${ENERGYMON_TIME_UTIL})
 set(DESCRIPTION "EnergyMon implementation for WattsUp? Power meters using libftdi")
-set(SHMEM_PROVIDER ${LNAME}-shmem-provider)
 
 # Dependencies
 
@@ -46,6 +45,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME)
 
   add_energymon_library(${LNAME} ${SNAME}
+                        BUILD_SHMEM_PROVIDER
                         SOURCES ${SOURCES}
                         PUBLIC_HEADER ../energymon-wattsup.h
                         PUBLIC_BUILD_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/..
@@ -58,14 +58,6 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
   add_energymon_pkg_config(${LNAME} "${DESCRIPTION}" "${PKG_CONFIG_REQUIRES_PRIVATE}" "${PKG_CONFIG_PRIVATE_LIBS}")
   energymon_export_dependency(Threads)
   energymon_export_pkg_dependency(LIBFTDI ${PKG_CONFIG_EXPORT_SPEC} IMPORTED_TARGET)
-
-  if(UNIX AND ENERGYMON_BUILD_SHMEM_PROVIDERS)
-    add_executable(${SHMEM_PROVIDER} ../energymon-wattsup-shmem-provider.c)
-    target_link_libraries(${SHMEM_PROVIDER} PRIVATE ${LNAME})
-    install(TARGETS ${SHMEM_PROVIDER}
-            EXPORT EnergyMonTargets
-            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-  endif()
 
 endif()
 

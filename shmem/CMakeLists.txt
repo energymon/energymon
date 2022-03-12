@@ -26,6 +26,24 @@ if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME OR ENERGYMON_BUILD_DEFAULT STREQUAL LN
   add_energymon_pkg_config(energymon-default "${DESCRIPTION}" "" "")
 endif()
 
+# Shared Memory Providers
+
+function(add_energymon_shmem_provider SHORT_NAME TARGET_LIB ENERGYMON_GET_C)
+  if(NOT ENERGYMON_BUILD_SHMEM_PROVIDERS OR NOT UNIX)
+    return()
+  endif()
+
+  set(UTIL_PREFIX "energymon-${SHORT_NAME}")
+  add_executable(${UTIL_PREFIX}-shmem-provider ${PROJECT_SOURCE_DIR}/shmem/energymon-shmem-provider.c
+                                               ${ENERGYMON_GET_C})
+  target_include_directories(${UTIL_PREFIX}-shmem-provider PRIVATE ${PROJECT_SOURCE_DIR}/common)
+  target_compile_definitions(${UTIL_PREFIX}-shmem-provider PRIVATE ENERGYMON_UTIL_PREFIX=\"${UTIL_PREFIX}\")
+  target_link_libraries(${UTIL_PREFIX}-shmem-provider PRIVATE ${TARGET_LIB})
+  install(TARGETS ${UTIL_PREFIX}-shmem-provider
+          EXPORT EnergyMonTargets
+          RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+endfunction()
+
 # Binaries
 
 if(TARGET energymon-default AND ENERGYMON_BUILD_EXAMPLES)

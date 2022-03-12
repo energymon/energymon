@@ -252,6 +252,8 @@ The providers may need to run with elevated privileges, but other applications c
 
 * `energymon-osp-polling-shmem-provider`
 * `energymon-wattsup-shmem-provider`
+* `energymon-wattsup-libftdi-provider`
+* `energymon-wattsup-libusb-provider`
 
 
 ## Project Source

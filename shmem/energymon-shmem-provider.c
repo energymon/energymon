@@ -1,6 +1,5 @@
 /**
- * Use the energymon-osp-polling implementation and provide results over shared
- * memory.
+ * Provide energymon readings over shared memory.
  *
  * @author Connor Imes
  * @date 2016-02-18
@@ -16,8 +15,13 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <time.h>
-#include "energymon-osp-polling.h"
-#include "../shmem/energymon-shmem.h"
+#include "energymon.h"
+#include "energymon-get.h"
+#include "energymon-shmem.h"
+
+#ifndef ENERGYMON_UTIL_PREFIX
+#error Must set ENERGYMON_UTIL_PREFIX
+#endif
 
 static volatile int running = 1;
 static energymon_shmem* ems;
@@ -25,8 +29,8 @@ static const char* key_dir = NULL;
 static int key_proj_id = -1;
 static int shm_id;
 
-static void print_usage(const char* name, int exit_code) {
-  printf("Usage: %s [OPTIONS]\n", name);
+static void print_usage(int exit_code) {
+  printf("Usage: "ENERGYMON_UTIL_PREFIX"-shmem-provider [OPTIONS]\n");
   printf("  -d --dir      The shared memory directory\n");
   printf("                default = \"%s\"\n", ENERGYMON_SHMEM_DIR_DEFAULT);
   printf("  -i --id       The shared memory identifier\n");
@@ -41,22 +45,22 @@ static void parse_args(int argc, char** argv) {
   const char* key_proj_id_env;
   for (i = 1; i < argc; i++) {
     if (!strcmp("-h", argv[i]) || !strcmp("--help", argv[i])) {
-      print_usage(argv[0], 0);
+      print_usage(0);
     } else if (!strcmp("-d", argv[i]) || !strcmp("--dir", argv[i])) {
       if (++i == argc) {
-        print_usage(argv[0], EINVAL);
+        print_usage(EINVAL);
       }
       key_dir = argv[i];
     } else if (!strcmp("-i", argv[i]) || !strcmp("--id", argv[i])) {
       if (++i == argc) {
-        print_usage(argv[0], EINVAL);
+        print_usage(EINVAL);
       }
       key_proj_id = atoi(argv[i]);
       if (key_proj_id < 0) {
-        print_usage(argv[0], EINVAL);
+        print_usage(EINVAL);
       }
     } else {
-      print_usage(argv[0], EINVAL);
+      print_usage(EINVAL);
     }
   }
   if (key_dir == NULL) {
@@ -132,9 +136,8 @@ int main(int argc, char** argv) {
     return -errno;
   }
 
-  // get the osp-polling energy monitor
-  if (energymon_get_osp_polling(&em)) {
-    perror("energymon_get_osp_polling");
+  // get the energy monitor
+  if (energymon_get(&em)) {
     cleanup_shmem();
     return -errno;
   }
