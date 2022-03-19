@@ -2,6 +2,12 @@
 
 This implementation of the `energymon` interface reads Package-level energy
 data from Intel Model Specific Registers on Linux platforms.
+It supports CPUs that implement the standard Running Average Power Limit (RAPL)
+interface, as described in the Intel Software Developer's Manual, Volume 3A.
+
+Use the [raplcap-msr](../raplcap-msr) implementation for broader Intel CPU
+support, automatic detection of multi-package and multi-die systems, and support
+for other power domains.
 
 ## Prerequisites
 
