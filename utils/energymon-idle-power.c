@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
       fprintf(stderr, "SECONDS value must be > 0, but got: %f\n", seconds);
       exit(1);
     }
-    sleep_us = seconds * 1000000;
+    sleep_us = (uint64_t) (seconds * 1000000.0);
   }
 
   // initialize
