@@ -178,8 +178,8 @@ uint64_t energymon_read_total_msr(const energymon* em) {
         state->msrs[i].n_overflow++;
       }
       state->msrs[i].energy_last = msr_val;
-      total += (msr_val + state->msrs[i].n_overflow * (uint64_t) UINT32_MAX)
-               * state->msrs[i].energy_units * 1000000;
+      total += (uint64_t) ((double) (msr_val + state->msrs[i].n_overflow * (uint64_t) UINT32_MAX)
+                           * state->msrs[i].energy_units * 1000000.0);
     }
   }
   return errno ? 0 : total;
