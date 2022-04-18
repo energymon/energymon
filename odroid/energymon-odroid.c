@@ -232,7 +232,7 @@ static void* odroid_poll_sensors(void* args) {
       errno = err_save;
       perror("odroid_poll_sensors: skipping power sensor reading");
     } else {
-      state->total_uj += sum_w * exec_us;
+      state->total_uj += (uint64_t) (sum_w * (double) exec_us);
     }
     // sleep for the update interval of the sensors
     if (state->poll_sensors) {
