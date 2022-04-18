@@ -22,6 +22,7 @@ static const struct option long_options[] = {
   {0, 0, 0, 0}
 };
 
+__attribute__ ((noreturn))
 static void print_usage(int exit_code) {
   fprintf(exit_code ? stderr : stdout,
           "Usage: "ENERGYMON_UTIL_PREFIX"-info [OPTION]...\n\n"
