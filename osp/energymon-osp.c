@@ -78,7 +78,7 @@ int energymon_get_default(energymon* em) {
   #define ENERGYMON_OSP_POLL_DELAY_US OSP_USB_REFRESH_US
 #endif
 
-#define UJOULES_PER_WATTHOUR 3600000000.0
+#define UJOULES_PER_WATTHOUR 3600000000
 
 // number of retries when bad data is returned from the device
 #ifndef ENERGYMON_OSP_RETRIES
@@ -427,7 +427,7 @@ uint64_t energymon_read_total_osp(const energymon* em) {
       perror("energymon_read_total_osp: em_osp_request_startstop: start");
     }
   }
-  return (uint64_t) (UJOULES_PER_WATTHOUR * (wh + state->wh_surplus));
+  return (uint64_t) ((double) UJOULES_PER_WATTHOUR * (wh + state->wh_surplus));
 #endif
 }
 
