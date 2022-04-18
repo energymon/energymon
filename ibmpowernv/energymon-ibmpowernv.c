@@ -97,7 +97,7 @@ static void* ibmpowernv_poll_sensor(void* args) {
     }
     exec_us = energymon_gettime_elapsed_us(&last_us);
     if (!rc) {
-      state->total_uj += w * exec_us;
+      state->total_uj += (uint64_t) (w * (double) exec_us);
     }
     // sleep for the update interval of the sensors
     if (state->poll_sensors) {
