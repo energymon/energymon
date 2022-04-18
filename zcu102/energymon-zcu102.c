@@ -204,7 +204,7 @@ static void* zcu102_poll_sensors(void* args) {
       perror("zcu102_poll_sensors: skipping power sensor reading");
     } else {
       sum_w = sum_uw / 1e6;
-      delta_uj = sum_w * exec_us;
+      delta_uj = (uint64_t) (sum_w * (double) exec_us);
 #ifdef ENERGYMON_DEBUG
       fprintf(stderr, "zcu102_poll_sensors: Read total power: %lu uW (%f W)\n", sum_uw, sum_w);
       fprintf(stderr, "zcu102_poll_sensors: Calculated energy: %f W * %"PRIi64" us = %"PRIu64" uJ\n", sum_w, exec_us, delta_uj);
@@ -314,7 +314,7 @@ uint64_t energymon_get_precision_zcu102(const energymon* em) {
   }
   // On the ZCU102, the sensors change in increments of 25 mW so the
   //   minimum energy delta = 25 mW * the update interval time.
-  uint64_t prec = 0.025 * energymon_get_interval_zcu102(em);
+  uint64_t prec = energymon_get_interval_zcu102(em) / 40;
   return prec ? prec : 1;
 }
 
