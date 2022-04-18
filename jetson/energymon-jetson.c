@@ -299,7 +299,7 @@ static int walk_i2c_drivers_dir_for_default(int* fds, size_t* n_fds, unsigned lo
 static void* jetson_poll_sensors(void* args) {
   energymon_jetson* state = (energymon_jetson*) args;
   char cdata[8];
-  long sum_mw;
+  unsigned long sum_mw;
   size_t i;
   uint64_t exec_us;
   uint64_t last_us;
@@ -314,7 +314,7 @@ static void* jetson_poll_sensors(void* args) {
     // read individual sensors
     for (sum_mw = 0, errno = 0, i = 0; i < state->count && !errno; i++) {
       if (pread(state->fds[i], cdata, sizeof(cdata), 0) > 0) {
-        sum_mw += strtol(cdata, NULL, 0);
+        sum_mw += strtoul(cdata, NULL, 0);
       }
     }
     err_save = errno;
@@ -323,7 +323,7 @@ static void* jetson_poll_sensors(void* args) {
       errno = err_save;
       perror("jetson_poll_sensors: skipping power sensor reading");
     } else {
-      state->total_uj += (uint64_t) sum_mw * ((double) exec_us / 1000.0);
+      state->total_uj += (uint64_t) (sum_mw * exec_us / 1000);
     }
     // sleep for the update interval of the sensors
     if (state->poll_sensors) {
