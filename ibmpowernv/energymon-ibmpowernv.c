@@ -1,6 +1,7 @@
 /**
  * Read energy from the ibmpowernv kernel module "energy" or "power" subfeature.
  * See: https://www.kernel.org/doc/html/latest/hwmon/ibmpowernv.html
+ * See: https://github.com/open-power/docs: occ/OCC_OpenPwr_FW_Interfaces.pdf
  *
  * Note: hwmon sysfs exposes power in microWatts, but libsensors uses Watts.
  *
@@ -270,6 +271,12 @@ uint64_t energymon_read_total_ibmpowernv(const energymon* em) {
 #ifdef ENERGYMON_IBMPOWERNV_USE_POWER
   return state->total_uj;
 #else
+  // OCC docs say that samples are collected every 250 us, w/ a 4-byte counter (so 2^32 - 1 max samples).
+  // So a sensor rollover/reset could occur roughly: 2^32 samples * (1 s / 4000 samples) / 60 / 60 / 24 ~= 12.4 days?
+  // A rollover may occur if (1) the max energy register value is exceeded or (2) the max sample count is exceeded.
+  // For (1), we might be able to infer a max value from the OCC docs, but...
+  // For (2), we can't know a priori the max energy value that will be reached and have no reliable way to detect it.
+  // So---at least for now---we don't have any rollover detection/handling.
   double j = 0;
   int rc;
   if ((rc = sensors_get_value(state->cn, state->subfeat_nr, &j))) {
