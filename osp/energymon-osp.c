@@ -276,7 +276,7 @@ static void* osp_poll_device(void* args) {
       watts = 0;
     }
     exec_us = energymon_gettime_elapsed_us(&last_us);
-    state->total_uj += watts * exec_us;
+    state->total_uj += (uint64_t) (watts * (double) exec_us);
     // sleep for the polling delay
     if (state->poll) {
 #ifndef __ANDROID__
@@ -427,7 +427,7 @@ uint64_t energymon_read_total_osp(const energymon* em) {
       perror("energymon_read_total_osp: em_osp_request_startstop: start");
     }
   }
-  return UJOULES_PER_WATTHOUR * (wh + state->wh_surplus);
+  return (uint64_t) (UJOULES_PER_WATTHOUR * (wh + state->wh_surplus));
 #endif
 }
 
