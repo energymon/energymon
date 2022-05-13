@@ -13,6 +13,10 @@
 * energymon-power-poller: -F/--force option to force updates faster than the EnergyMon implementation claims
 * shmem: man pages for shared memory providers
 
+### Changed
+
+* Internal tweaks based on testing with additional compiler flags
+
 ### Fixed
 
 * odroid, odroid-ioctl, zcu102: save errno when cleaning up after init failure
