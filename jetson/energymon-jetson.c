@@ -50,6 +50,9 @@ int energymon_get_default(energymon* em) {
 // Keeping this as an undocumented feature for now.
 #define ENERGYMON_JETSON_INTERVAL_US "ENERGYMON_JETSON_INTERVAL_US"
 
+// The hardware supports up to 3 channels per instance
+#define INA3221_CHANNELS_MAX 3
+
 // The hardware can refresh at microsecond granularity, with "conversion times" for both the shunt- and bus-voltage
 // measurements ranging from 140 us to 8.244 ms, per the INA3221 data sheet.
 // However, the sysfs interface reports polling delay at millisecond granularity, so use min = 1 ms.
@@ -154,11 +157,17 @@ static int walk_device_dir(const char* const* names, int* fds, size_t len, unsig
   // there are 3 channels per device, but it's possible they aren't all connected
   char name[64];
   size_t i;
-  int channel = 0;
-  int ret;
+  int channel;
   long polling_delay_us;
-  do {
-    if (!(ret = try_read_rail_name(bus_addr, device, channel, name, sizeof(name)))) {
+  for (channel = 0; channel < INA3221_CHANNELS_MAX; channel++) {
+    errno = 0;
+    if (try_read_rail_name(bus_addr, device, channel, name, sizeof(name)) < 0) {
+      if (errno == ENOENT) {
+        // assume this means the channel isn't connected, which is not an error
+        continue;
+      }
+      return -1;
+    } else {
       for (i = 0; i < len; i++) {
         if (!strncmp(name, names[i], sizeof(name))) {
           if (fds[i]) {
@@ -177,8 +186,7 @@ static int walk_device_dir(const char* const* names, int* fds, size_t len, unsig
         }
       }
     }
-    channel++;
-  } while (!ret);
+  }
   return 0;
 }
 

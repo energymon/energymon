@@ -4,6 +4,7 @@
 
 ### Fixed
 
+* jetson: some root cause errors like EACCES (Permission denied) are masked as ENODEV (No such device)
 * pkg-config file is broken when CMAKE_INSTALL_{INCLUDE,LIB}DIR is absolute
 
 
