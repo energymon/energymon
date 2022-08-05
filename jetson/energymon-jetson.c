@@ -39,9 +39,15 @@ int energymon_get_default(energymon* em) {
 
 #define NUM_RAILS_DEFAULT_MAX 6
 
+#define INA3221_DIR "/sys/bus/i2c/drivers/ina3221"
+#define INA3221_DIR_TEMPLATE_BUS_ADDR INA3221_DIR"/%s/hwmon"
+#define INA3221_FILE_TEMPLATE_CHANNEL_NAME INA3221_DIR"/%s/hwmon/%s/in%d_label"
+#define INA3221_FILE_TEMPLATE_VOLTAGE INA3221_DIR"/%s/hwmon/%s/in%d_input"
+#define INA3221_FILE_TEMPLATE_CURR INA3221_DIR"/%s/hwmon/%s/curr%d_input"
+#define INA3221_FILE_TEMPLATE_UPDATE_INTERVAL INA3221_DIR"/%s/hwmon/%s/update_interval"
+
 #define INA3221X_DIR "/sys/bus/i2c/drivers/ina3221x"
 #define INA3221X_DIR_TEMPLATE_BUS_ADDR INA3221X_DIR"/%s"
-#define INA3221X_DIR_TEMPLATE_DEVICE INA3221X_DIR"/%s/%s"
 #define INA3221X_FILE_TEMPLATE_RAIL_NAME INA3221X_DIR"/%s/%s/rail_name_%d"
 #define INA3221X_FILE_TEMPLATE_POWER INA3221X_DIR"/%s/%s/in_power%d_input"
 #define INA3221X_FILE_TEMPLATE_POLLING_DELAY INA3221X_DIR"/%s/%s/polling_delay_%d"
@@ -71,8 +77,11 @@ typedef struct energymon_jetson {
   // total energy estimate
   uint64_t total_uj;
   // sensor file descriptors
+  // INA3221X provides power (mw) files; INA3221 provides voltage (mv) and current (ma) files
   size_t count;
-  int fds_mw[];
+  int* fds_mw;
+  int* fds_mv;
+  int* fds_ma;
 } energymon_jetson;
 
 static int read_string(const char* file, char* str, size_t len) {
@@ -112,6 +121,148 @@ static long read_long(const char* file) {
   return ret;
 }
 
+static int is_i2c_bus_addr_dir(const struct dirent* entry) {
+  // format: X-ABCDE
+  return (entry->d_type == DT_LNK || entry->d_type == DT_DIR)
+         && strlen(entry->d_name) > 2
+         && entry->d_name[0] != '.'
+         && entry->d_name[1] == '-';
+}
+
+static int ina3221_read_channel_name(const char* bus_addr, const char* hwmon, int channel, char* name, size_t len) {
+  char file[PATH_MAX];
+  snprintf(file, sizeof(file), INA3221_FILE_TEMPLATE_CHANNEL_NAME, bus_addr, hwmon, channel);
+  return read_string(file, name, len);
+}
+
+static long ina3221_read_update_interval_us(const char* bus_addr, const char* hwmon) {
+  char file[PATH_MAX];
+  snprintf(file, sizeof(file), INA3221_FILE_TEMPLATE_UPDATE_INTERVAL, bus_addr, hwmon);
+  return read_long(file) * 1000;
+}
+
+static int ina3221_open_voltage_file(const char* bus_addr, const char* hwmon, int channel) {
+  char file[PATH_MAX];
+  int fd;
+  snprintf(file, sizeof(file), INA3221_FILE_TEMPLATE_VOLTAGE, bus_addr, hwmon, channel);
+  if ((fd = open(file, O_RDONLY)) < 0) {
+    perror(file);
+  }
+  return fd;
+}
+
+static int ina3221_open_curr_file(const char* bus_addr, const char* hwmon, int channel) {
+  char file[PATH_MAX];
+  int fd;
+  snprintf(file, sizeof(file), INA3221_FILE_TEMPLATE_CURR, bus_addr, hwmon, channel);
+  if ((fd = open(file, O_RDONLY)) < 0) {
+    perror(file);
+  }
+  return fd;
+}
+
+static int is_hwmon_dir(const struct dirent* entry) {
+  // format: hwmonN
+  return entry->d_type == DT_DIR && !strncmp(entry->d_name, "hwmon", 5);
+}
+
+static int ina3221_walk_device_dir(const char* const* names, int* fds_mv, int* fds_ma, size_t len,
+                                   unsigned long* update_interval_us_max, const char* bus_addr, const char* hwmon) {
+  // for each channel name, open voltage and current files if its name is in list
+  // there are 3 channels per device, and all must exist (name is "NC" for channels that aren't connected)
+  char name[64];
+  size_t i;
+  int channel;
+  long update_interval_us = -1;
+  int err_save;
+  // starts channel count at 1
+  for (channel = 1; channel <= INA3221_CHANNELS_MAX; channel++) {
+    errno = 0;
+    if (ina3221_read_channel_name(bus_addr, hwmon, channel, name, sizeof(name)) < 0) {
+      return -1;
+    }
+    for (i = 0; i < len; i++) {
+      if (!strncmp(name, names[i], sizeof(name))) {
+        if (fds_mv[i]) {
+          fprintf(stderr, "Duplicate sensor name: %s\n", name);
+          errno = EEXIST;
+          return -1;
+        }
+        if ((fds_mv[i] = ina3221_open_voltage_file(bus_addr, hwmon, channel)) < 0) {
+          return -1;
+        }
+        if ((fds_ma[i] = ina3221_open_curr_file(bus_addr, hwmon, channel)) < 0) {
+          err_save = errno;
+          close(fds_mv[i]);
+          // enforce that fds_mv[i] is set back to 0 so caller doesn't try to close again
+          fds_mv[i] = 0;
+          errno = err_save;
+          return -1;
+        }
+        // check update interval for device - only need to do once though
+        if (update_interval_us < 0) {
+          update_interval_us = ina3221_read_update_interval_us(bus_addr, hwmon);
+          if (update_interval_us > 0 && (unsigned long) update_interval_us > *update_interval_us_max) {
+            *update_interval_us_max = (unsigned long) update_interval_us;
+          }
+        }
+        break;
+      }
+    }
+  }
+  return 0;
+}
+
+static int ina3221_walk_bus_addr_dir(const char* const* names, int* fds_mv, int* fds_ma, size_t len,
+                                     unsigned long* update_interval_us_max, const char* bus_addr) {
+  // for each name format hwmon/hwmonX
+  DIR* dir;
+  const struct dirent* entry;
+  char path[PATH_MAX];
+  int ret = 0;
+  // Path contains a static '/hwmon' suffix - should we really fail if the bus dir exists but not the hwmon subdir?
+  snprintf(path, sizeof(path), INA3221_DIR_TEMPLATE_BUS_ADDR, bus_addr);
+  if ((dir = opendir(path)) == NULL) {
+    perror(path);
+    return -1;
+  }
+  while ((entry = readdir(dir)) != NULL) {
+    if (is_hwmon_dir(entry)) {
+      if ((ret = ina3221_walk_device_dir(names, fds_mv, fds_ma, len, update_interval_us_max, bus_addr,
+           entry->d_name)) < 0) {
+        break;
+      }
+    }
+  }
+  if (closedir(dir)) {
+    perror(path);
+  }
+  return ret;
+}
+
+static int ina3221_walk_i2c_drivers_dir(const char* const* names, int* fds_mv, int* fds_ma, size_t len,
+                                        unsigned long* update_interval_us_max) {
+  // for each name format X-ABCDE
+  DIR* dir;
+  const struct dirent* entry;
+  int ret = 0;
+  if ((dir = opendir(INA3221_DIR)) == NULL) {
+    perror(INA3221_DIR);
+    return -1;
+  }
+  while ((entry = readdir(dir)) != NULL) {
+    if (is_i2c_bus_addr_dir(entry)) {
+      if ((ret = ina3221_walk_bus_addr_dir(names, fds_mv, fds_ma, len, update_interval_us_max, entry->d_name)) < 0) {
+        break;
+      }
+    }
+  }
+  if (closedir(dir)) {
+    perror(INA3221X_DIR);
+  }
+  return ret;
+}
+
 static int ina3221x_try_read_rail_name(const char* bus_addr, const char* device, int channel, char* name, size_t len) {
   char file[PATH_MAX];
   snprintf(file, sizeof(file), INA3221X_FILE_TEMPLATE_RAIL_NAME, bus_addr, device, channel);
@@ -141,14 +292,6 @@ static int is_iio_device_dir(const struct dirent* entry) {
          && strlen(entry->d_name) > 10
          && entry->d_name[0] != '.'
          && entry->d_name[3] == ':';
-}
-
-static int is_i2c_bus_addr_dir(const struct dirent* entry) {
-  // format: X-ABCDE
-  return (entry->d_type == DT_LNK || entry->d_type == DT_DIR)
-         && strlen(entry->d_name) > 2
-         && entry->d_name[0] != '.'
-         && entry->d_name[1] == '-';
 }
 
 static int ina3221x_walk_device_dir(const char* const* names, int* fds, size_t len, unsigned long* polling_delay_us_max,
@@ -270,6 +413,41 @@ static const char* const* DEFAULT_RAIL_NAMES[] = {
   DEFAULT_RAIL_NAMES_POM_5V_IN,
   DEFAULT_RAIL_NAMES_AGX_XAVIER,
 };
+
+static int ina3221_walk_i2c_drivers_dir_for_default(int* fds_mv, int* fds_ma, size_t* n_fds,
+                                                    unsigned long* update_interval_us_max) {
+  size_t i;
+  size_t j;
+#ifndef NDEBUG
+  size_t max_fds = *n_fds;
+#endif
+  assert(max_fds == NUM_RAILS_DEFAULT_MAX);
+  for (i = 0; i < sizeof(DEFAULT_RAIL_NAMES) / sizeof(DEFAULT_RAIL_NAMES[0]); i++) {
+    for (*n_fds = 0; *n_fds < NUM_RAILS_DEFAULT_MAX && DEFAULT_RAIL_NAMES[i][*n_fds] != NULL; (*n_fds)++) {
+      // *n_fds is being incremented
+    }
+    assert(*n_fds > 0);
+    assert(*n_fds <= max_fds);
+    if (ina3221_walk_i2c_drivers_dir(DEFAULT_RAIL_NAMES[i], fds_mv, fds_ma, *n_fds, update_interval_us_max)) {
+      // cleanup is done in the calling function
+      return -1;
+    }
+    if (fds_mv[0] > 0) {
+      // check if all channels are found
+      for (j = 0; j < *n_fds; j++) {
+        if (fds_mv[j] <= 0 || fds_ma[j] <= 0) {
+          close_and_clear_fds(fds_mv, *n_fds);
+          close_and_clear_fds(fds_ma, *n_fds);
+          break; // continue outer loop
+        }
+      }
+      return 0;
+    }
+  }
+  errno = ENODEV;
+  return -1;
+}
+
 static int ina3221x_walk_i2c_drivers_dir_for_default(int* fds, size_t* n_fds, unsigned long* polling_delay_us_max) {
   size_t i;
   size_t j;
@@ -308,7 +486,10 @@ static int ina3221x_walk_i2c_drivers_dir_for_default(int* fds, size_t* n_fds, un
 static void* jetson_poll_sensors(void* args) {
   energymon_jetson* state = (energymon_jetson*) args;
   char cdata[8];
+  char cdata2[8];
   unsigned long sum_mw;
+  unsigned long mv;
+  unsigned long ma;
   size_t i;
   uint64_t exec_us;
   uint64_t last_us;
@@ -322,8 +503,18 @@ static void* jetson_poll_sensors(void* args) {
   while (state->poll_sensors) {
     // read individual sensors
     for (sum_mw = 0, errno = 0, i = 0; i < state->count && !errno; i++) {
-      if (pread(state->fds_mw[i], cdata, sizeof(cdata), 0) > 0) {
-        sum_mw += strtoul(cdata, NULL, 0);
+      if (state->fds_mw[i] > 0) {
+        if (pread(state->fds_mw[i], cdata, sizeof(cdata), 0) > 0) {
+          sum_mw += strtoul(cdata, NULL, 0);
+        }
+      } else {
+        if (pread(state->fds_mv[i], cdata, sizeof(cdata), 0) > 0) {
+          if (pread(state->fds_ma[i], cdata2, sizeof(cdata2), 0) > 0) {
+            mv = strtoul(cdata, NULL, 0);
+            ma = strtoul(cdata2, NULL, 0);
+            sum_mw += mv * ma / 1000;
+          }
+        }
       }
     }
     err_save = errno;
@@ -442,6 +633,80 @@ static unsigned long get_polling_delay_us(unsigned long sysfs_polling_delay_us) 
   return us;
 }
 
+static int is_dir(const char* path) {
+  DIR* dir = opendir(path);
+  if (dir) {
+    closedir(dir);
+    return 1;
+  }
+  return errno == ENOENT ? 0 : -1;
+}
+
+static int energymon_jetson_init_ina3221(energymon_jetson* state, char** rail_names, size_t n_rails,
+                                         unsigned long* polling_delay_us) {
+  size_t i;
+  if (rail_names) {
+    if (ina3221_walk_i2c_drivers_dir((const char* const*) rail_names, state->fds_mv, state->fds_ma, n_rails, polling_delay_us)) {
+      close_and_clear_fds(state->fds_mv, state->count);
+      close_and_clear_fds(state->fds_ma, state->count);
+      return -1;
+    }
+    for (i = 0; i < n_rails; i++) {
+      if (state->fds_mv[i] <= 0) {
+        fprintf(stderr, "energymon_init_jetson: did not find requested rail: %s\n", rail_names[i]);
+        errno = ENODEV;
+        close_and_clear_fds(state->fds_mv, state->count);
+        close_and_clear_fds(state->fds_ma, state->count);
+        return -1;
+      }
+    }
+  } else {
+    if (ina3221_walk_i2c_drivers_dir_for_default(state->fds_mv, state->fds_ma, &n_rails, polling_delay_us)) {
+      if (errno == ENODEV) {
+        fprintf(stderr, "energymon_init_jetson: did not find default rail(s) - is this a supported model?\n"
+                "Try setting "ENERGYMON_JETSON_RAIL_NAMES"\n");
+      }
+      close_and_clear_fds(state->fds_mv, state->count);
+      close_and_clear_fds(state->fds_ma, state->count);
+      return -1;
+    }
+    // possibly (even probably) reduce count
+    state->count = n_rails;
+  }
+  return 0;
+}
+
+static int energymon_jetson_init_ina3221x(energymon_jetson* state, char** rail_names, size_t n_rails,
+                                          unsigned long* polling_delay_us) {
+  size_t i;
+  if (rail_names) {
+    if (ina3221x_walk_i2c_drivers_dir((const char* const*) rail_names, state->fds_mw, n_rails, polling_delay_us)) {
+      close_and_clear_fds(state->fds_mw, state->count);
+      return -1;
+    }
+    for (i = 0; i < n_rails; i++) {
+      if (state->fds_mw[i] <= 0) {
+        fprintf(stderr, "energymon_init_jetson: did not find requested rail: %s\n", rail_names[i]);
+        errno = ENODEV;
+        close_and_clear_fds(state->fds_mw, state->count);
+        return -1;
+      }
+    }
+  } else {
+    if (ina3221x_walk_i2c_drivers_dir_for_default(state->fds_mw, &n_rails, polling_delay_us)) {
+      if (errno == ENODEV) {
+        fprintf(stderr, "energymon_init_jetson: did not find default rail(s) - is this a supported model?\n"
+                "Try setting "ENERGYMON_JETSON_RAIL_NAMES"\n");
+      }
+      close_and_clear_fds(state->fds_mw, state->count);
+      return -1;
+    }
+    // possibly (even probably) reduce count
+    state->count = n_rails;
+  }
+  return 0;
+}
+
 /**
  * Open all sensor files and start the thread to poll the sensors.
  */
@@ -452,10 +717,22 @@ int energymon_init_jetson(energymon* em) {
   }
 
   unsigned long polling_delay_us = 0;
-  size_t i;
   int err_save;
   size_t n_rails;
   char** rail_names = NULL;
+
+  int is_ina3221;
+  int test = is_dir(INA3221_DIR);
+  if (test < 0) {
+    return -1;
+  }
+  if (test > 0) {
+    is_ina3221 = 1;
+  } else {
+    // assume ina3221x
+    is_ina3221 = 0;
+  }
+
   const char* rail_names_str = getenv(ENERGYMON_JETSON_RAIL_NAMES);
   if (rail_names_str) {
     if (!(rail_names = get_rail_names(rail_names_str, &n_rails))) {
@@ -466,36 +743,30 @@ int energymon_init_jetson(energymon* em) {
     n_rails = NUM_RAILS_DEFAULT_MAX;
   }
 
-  energymon_jetson* state = calloc(1, sizeof(energymon_jetson) + n_rails * sizeof(int));
+  energymon_jetson* state = calloc(1, sizeof(energymon_jetson));
   if (state == NULL) {
     goto fail_alloc;
   }
+  state->fds_mw = calloc(n_rails, sizeof(int));
+  state->fds_mv = calloc(n_rails, sizeof(int));
+  state->fds_ma = calloc(n_rails, sizeof(int));
+  if (!state->fds_mw || !state->fds_mv || !state->fds_ma) {
+    goto fail_state_init;
+  }
   state->count = n_rails;
 
-  if (rail_names) {
-    if (ina3221x_walk_i2c_drivers_dir((const char* const*) rail_names, state->fds_mw, n_rails, &polling_delay_us)) {
-      goto fail_rails;
+  if (is_ina3221) {
+    if (energymon_jetson_init_ina3221(state, rail_names, n_rails, &polling_delay_us) < 0) {
+      goto fail_state_init;
     }
-    for (i = 0; i < n_rails; i++) {
-      if (state->fds_mw[i] <= 0) {
-        fprintf(stderr, "energymon_init_jetson: did not find requested rail: %s\n", rail_names[i]);
-        errno = ENODEV;
-        goto fail_rails;
-      }
-    }
-    free_rail_names(rail_names, n_rails);
   } else {
-    if (ina3221x_walk_i2c_drivers_dir_for_default(state->fds_mw, &n_rails, &polling_delay_us)) {
-      if (errno == ENODEV) {
-        fprintf(stderr, "energymon_init_jetson: did not find default rail(s) - is this a supported model?\n"
-                "Try setting "ENERGYMON_JETSON_RAIL_NAMES"\n");
-      }
-      goto fail_rails;
+    if (energymon_jetson_init_ina3221x(state, rail_names, n_rails, &polling_delay_us) < 0) {
+      goto fail_state_init;
     }
-    // possibly (even probably) reduce count
-    state->count = n_rails;
   }
-
+  if (rail_names) {
+    free_rail_names(rail_names, n_rails);
+  }
   em->state = state;
 
   state->polling_delay_us = get_polling_delay_us(polling_delay_us);
@@ -518,14 +789,28 @@ int energymon_init_jetson(energymon* em) {
 
   return 0;
 
-fail_rails:
-  close_and_clear_fds(state->fds_mw, state->count);
+fail_state_init:
+  free(state->fds_mw);
+  free(state->fds_mv);
+  free(state->fds_ma);
   free(state);
 fail_alloc:
   if (rail_names) {
     free_rail_names(rail_names, n_rails);
   }
   return -1;
+}
+
+static int close_fds(int* fds, size_t count) {
+  size_t i;
+  int err_save = 0;
+  for (i = 0; i < count; i++) {
+    if (fds[i] > 0 && close(fds[i])) {
+      err_save = err_save ? err_save : errno;
+    }
+  }
+  errno = err_save;
+  return err_save;
 }
 
 int energymon_finish_jetson(energymon* em) {
@@ -535,7 +820,6 @@ int energymon_finish_jetson(energymon* em) {
   }
 
   int err_save = 0;
-  size_t i;
   energymon_jetson* state = (energymon_jetson*) em->state;
 
   if (state->poll_sensors) {
@@ -548,11 +832,18 @@ int energymon_finish_jetson(energymon* em) {
   }
 
   // close individual sensor files
-  for (i = 0; i < state->count; i++) {
-    if (state->fds_mw[i] > 0 && close(state->fds_mw[i])) {
-      err_save = err_save ? err_save : errno;
-    }
+  if (close_fds(state->fds_mw, state->count)) {
+    err_save = err_save ? err_save : errno;
   }
+  if (close_fds(state->fds_mv, state->count)) {
+    err_save = err_save ? err_save : errno;
+  }
+  if (close_fds(state->fds_ma, state->count)) {
+    err_save = err_save ? err_save : errno;
+  }
+  free(state->fds_mw);
+  free(state->fds_mv);
+  free(state->fds_ma);
   free(em->state);
   em->state = NULL;
   errno = err_save;

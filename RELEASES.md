@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+* jetson: support for newer Jetson Linux (L4T) versions using the `ina3221` kernel module (older versions use `ina3221x`)
+
 ### Fixed
 
 * jetson: some root cause errors like EACCES (Permission denied) are masked as ENODEV (No such device)

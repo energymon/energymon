@@ -16,7 +16,9 @@ When more than one rail is specified, their power values are aggregated.
 
 ## Prerequisites
 
-You must be using an NVIDIA Jetson system listed above with the L4T INA3221 kernel driver.
+You must be using an NVIDIA Jetson system listed above with NVIDIA Jetson Linux (L4T).
+L4T >= 34.1 (JetPack 5.x) uses the mainline `ina3221` kernel driver.
+L4T <= 32.x (JetPack 4.x) uses the L4T `ina3221x` kernel driver.
 
 **Forward compatibility is not guaranteed!**
 Using a different (e.g., newer) model *might* still produce energy results, but the default rail(s) selected by the library might not cover the correct power scope for the unknown model.
