@@ -72,7 +72,7 @@ typedef struct energymon_jetson {
   uint64_t total_uj;
   // sensor file descriptors
   size_t count;
-  int fds[];
+  int fds_mw[];
 } energymon_jetson;
 
 static int read_string(const char* file, char* str, size_t len) {
@@ -322,7 +322,7 @@ static void* jetson_poll_sensors(void* args) {
   while (state->poll_sensors) {
     // read individual sensors
     for (sum_mw = 0, errno = 0, i = 0; i < state->count && !errno; i++) {
-      if (pread(state->fds[i], cdata, sizeof(cdata), 0) > 0) {
+      if (pread(state->fds_mw[i], cdata, sizeof(cdata), 0) > 0) {
         sum_mw += strtoul(cdata, NULL, 0);
       }
     }
@@ -473,11 +473,11 @@ int energymon_init_jetson(energymon* em) {
   state->count = n_rails;
 
   if (rail_names) {
-    if (ina3221x_walk_i2c_drivers_dir((const char* const*) rail_names, state->fds, n_rails, &polling_delay_us)) {
+    if (ina3221x_walk_i2c_drivers_dir((const char* const*) rail_names, state->fds_mw, n_rails, &polling_delay_us)) {
       goto fail_rails;
     }
     for (i = 0; i < n_rails; i++) {
-      if (state->fds[i] <= 0) {
+      if (state->fds_mw[i] <= 0) {
         fprintf(stderr, "energymon_init_jetson: did not find requested rail: %s\n", rail_names[i]);
         errno = ENODEV;
         goto fail_rails;
@@ -485,7 +485,7 @@ int energymon_init_jetson(energymon* em) {
     }
     free_rail_names(rail_names, n_rails);
   } else {
-    if (ina3221x_walk_i2c_drivers_dir_for_default(state->fds, &n_rails, &polling_delay_us)) {
+    if (ina3221x_walk_i2c_drivers_dir_for_default(state->fds_mw, &n_rails, &polling_delay_us)) {
       if (errno == ENODEV) {
         fprintf(stderr, "energymon_init_jetson: did not find default rail(s) - is this a supported model?\n"
                 "Try setting "ENERGYMON_JETSON_RAIL_NAMES"\n");
@@ -519,7 +519,7 @@ int energymon_init_jetson(energymon* em) {
   return 0;
 
 fail_rails:
-  close_and_clear_fds(state->fds, state->count);
+  close_and_clear_fds(state->fds_mw, state->count);
   free(state);
 fail_alloc:
   if (rail_names) {
@@ -549,7 +549,7 @@ int energymon_finish_jetson(energymon* em) {
 
   // close individual sensor files
   for (i = 0; i < state->count; i++) {
-    if (state->fds[i] > 0 && close(state->fds[i])) {
+    if (state->fds_mw[i] > 0 && close(state->fds_mw[i])) {
       err_save = err_save ? err_save : errno;
     }
   }
