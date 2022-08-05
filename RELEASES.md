@@ -5,6 +5,7 @@
 ### Added
 
 * jetson: support for newer Jetson Linux (L4T) versions using the `ina3221` kernel module (older versions use `ina3221x`)
+* jetson: support for AGX Orin Series
 
 ### Fixed
 

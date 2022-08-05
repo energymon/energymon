@@ -13,6 +13,7 @@ When more than one rail is specified, their power values are aggregated.
 * AGX Xavier Series: `GPU`, `CPU`, `SOC`, `CV`, `VDDRQ`, `SYS5V`
 * TX2, TX2i, TX2 4GB: `VDD_IN`, `VDD_MUX`
 * TX2 NX: `VDD_IN`
+* AGX Orin Series: `VDD_GPU_SOC`, `VDD_CPU_CV`, `VIN_SYS_5V0`
 
 ## Prerequisites
 

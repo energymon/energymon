@@ -407,11 +407,14 @@ static const char* DEFAULT_RAIL_NAMES_VDD_IN[NUM_RAILS_DEFAULT_MAX] = {"VDD_IN"}
 static const char* DEFAULT_RAIL_NAMES_POM_5V_IN[NUM_RAILS_DEFAULT_MAX] = {"POM_5V_IN"};
 // The AGX Xavier doesn't have a parent power rail - all its rails are in parallel
 static const char* DEFAULT_RAIL_NAMES_AGX_XAVIER[NUM_RAILS_DEFAULT_MAX] = {"GPU", "CPU", "SOC", "CV", "VDDRQ", "SYS5V"};
+// The AGX Orin HV input supplies CPU, GPU, SOC, and CV; MV input is VIN_SYS_5V0, which then supplies VDDQ_VDD2_1V8AO
+static const char* DEFAULT_RAIL_NAMES_AGX_ORIN[NUM_RAILS_DEFAULT_MAX] = {"VDD_GPU_SOC", "VDD_CPU_CV", "VIN_SYS_5V0"};
 static const char* const* DEFAULT_RAIL_NAMES[] = {
   DEFAULT_RAIL_NAMES_TX,
   DEFAULT_RAIL_NAMES_VDD_IN,
   DEFAULT_RAIL_NAMES_POM_5V_IN,
   DEFAULT_RAIL_NAMES_AGX_XAVIER,
+  DEFAULT_RAIL_NAMES_AGX_ORIN,
 };
 
 static int ina3221_walk_i2c_drivers_dir_for_default(int* fds_mv, int* fds_ma, size_t* n_fds,

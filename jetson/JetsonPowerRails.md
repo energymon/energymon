@@ -5,6 +5,10 @@ The following information is based on:
 
 * [Jetson Developer Guide](https://docs.nvidia.com/jetson/l4t/), "Clock Frequency and Power Management" section. Version: 32.6.1 (Accessed 2022-01-13).
 * [L4T kernel sources](https://developer.nvidia.com/embedded/linux-tegra), device trees in `hardware/nvidia/platform/`. Version: 32.6.1 (Accessed 2022-02-25).
+* [Jetson Developer Guide](https://docs.nvidia.com/jetson/l4t/), "Platform Power and Performance" section. Version: 34.1 (Accessed 2022-08-05).
+* Additional documents at the [Jetson Download Center](https://developer.nvidia.com/embedded/downloads).
+
+Note: L4T <= 32.x (JetPack 4.x) starts channel numbering at 0; L4T >= 34.1 (JetPack 5.x) starts channel numbering at 1.
 
 
 ## TX1
@@ -90,3 +94,16 @@ L4T kernel sources refer to this model family as "lanai".
 | I2C Address | Channel 0 | Channel 1 | Channel 2 |
 | --- | --- | --- | --- |
 | 0x40 | VDD_IN | VDD_CPU_GPU | VDD_SOC |
+
+
+## AGX Orin Series
+
+| I2C Address | Channel 1 | Channel 2 | Channel 3 |
+| --- | --- | --- | --- |
+| 0x40 | VDD_GPU_SOC | VDD_CPU_CV | VIN_SYS_5V0 |
+| 0x41 | NC\* | VDDQ_VDD2_1V8AO | NC\* |
+
+\* Per the Developer Guide, `NC` means "No Connection".
+
+The `SYS_VIN_HV` power source supplies the `CPU`, `GPU`, `SOC`, and `CV`; the `SYS_VIN_MV` power source supplies `VIN_SYS_5V0`; `VIN_SYS_5V0` in turn supplies `VDDQ_VDD2_1V8AO`.
+See: [Jetson AGX Orin INA3221 power monitor layout](https://forums.developer.nvidia.com/t/jetson-agx-orin-ina3221-power-monitor-layout/223111)
