@@ -39,12 +39,12 @@ int energymon_get_default(energymon* em) {
 
 #define NUM_RAILS_DEFAULT_MAX 6
 
-#define INA3221_DIR "/sys/bus/i2c/drivers/ina3221x"
-#define INA3221_DIR_TEMPLATE_BUS_ADDR INA3221_DIR"/%s"
-#define INA3221_DIR_TEMPLATE_DEVICE INA3221_DIR"/%s/%s"
-#define INA3221_FILE_TEMPLATE_RAIL_NAME INA3221_DIR"/%s/%s/rail_name_%d"
-#define INA3221_FILE_TEMPLATE_POWER INA3221_DIR"/%s/%s/in_power%d_input"
-#define INA3221_FILE_TEMPLATE_POLLING_DELAY INA3221_DIR"/%s/%s/polling_delay_%d"
+#define INA3221X_DIR "/sys/bus/i2c/drivers/ina3221x"
+#define INA3221X_DIR_TEMPLATE_BUS_ADDR INA3221X_DIR"/%s"
+#define INA3221X_DIR_TEMPLATE_DEVICE INA3221X_DIR"/%s/%s"
+#define INA3221X_FILE_TEMPLATE_RAIL_NAME INA3221X_DIR"/%s/%s/rail_name_%d"
+#define INA3221X_FILE_TEMPLATE_POWER INA3221X_DIR"/%s/%s/in_power%d_input"
+#define INA3221X_FILE_TEMPLATE_POLLING_DELAY INA3221X_DIR"/%s/%s/polling_delay_%d"
 
 // Environment variable to request a minimum polling interval.
 // Keeping this as an undocumented feature for now.
@@ -112,23 +112,23 @@ static long read_long(const char* file) {
   return ret;
 }
 
-static int try_read_rail_name(const char* bus_addr, const char* device, int channel, char* name, size_t len) {
+static int ina3221x_try_read_rail_name(const char* bus_addr, const char* device, int channel, char* name, size_t len) {
   char file[PATH_MAX];
-  snprintf(file, sizeof(file), INA3221_FILE_TEMPLATE_RAIL_NAME, bus_addr, device, channel);
+  snprintf(file, sizeof(file), INA3221X_FILE_TEMPLATE_RAIL_NAME, bus_addr, device, channel);
   return read_string(file, name, len);
 }
 
-static long try_read_polling_delay_us(const char* bus_addr, const char* device, int channel) {
+static long ina3221x_try_read_polling_delay_us(const char* bus_addr, const char* device, int channel) {
   char file[PATH_MAX];
-  snprintf(file, sizeof(file), INA3221_FILE_TEMPLATE_POLLING_DELAY, bus_addr, device, channel);
+  snprintf(file, sizeof(file), INA3221X_FILE_TEMPLATE_POLLING_DELAY, bus_addr, device, channel);
   // TODO: output includes precision (e.g., "0 ms") - set endptr in the read and parse this
   return read_long(file) * 1000;
 }
 
-static int open_power_file(const char* bus_addr, const char* device, int channel) {
+static int ina3221x_open_power_file(const char* bus_addr, const char* device, int channel) {
   char file[PATH_MAX];
   int fd;
-  snprintf(file, sizeof(file), INA3221_FILE_TEMPLATE_POWER, bus_addr, device, channel);
+  snprintf(file, sizeof(file), INA3221X_FILE_TEMPLATE_POWER, bus_addr, device, channel);
   if ((fd = open(file, O_RDONLY)) < 0) {
     perror(file);
   }
@@ -151,8 +151,8 @@ static int is_i2c_bus_addr_dir(const struct dirent* entry) {
          && entry->d_name[1] == '-';
 }
 
-static int walk_device_dir(const char* const* names, int* fds, size_t len, unsigned long* polling_delay_us_max,
-                           const char* bus_addr, const char* device) {
+static int ina3221x_walk_device_dir(const char* const* names, int* fds, size_t len, unsigned long* polling_delay_us_max,
+                                    const char* bus_addr, const char* device) {
   // for each rail_name_X, open power file if its name is in list
   // there are 3 channels per device, but it's possible they aren't all connected
   char name[64];
@@ -161,7 +161,7 @@ static int walk_device_dir(const char* const* names, int* fds, size_t len, unsig
   long polling_delay_us;
   for (channel = 0; channel < INA3221_CHANNELS_MAX; channel++) {
     errno = 0;
-    if (try_read_rail_name(bus_addr, device, channel, name, sizeof(name)) < 0) {
+    if (ina3221x_try_read_rail_name(bus_addr, device, channel, name, sizeof(name)) < 0) {
       if (errno == ENOENT) {
         // assume this means the channel isn't connected, which is not an error
         continue;
@@ -175,10 +175,10 @@ static int walk_device_dir(const char* const* names, int* fds, size_t len, unsig
             errno = EEXIST;
             return -1;
           }
-          if ((fds[i] = open_power_file(bus_addr, device, channel)) < 0) {
+          if ((fds[i] = ina3221x_open_power_file(bus_addr, device, channel)) < 0) {
             return -1;
           }
-          polling_delay_us = try_read_polling_delay_us(bus_addr, device, channel);
+          polling_delay_us = ina3221x_try_read_polling_delay_us(bus_addr, device, channel);
           if (polling_delay_us > 0 && (unsigned long) polling_delay_us > *polling_delay_us_max) {
             *polling_delay_us_max = (unsigned long) polling_delay_us;
           }
@@ -190,21 +190,21 @@ static int walk_device_dir(const char* const* names, int* fds, size_t len, unsig
   return 0;
 }
 
-static int walk_bus_addr_dir(const char* const* names, int* fds, size_t len, unsigned long* polling_delay_us_max,
-                             const char* bus_addr) {
+static int ina3221x_walk_bus_addr_dir(const char* const* names, int* fds, size_t len,
+                                      unsigned long* polling_delay_us_max, const char* bus_addr) {
   // for each name format iio:deviceX
   DIR* dir;
   const struct dirent* entry;
   char path[PATH_MAX];
   int ret = 0;
-  snprintf(path, sizeof(path), INA3221_DIR_TEMPLATE_BUS_ADDR, bus_addr);
+  snprintf(path, sizeof(path), INA3221X_DIR_TEMPLATE_BUS_ADDR, bus_addr);
   if ((dir = opendir(path)) == NULL) {
     perror(path);
     return -1;
   }
   while ((entry = readdir(dir)) != NULL) {
     if (is_iio_device_dir(entry)) {
-      if ((ret = walk_device_dir(names, fds, len, polling_delay_us_max, bus_addr, entry->d_name)) < 0) {
+      if ((ret = ina3221x_walk_device_dir(names, fds, len, polling_delay_us_max, bus_addr, entry->d_name)) < 0) {
         break;
       }
     }
@@ -215,24 +215,25 @@ static int walk_bus_addr_dir(const char* const* names, int* fds, size_t len, uns
   return ret;
 }
 
-static int walk_i2c_drivers_dir(const char* const* names, int* fds, size_t len, unsigned long* polling_delay_us_max) {
+static int ina3221x_walk_i2c_drivers_dir(const char* const* names, int* fds, size_t len,
+                                         unsigned long* polling_delay_us_max) {
   // for each name format X-ABCDE
   DIR* dir;
   const struct dirent* entry;
   int ret = 0;
-  if ((dir = opendir(INA3221_DIR)) == NULL) {
-    perror(INA3221_DIR);
+  if ((dir = opendir(INA3221X_DIR)) == NULL) {
+    perror(INA3221X_DIR);
     return -1;
   }
   while ((entry = readdir(dir)) != NULL) {
     if (is_i2c_bus_addr_dir(entry)) {
-      if ((ret = walk_bus_addr_dir(names, fds, len, polling_delay_us_max, entry->d_name)) < 0) {
+      if ((ret = ina3221x_walk_bus_addr_dir(names, fds, len, polling_delay_us_max, entry->d_name)) < 0) {
         break;
       }
     }
   }
   if (closedir(dir)) {
-    perror(INA3221_DIR);
+    perror(INA3221X_DIR);
   }
   return ret;
 }
@@ -269,7 +270,7 @@ static const char* const* DEFAULT_RAIL_NAMES[] = {
   DEFAULT_RAIL_NAMES_POM_5V_IN,
   DEFAULT_RAIL_NAMES_AGX_XAVIER,
 };
-static int walk_i2c_drivers_dir_for_default(int* fds, size_t* n_fds, unsigned long* polling_delay_us_max) {
+static int ina3221x_walk_i2c_drivers_dir_for_default(int* fds, size_t* n_fds, unsigned long* polling_delay_us_max) {
   size_t i;
   size_t j;
 #ifndef NDEBUG
@@ -282,7 +283,7 @@ static int walk_i2c_drivers_dir_for_default(int* fds, size_t* n_fds, unsigned lo
     }
     assert(*n_fds > 0);
     assert(*n_fds <= max_fds);
-    if (walk_i2c_drivers_dir(DEFAULT_RAIL_NAMES[i], fds, *n_fds, polling_delay_us_max)) {
+    if (ina3221x_walk_i2c_drivers_dir(DEFAULT_RAIL_NAMES[i], fds, *n_fds, polling_delay_us_max)) {
       // cleanup is done in the calling function
       return -1;
     }
@@ -472,7 +473,7 @@ int energymon_init_jetson(energymon* em) {
   state->count = n_rails;
 
   if (rail_names) {
-    if (walk_i2c_drivers_dir((const char* const*) rail_names, state->fds, n_rails, &polling_delay_us)) {
+    if (ina3221x_walk_i2c_drivers_dir((const char* const*) rail_names, state->fds, n_rails, &polling_delay_us)) {
       goto fail_rails;
     }
     for (i = 0; i < n_rails; i++) {
@@ -484,7 +485,7 @@ int energymon_init_jetson(energymon* em) {
     }
     free_rail_names(rail_names, n_rails);
   } else {
-    if (walk_i2c_drivers_dir_for_default(state->fds, &n_rails, &polling_delay_us)) {
+    if (ina3221x_walk_i2c_drivers_dir_for_default(state->fds, &n_rails, &polling_delay_us)) {
       if (errno == ENODEV) {
         fprintf(stderr, "energymon_init_jetson: did not find default rail(s) - is this a supported model?\n"
                 "Try setting "ENERGYMON_JETSON_RAIL_NAMES"\n");
