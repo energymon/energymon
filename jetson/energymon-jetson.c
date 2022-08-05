@@ -1,20 +1,13 @@
 /**
  * Energy reading for NVIDIA Jetson devices with TI INA3221 power sensors.
  *
- * Note: The kernel driver used is NOT the INA3221 driver in the mainline Linux kernel.
- *       Rather, it is from the NVIDIA Linux for Tegra (Linux4Tegra, L4T) tree, at
- *       'nvidia/drivers/staging/iio/meter/ina3221.c'.
- * See: https://developer.nvidia.com/embedded/linux-tegra
- *
  * @author Connor Imes
  * @date 2021-12-16
  */
 #include <assert.h>
-#include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
-#include <limits.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,11 +17,9 @@
 #include "energymon-jetson.h"
 #include "energymon-time-util.h"
 #include "energymon-util.h"
-
-/* PATH_MAX should be defined in limits.h */
-#ifndef PATH_MAX
-#define PATH_MAX 4096
-#endif
+#include "ina3221.h"
+#include "ina3221x.h"
+#include "util.h"
 
 #ifdef ENERGYMON_DEFAULT
 #include "energymon-default.h"
@@ -39,25 +30,9 @@ int energymon_get_default(energymon* em) {
 
 #define NUM_RAILS_DEFAULT_MAX 6
 
-#define INA3221_DIR "/sys/bus/i2c/drivers/ina3221"
-#define INA3221_DIR_TEMPLATE_BUS_ADDR INA3221_DIR"/%s/hwmon"
-#define INA3221_FILE_TEMPLATE_CHANNEL_NAME INA3221_DIR"/%s/hwmon/%s/in%d_label"
-#define INA3221_FILE_TEMPLATE_VOLTAGE INA3221_DIR"/%s/hwmon/%s/in%d_input"
-#define INA3221_FILE_TEMPLATE_CURR INA3221_DIR"/%s/hwmon/%s/curr%d_input"
-#define INA3221_FILE_TEMPLATE_UPDATE_INTERVAL INA3221_DIR"/%s/hwmon/%s/update_interval"
-
-#define INA3221X_DIR "/sys/bus/i2c/drivers/ina3221x"
-#define INA3221X_DIR_TEMPLATE_BUS_ADDR INA3221X_DIR"/%s"
-#define INA3221X_FILE_TEMPLATE_RAIL_NAME INA3221X_DIR"/%s/%s/rail_name_%d"
-#define INA3221X_FILE_TEMPLATE_POWER INA3221X_DIR"/%s/%s/in_power%d_input"
-#define INA3221X_FILE_TEMPLATE_POLLING_DELAY INA3221X_DIR"/%s/%s/polling_delay_%d"
-
 // Environment variable to request a minimum polling interval.
 // Keeping this as an undocumented feature for now.
 #define ENERGYMON_JETSON_INTERVAL_US "ENERGYMON_JETSON_INTERVAL_US"
-
-// The hardware supports up to 3 channels per instance
-#define INA3221_CHANNELS_MAX 3
 
 // The hardware can refresh at microsecond granularity, with "conversion times" for both the shunt- and bus-voltage
 // measurements ranging from 140 us to 8.244 ms, per the INA3221 data sheet.
@@ -83,303 +58,6 @@ typedef struct energymon_jetson {
   int* fds_mv;
   int* fds_ma;
 } energymon_jetson;
-
-static int read_string(const char* file, char* str, size_t len) {
-  int fd;
-  ssize_t ret;
-  size_t end;
-  if ((fd = open(file, O_RDONLY)) < 0) {
-    return -1;
-  }
-  if ((ret = read(fd, str, len)) > 0) {
-    // strip trailing new line
-    if ((end = strcspn(str, "\n")) < len) {
-      str[end] = '\0';
-    }
-  }
-  close(fd);
-  return ret < 0 ? -1 : 0;
-}
-
-static long read_long(const char* file) {
-  char data[64];
-  int fd;
-  int ret;
-  if ((fd = open(file, O_RDONLY)) < 0) {
-    return -1;
-  }
-  if (read(fd, data, sizeof(data)) > 0) {
-    errno = 0;
-    ret = strtol(data, NULL, 0);
-    if (!ret && errno) {
-      ret = -1;
-    }
-  } else {
-    ret = -1;
-  }
-  close(fd);
-  return ret;
-}
-
-static int is_i2c_bus_addr_dir(const struct dirent* entry) {
-  // format: X-ABCDE
-  return (entry->d_type == DT_LNK || entry->d_type == DT_DIR)
-         && strlen(entry->d_name) > 2
-         && entry->d_name[0] != '.'
-         && entry->d_name[1] == '-';
-}
-
-static int ina3221_read_channel_name(const char* bus_addr, const char* hwmon, int channel, char* name, size_t len) {
-  char file[PATH_MAX];
-  snprintf(file, sizeof(file), INA3221_FILE_TEMPLATE_CHANNEL_NAME, bus_addr, hwmon, channel);
-  return read_string(file, name, len);
-}
-
-static long ina3221_read_update_interval_us(const char* bus_addr, const char* hwmon) {
-  char file[PATH_MAX];
-  snprintf(file, sizeof(file), INA3221_FILE_TEMPLATE_UPDATE_INTERVAL, bus_addr, hwmon);
-  return read_long(file) * 1000;
-}
-
-static int ina3221_open_voltage_file(const char* bus_addr, const char* hwmon, int channel) {
-  char file[PATH_MAX];
-  int fd;
-  snprintf(file, sizeof(file), INA3221_FILE_TEMPLATE_VOLTAGE, bus_addr, hwmon, channel);
-  if ((fd = open(file, O_RDONLY)) < 0) {
-    perror(file);
-  }
-  return fd;
-}
-
-static int ina3221_open_curr_file(const char* bus_addr, const char* hwmon, int channel) {
-  char file[PATH_MAX];
-  int fd;
-  snprintf(file, sizeof(file), INA3221_FILE_TEMPLATE_CURR, bus_addr, hwmon, channel);
-  if ((fd = open(file, O_RDONLY)) < 0) {
-    perror(file);
-  }
-  return fd;
-}
-
-static int is_hwmon_dir(const struct dirent* entry) {
-  // format: hwmonN
-  return entry->d_type == DT_DIR && !strncmp(entry->d_name, "hwmon", 5);
-}
-
-static int ina3221_walk_device_dir(const char* const* names, int* fds_mv, int* fds_ma, size_t len,
-                                   unsigned long* update_interval_us_max, const char* bus_addr, const char* hwmon) {
-  // for each channel name, open voltage and current files if its name is in list
-  // there are 3 channels per device, and all must exist (name is "NC" for channels that aren't connected)
-  char name[64];
-  size_t i;
-  int channel;
-  long update_interval_us = -1;
-  int err_save;
-  // starts channel count at 1
-  for (channel = 1; channel <= INA3221_CHANNELS_MAX; channel++) {
-    errno = 0;
-    if (ina3221_read_channel_name(bus_addr, hwmon, channel, name, sizeof(name)) < 0) {
-      return -1;
-    }
-    for (i = 0; i < len; i++) {
-      if (!strncmp(name, names[i], sizeof(name))) {
-        if (fds_mv[i]) {
-          fprintf(stderr, "Duplicate sensor name: %s\n", name);
-          errno = EEXIST;
-          return -1;
-        }
-        if ((fds_mv[i] = ina3221_open_voltage_file(bus_addr, hwmon, channel)) < 0) {
-          return -1;
-        }
-        if ((fds_ma[i] = ina3221_open_curr_file(bus_addr, hwmon, channel)) < 0) {
-          err_save = errno;
-          close(fds_mv[i]);
-          // enforce that fds_mv[i] is set back to 0 so caller doesn't try to close again
-          fds_mv[i] = 0;
-          errno = err_save;
-          return -1;
-        }
-        // check update interval for device - only need to do once though
-        if (update_interval_us < 0) {
-          update_interval_us = ina3221_read_update_interval_us(bus_addr, hwmon);
-          if (update_interval_us > 0 && (unsigned long) update_interval_us > *update_interval_us_max) {
-            *update_interval_us_max = (unsigned long) update_interval_us;
-          }
-        }
-        break;
-      }
-    }
-  }
-  return 0;
-}
-
-static int ina3221_walk_bus_addr_dir(const char* const* names, int* fds_mv, int* fds_ma, size_t len,
-                                     unsigned long* update_interval_us_max, const char* bus_addr) {
-  // for each name format hwmon/hwmonX
-  DIR* dir;
-  const struct dirent* entry;
-  char path[PATH_MAX];
-  int ret = 0;
-  // Path contains a static '/hwmon' suffix - should we really fail if the bus dir exists but not the hwmon subdir?
-  snprintf(path, sizeof(path), INA3221_DIR_TEMPLATE_BUS_ADDR, bus_addr);
-  if ((dir = opendir(path)) == NULL) {
-    perror(path);
-    return -1;
-  }
-  while ((entry = readdir(dir)) != NULL) {
-    if (is_hwmon_dir(entry)) {
-      if ((ret = ina3221_walk_device_dir(names, fds_mv, fds_ma, len, update_interval_us_max, bus_addr,
-           entry->d_name)) < 0) {
-        break;
-      }
-    }
-  }
-  if (closedir(dir)) {
-    perror(path);
-  }
-  return ret;
-}
-
-static int ina3221_walk_i2c_drivers_dir(const char* const* names, int* fds_mv, int* fds_ma, size_t len,
-                                        unsigned long* update_interval_us_max) {
-  // for each name format X-ABCDE
-  DIR* dir;
-  const struct dirent* entry;
-  int ret = 0;
-  if ((dir = opendir(INA3221_DIR)) == NULL) {
-    perror(INA3221_DIR);
-    return -1;
-  }
-  while ((entry = readdir(dir)) != NULL) {
-    if (is_i2c_bus_addr_dir(entry)) {
-      if ((ret = ina3221_walk_bus_addr_dir(names, fds_mv, fds_ma, len, update_interval_us_max, entry->d_name)) < 0) {
-        break;
-      }
-    }
-  }
-  if (closedir(dir)) {
-    perror(INA3221X_DIR);
-  }
-  return ret;
-}
-
-static int ina3221x_try_read_rail_name(const char* bus_addr, const char* device, int channel, char* name, size_t len) {
-  char file[PATH_MAX];
-  snprintf(file, sizeof(file), INA3221X_FILE_TEMPLATE_RAIL_NAME, bus_addr, device, channel);
-  return read_string(file, name, len);
-}
-
-static long ina3221x_try_read_polling_delay_us(const char* bus_addr, const char* device, int channel) {
-  char file[PATH_MAX];
-  snprintf(file, sizeof(file), INA3221X_FILE_TEMPLATE_POLLING_DELAY, bus_addr, device, channel);
-  // TODO: output includes precision (e.g., "0 ms") - set endptr in the read and parse this
-  return read_long(file) * 1000;
-}
-
-static int ina3221x_open_power_file(const char* bus_addr, const char* device, int channel) {
-  char file[PATH_MAX];
-  int fd;
-  snprintf(file, sizeof(file), INA3221X_FILE_TEMPLATE_POWER, bus_addr, device, channel);
-  if ((fd = open(file, O_RDONLY)) < 0) {
-    perror(file);
-  }
-  return fd;
-}
-
-static int is_iio_device_dir(const struct dirent* entry) {
-  // format: iio:deviceN
-  return entry->d_type == DT_DIR
-         && strlen(entry->d_name) > 10
-         && entry->d_name[0] != '.'
-         && entry->d_name[3] == ':';
-}
-
-static int ina3221x_walk_device_dir(const char* const* names, int* fds, size_t len, unsigned long* polling_delay_us_max,
-                                    const char* bus_addr, const char* device) {
-  // for each rail_name_X, open power file if its name is in list
-  // there are 3 channels per device, but it's possible they aren't all connected
-  char name[64];
-  size_t i;
-  int channel;
-  long polling_delay_us;
-  for (channel = 0; channel < INA3221_CHANNELS_MAX; channel++) {
-    errno = 0;
-    if (ina3221x_try_read_rail_name(bus_addr, device, channel, name, sizeof(name)) < 0) {
-      if (errno == ENOENT) {
-        // assume this means the channel isn't connected, which is not an error
-        continue;
-      }
-      return -1;
-    } else {
-      for (i = 0; i < len; i++) {
-        if (!strncmp(name, names[i], sizeof(name))) {
-          if (fds[i]) {
-            fprintf(stderr, "Duplicate sensor name: %s\n", name);
-            errno = EEXIST;
-            return -1;
-          }
-          if ((fds[i] = ina3221x_open_power_file(bus_addr, device, channel)) < 0) {
-            return -1;
-          }
-          polling_delay_us = ina3221x_try_read_polling_delay_us(bus_addr, device, channel);
-          if (polling_delay_us > 0 && (unsigned long) polling_delay_us > *polling_delay_us_max) {
-            *polling_delay_us_max = (unsigned long) polling_delay_us;
-          }
-          break;
-        }
-      }
-    }
-  }
-  return 0;
-}
-
-static int ina3221x_walk_bus_addr_dir(const char* const* names, int* fds, size_t len,
-                                      unsigned long* polling_delay_us_max, const char* bus_addr) {
-  // for each name format iio:deviceX
-  DIR* dir;
-  const struct dirent* entry;
-  char path[PATH_MAX];
-  int ret = 0;
-  snprintf(path, sizeof(path), INA3221X_DIR_TEMPLATE_BUS_ADDR, bus_addr);
-  if ((dir = opendir(path)) == NULL) {
-    perror(path);
-    return -1;
-  }
-  while ((entry = readdir(dir)) != NULL) {
-    if (is_iio_device_dir(entry)) {
-      if ((ret = ina3221x_walk_device_dir(names, fds, len, polling_delay_us_max, bus_addr, entry->d_name)) < 0) {
-        break;
-      }
-    }
-  }
-  if (closedir(dir)) {
-    perror(path);
-  }
-  return ret;
-}
-
-static int ina3221x_walk_i2c_drivers_dir(const char* const* names, int* fds, size_t len,
-                                         unsigned long* polling_delay_us_max) {
-  // for each name format X-ABCDE
-  DIR* dir;
-  const struct dirent* entry;
-  int ret = 0;
-  if ((dir = opendir(INA3221X_DIR)) == NULL) {
-    perror(INA3221X_DIR);
-    return -1;
-  }
-  while ((entry = readdir(dir)) != NULL) {
-    if (is_i2c_bus_addr_dir(entry)) {
-      if ((ret = ina3221x_walk_bus_addr_dir(names, fds, len, polling_delay_us_max, entry->d_name)) < 0) {
-        break;
-      }
-    }
-  }
-  if (closedir(dir)) {
-    perror(INA3221X_DIR);
-  }
-  return ret;
-}
 
 static void close_and_clear_fds(int* fds, size_t max_fds) {
   int err_save = errno;
@@ -636,15 +314,6 @@ static unsigned long get_polling_delay_us(unsigned long sysfs_polling_delay_us) 
   return us;
 }
 
-static int is_dir(const char* path) {
-  DIR* dir = opendir(path);
-  if (dir) {
-    closedir(dir);
-    return 1;
-  }
-  return errno == ENOENT ? 0 : -1;
-}
-
 static int energymon_jetson_init_ina3221(energymon_jetson* state, char** rail_names, size_t n_rails,
                                          unsigned long* polling_delay_us) {
   size_t i;
@@ -724,16 +393,9 @@ int energymon_init_jetson(energymon* em) {
   size_t n_rails;
   char** rail_names = NULL;
 
-  int is_ina3221;
-  int test = is_dir(INA3221_DIR);
-  if (test < 0) {
+  int is_ina3221 = ina3221_exists();
+  if (is_ina3221 < 0) {
     return -1;
-  }
-  if (test > 0) {
-    is_ina3221 = 1;
-  } else {
-    // assume ina3221x
-    is_ina3221 = 0;
   }
 
   const char* rail_names_str = getenv(ENERGYMON_JETSON_RAIL_NAMES);

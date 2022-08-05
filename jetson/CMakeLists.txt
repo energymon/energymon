@@ -1,6 +1,6 @@
 set(SNAME jetson)
 set(LNAME energymon-jetson)
-set(SOURCES ${LNAME}.c;${ENERGYMON_UTIL};${ENERGYMON_TIME_UTIL})
+set(SOURCES ${LNAME}.c;${ENERGYMON_UTIL};${ENERGYMON_TIME_UTIL};util.c;ina3221.c;ina3221x.c)
 set(DESCRIPTION "EnergyMon implementation for NVIDIA Jetson systems")
 
 # Dependencies
