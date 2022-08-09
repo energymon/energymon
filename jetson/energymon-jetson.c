@@ -379,6 +379,20 @@ static int energymon_jetson_init_ina3221x(energymon_jetson* state, char** rail_n
   return 0;
 }
 
+static int get_driver(int* is_ina3221, int* is_ina3221x) {
+  if ((*is_ina3221 = ina3221_exists()) < 0) {
+    return -1;
+  }
+  if ((*is_ina3221x = ina3221x_exists()) < 0) {
+    return -1;
+  }
+  if (!*is_ina3221 && !*is_ina3221x) {
+    errno = ENODEV;
+    return -1;
+  }
+  return 0;
+}
+
 /**
  * Open all sensor files and start the thread to poll the sensors.
  */
@@ -392,9 +406,9 @@ int energymon_init_jetson(energymon* em) {
   int err_save;
   size_t n_rails;
   char** rail_names = NULL;
-
-  int is_ina3221 = ina3221_exists();
-  if (is_ina3221 < 0) {
+  int is_ina3221 = 0;
+  int is_ina3221x = 0;
+  if (get_driver(&is_ina3221, &is_ina3221x) < 0) {
     return -1;
   }
 
