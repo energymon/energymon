@@ -1,3 +1,7 @@
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux|Android")
+  return()
+endif()
+
 set(SNAME zcu102)
 set(LNAME energymon-zcu102)
 set(SOURCES ${LNAME}.c;${ENERGYMON_UTIL};${ENERGYMON_TIME_UTIL})

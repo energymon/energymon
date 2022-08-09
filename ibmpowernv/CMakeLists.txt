@@ -1,3 +1,7 @@
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux|Android")
+  return()
+endif()
+
 set(SNAME ibmpowernv)
 set(SNAME_POWER ibmpowernv-power)
 set(LNAME energymon-ibmpowernv)

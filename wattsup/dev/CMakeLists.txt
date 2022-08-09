@@ -1,3 +1,7 @@
+if(NOT UNIX)
+  return()
+endif()
+
 set(SNAME wattsup)
 set(LNAME energymon-wattsup)
 set(SOURCES ../energymon-wattsup.c;wattsup-driver-dev.c;${ENERGYMON_UTIL};${ENERGYMON_TIME_UTIL})

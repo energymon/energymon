@@ -1,3 +1,7 @@
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux|Android")
+  return()
+endif()
+
 set(SNAME odroid)
 set(LNAME energymon-odroid)
 set(SNAME_IOCTL odroid-ioctl)

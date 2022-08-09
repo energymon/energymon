@@ -11,10 +11,6 @@ endif()
 
 # Libraries
 
-if(UNIX)
-  add_subdirectory(dev)
-endif()
-if(UNIX OR WIN32)
-  add_subdirectory(libftdi)
-  add_subdirectory(libusb)
-endif()
+add_subdirectory(dev)
+add_subdirectory(libftdi)
+add_subdirectory(libusb)

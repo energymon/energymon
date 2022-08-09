@@ -1,3 +1,7 @@
+if(NOT APPLE)
+  return()
+endif()
+
 set(SNAME ipg)
 set(LNAME energymon-ipg)
 set(SOURCES ${LNAME}.c;${ENERGYMON_UTIL})

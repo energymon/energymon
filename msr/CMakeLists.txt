@@ -1,3 +1,7 @@
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux|Android")
+  return()
+endif()
+
 set(SNAME msr)
 set(LNAME energymon-msr)
 set(SOURCES ${LNAME}.c;${ENERGYMON_UTIL})

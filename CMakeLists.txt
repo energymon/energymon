@@ -158,31 +158,22 @@ endfunction()
 
 # Libraries
 
+# Must be added before libraries that build shmem providers
+add_subdirectory(shmem)
+
+# Please keep these in alphabetical order
+add_subdirectory(cray-pm)
 add_subdirectory(dummy)
-
-if(UNIX)
-  add_subdirectory(shmem)
-endif()
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux|Android")
-  add_subdirectory(cray-pm)
-  add_subdirectory(ibmpowernv)
-  add_subdirectory(jetson)
-  add_subdirectory(msr)
-  add_subdirectory(odroid)
-  add_subdirectory(rapl)
-  add_subdirectory(raplcap-msr)
-  add_subdirectory(zcu102)
-endif()
-
-if(UNIX OR WIN32)
-  add_subdirectory(osp)
-  add_subdirectory(wattsup)
-endif()
-
-if(APPLE)
-  add_subdirectory(ipg)
-endif()
+add_subdirectory(ibmpowernv)
+add_subdirectory(ipg)
+add_subdirectory(jetson)
+add_subdirectory(msr)
+add_subdirectory(odroid)
+add_subdirectory(osp)
+add_subdirectory(rapl)
+add_subdirectory(raplcap-msr)
+add_subdirectory(wattsup)
+add_subdirectory(zcu102)
 
 if(NOT TARGET energymon-default AND NOT ${ENERGYMON_BUILD_DEFAULT} MATCHES "NONE")
   message(FATAL_ERROR

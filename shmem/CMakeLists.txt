@@ -1,3 +1,7 @@
+if(NOT UNIX)
+  return()
+endif()
+
 set(SNAME shmem)
 set(LNAME energymon-shmem)
 set(EXAMPLE energymon-shmem-example)

@@ -1,3 +1,7 @@
+if(NOT (UNIX OR WIN32))
+  return()
+endif()
+
 set(SNAME osp)
 set(LNAME energymon-osp)
 set(SNAME_POLLING osp-polling)

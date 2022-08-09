@@ -1,3 +1,7 @@
+if(NOT (UNIX OR WIN32))
+  return()
+endif()
+
 set(SNAME wattsup-libftdi)
 set(LNAME energymon-wattsup-libftdi)
 set(SOURCES ../energymon-wattsup.c;wattsup-driver-libftdi.c;${ENERGYMON_UTIL};${ENERGYMON_TIME_UTIL})

@@ -1,3 +1,7 @@
+if(NOT (UNIX OR WIN32))
+  return()
+endif()
+
 set(SNAME wattsup-libusb)
 set(LNAME energymon-wattsup-libusb)
 set(SOURCES ../energymon-wattsup.c;wattsup-driver-libusb.c;${ENERGYMON_UTIL};${ENERGYMON_TIME_UTIL})

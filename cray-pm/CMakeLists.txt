@@ -1,3 +1,7 @@
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux|Android")
+  return()
+endif()
+
 set(SNAME cray-pm)
 set(LNAME energymon-cray-pm)
 set(SOURCES ${LNAME}.c;
