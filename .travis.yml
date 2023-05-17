@@ -30,8 +30,11 @@ matrix:
       dist: bionic
       arch: amd64
     - os: osx
-      osx_image: xcode12.5
+      osx_image: xcode14.2
       compiler: clang
+      env:
+        - HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
+        - HOMEBREW_NO_AUTO_UPDATE=1
   exclude:
     # Doesn't have min cmake version
     - os: linux
