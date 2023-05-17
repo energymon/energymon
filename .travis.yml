@@ -1,8 +1,5 @@
 os:
   - linux
-  - osx
-
-osx_image: xcode12.5
 
 matrix:
   include:
@@ -33,6 +30,8 @@ matrix:
       dist: bionic
       arch: amd64
     - os: osx
+      osx_image: xcode12.5
+      compiler: clang
   exclude:
     # Doesn't have min cmake version
     - os: linux
