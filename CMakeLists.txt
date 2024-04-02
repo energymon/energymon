@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.6...3.28)
 
 project(energymon VERSION 0.7.0
                   LANGUAGES C)
