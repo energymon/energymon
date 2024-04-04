@@ -10,6 +10,10 @@
 
 * wattsup-libftdi: automatically reattach kernel driver (requires libftdi >= 1.5)
 
+### Deprecated
+
+* wattsup-libftdi: support for the original `libftdi` (will require `libftdi1`)
+
 
 ## [v0.6.0] - 2023-05-02
 
