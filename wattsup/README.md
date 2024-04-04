@@ -4,7 +4,7 @@ These implementations of the `energymon` interface poll power from `Watts up?` p
 
 There are three implementations that are mutually exclusive:
 
-* `energymon-wattsup` - Interfaces with the /dev filesystem on Linux
+* `energymon-wattsup` - Uses the /dev filesystem on Linux and macOS
 * `energymon-wattsup-libusb` - Uses [libusb-1.0](http://www.libusb.org/wiki/libusb-1.0)
 * `energymon-wattsup-libftdi` - Uses [libftdi](https://www.intra2net.com/en/developer/libftdi/) (WattsUp devices use a FTDI FT232R USB to serial UART IC internally)
 
@@ -47,7 +47,7 @@ The documentation specifies that the device will respond to requests within 2 se
 As a result, it's possible that energy data could be delayed by up to 2-3 seconds from the actual power behavior.
 
 By default, the `wattsup` implementation looks for the WattsUp device at `/dev/ttyUSB0`.
-To override, set the environment variable `ENERGYMON_WATTSUP_DEV_FILE` to the correct device file.
+To override, set the environment variable `ENERGYMON_WATTSUP_DEV_FILE` to the correct device file (e.g., a different device number like `/dev/ttyUSB1` on Linux or a "calling unit" device like `/dev/cu.usbserial-A5015A7F` on macOS).
 
 The `libusb` implementation detaches the WattsUp device from the kernel (thus unmounting it from the /dev filesystem in Linux during runtime), then reattaches it when giving up the device during teardown (but only if it was found to be attached during initialization).
 The `libftdi` version does not have this capability - if you need to reattach the device to the kernel, run the `energymon-wattsup-attach-kernel` binary (only available if `libusb-1.0` is available).

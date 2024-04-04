@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+* wattsup-dev: macOS support
+
 
 ## [v0.6.0] - 2023-05-02
 

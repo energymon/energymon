@@ -67,7 +67,7 @@ Current EnergyMon implementation options are:
 * **rapl**: Intel RAPL via Linux powercap sysfs files
 * **raplcap-msr**: Intel RAPL via `libraplcap-msr` (more capable than `msr` implementation above)
 * **shmem**: Shared memory client via an EnergyMon shared memory provider
-* **wattsup**: Watts Up Pro meter via Linux device files
+* **wattsup**: Watts Up Pro meter via Linux and macOS device files
 * **wattsup-libusb**: Watts Up Pro meter via `libusb`
 * **wattsup-libftdi**: Watts Up Pro meter via `libftdi`
 * **zcu102**: Xilinx Zynq UltraScale+ ZCU102 systems (with INA-226 power sensors) via Linux sysfs files

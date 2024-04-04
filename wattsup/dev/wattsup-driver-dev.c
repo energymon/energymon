@@ -28,10 +28,7 @@ struct energymon_wattsup_ctx {
 static int wattsup_open(const char* filename, int* fd) {
   assert(filename != NULL);
   assert(fd != NULL);
-
   struct stat s;
-  char buf[32];
-  const char* shortname;
 
   // Check if device node exists and is writable
   if (stat(filename, &s) < 0) {
@@ -48,7 +45,9 @@ static int wattsup_open(const char* filename, int* fd) {
     return -1;
   }
 
+#ifdef __linux__
   // Get shortname by dropping leading "/dev/"
+  const char* shortname;
   if (!(shortname = strrchr(filename, '/'))) {
     // shouldn't happen since we've already checked filename
     errno = EINVAL;
@@ -58,6 +57,7 @@ static int wattsup_open(const char* filename, int* fd) {
   shortname++;
 
   // Check if "/sys/class/tty/<shortname>" exists and is correct type
+  char buf[32];
   snprintf(buf, sizeof(buf), "/sys/class/tty/%s", shortname);
   if (stat(buf, &s) < 0) {
     perror(buf);
@@ -68,6 +68,7 @@ static int wattsup_open(const char* filename, int* fd) {
     perror("wattsup_open: Not a TTY device");
     return -1;
   }
+#endif // __linux__
 
   // Open the device file
   *fd = open(filename, O_RDWR | O_NONBLOCK);
