@@ -58,6 +58,13 @@ energymon_wattsup_ctx* wattsup_connect(const char* dev_file, unsigned int timeou
     return init_failed("ftdi_new", ctx, 0);
   }
 
+#if HAS_FTDI_TCIOFLUSH
+  // AUTO_DETACH_REATACH_SIO_MODULE and ftdi_tcioflush were both added in libftdi 1.5, so this is safe.
+  ctx->ctx->module_detach_mode = AUTO_DETACH_REATACH_SIO_MODULE;
+  // Setter function `ftdi_set_module_detach_mode` added after libftdi 1.5, but we can't conditionally use the function
+  // until we know what version it will be released in (so we can specify the minimum libftdi version we'll depend on).
+#endif
+
   // TODO: No API to set read/write timeouts?
   (void) timeout_ms;
   // set read/write timeout

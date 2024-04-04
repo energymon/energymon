@@ -6,6 +6,10 @@
 
 * wattsup-dev: macOS support
 
+### Changed
+
+* wattsup-libftdi: automatically reattach kernel driver (requires libftdi >= 1.5)
+
 
 ## [v0.6.0] - 2023-05-02
 
