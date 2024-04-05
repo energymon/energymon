@@ -1,0 +1,42 @@
+name: Continuous Integration
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    name: ${{ matrix.os }} Test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        # cmake, pkg-config, and compiler already installed
+        run: |
+          sudo apt-get install -y libftdi1-dev libhidapi-dev libsensors4-dev libusb-1.0-0-dev
+      - name: Install macOS dependencies
+        if: runner.os == 'macOS'
+        # cmake, pkg-config, and compiler already installed
+        run: |
+          brew install hidapi libftdi libusb
+      - name: Install dependency raplcap-msr
+        if: runner.os == 'Linux'
+        run: |
+          git clone https://github.com/powercap/raplcap.git deps/raplcap
+          cmake -S deps/raplcap -B deps/raplcap/_build -DCMAKE_INSTALL_PREFIX=$(pwd)/opt/raplcap/
+          cmake --build deps/raplcap/_build --target install
+      - name: Build
+        run: |
+          export CFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector -pedantic -Wall -Wextra -Wbad-function-cast -Wcast-align \
+            -Wcast-qual -Wdisabled-optimization -Wendif-labels -Wfloat-conversion -Wfloat-equal -Wformat=2 -Wformat-nonliteral \
+            -Winline -Wmissing-declarations -Wmissing-noreturn -Wmissing-prototypes -Wnested-externs -Wpointer-arith -Wshadow \
+            -Wsign-conversion -Wstrict-prototypes -Wstack-protector -Wundef -Wwrite-strings -Werror"
+          cmake -DCMAKE_PREFIX_PATH="$(pwd)/opt/raplcap/" -DCMAKE_C_FLAGS="$CFLAGS" -DCMAKE_BUILD_TYPE=Release -S . -B _build
+          cmake --build _build/ -v
