@@ -4,6 +4,7 @@
 
 ### Added
 
+* osp3: new implementation for ODROID Smart Power 3 devices
 * wattsup-dev: macOS support
 
 ### Changed

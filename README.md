@@ -64,6 +64,7 @@ Current EnergyMon implementation options are:
 * **odroid-ioctl**: Hardkernel ODROID XU+E and XU3 systems (with INA-231 power sensors) via `ioctl` on Linux device files
 * **osp**: Hardkernel ODROID Smart Power meters (coarse-grained energy counter) via `HIDAPI`
 * **osp-polling**: Hardkernel ODROID Smart Power meters (finer-grained power sensor) via `HIDAPI`
+* **osp3**: ODROID Smart Power 3 meters via Linux and macOS device files
 * **rapl**: Intel RAPL via Linux powercap sysfs files
 * **raplcap-msr**: Intel RAPL via `libraplcap-msr` (more capable than `msr` implementation above)
 * **shmem**: Shared memory client via an EnergyMon shared memory provider

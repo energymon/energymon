@@ -26,6 +26,11 @@ jobs:
         # cmake, pkg-config, and compiler already installed
         run: |
           brew install hidapi libftdi libusb
+      - name: Install dependency osp3
+        run: |
+          git clone https://github.com/energymon/osp3.git deps/osp3
+          cmake -S deps/osp3 -B deps/osp3/build -DCMAKE_INSTALL_PREFIX=$(pwd)/opt/osp3/
+          cmake --build deps/osp3/build --target install
       - name: Install dependency raplcap-msr
         if: runner.os == 'Linux'
         run: |
@@ -38,5 +43,5 @@ jobs:
             -Wcast-qual -Wdisabled-optimization -Wendif-labels -Wfloat-conversion -Wfloat-equal -Wformat=2 -Wformat-nonliteral \
             -Winline -Wmissing-declarations -Wmissing-noreturn -Wmissing-prototypes -Wnested-externs -Wpointer-arith -Wshadow \
             -Wsign-conversion -Wstrict-prototypes -Wstack-protector -Wundef -Wwrite-strings -Werror"
-          cmake -DCMAKE_PREFIX_PATH="$(pwd)/opt/raplcap/" -DCMAKE_C_FLAGS="$CFLAGS" -DCMAKE_BUILD_TYPE=Release -S . -B _build
+          cmake -DCMAKE_PREFIX_PATH="$(pwd)/opt/osp3/;$(pwd)/opt/raplcap/" -DCMAKE_C_FLAGS="$CFLAGS" -DCMAKE_BUILD_TYPE=Release -S . -B _build
           cmake --build _build/ -v
