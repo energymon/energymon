@@ -23,5 +23,3 @@ Add the following to your link flags:
 ```
 -lenergymon-zcu102 -lpthread
 ```
-
-You will also need `-lrt` for glibc versions before 2.17.

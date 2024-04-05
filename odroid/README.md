@@ -37,5 +37,3 @@ To link with the `ioctl` implementation:
 ```
 -lenergymon-odroid-ioctl -lpthread
 ```
-
-For both implementations, also need `-lrt` for glibc versions before 2.17.

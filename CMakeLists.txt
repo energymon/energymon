@@ -15,15 +15,6 @@ include(GNUInstallDirs)
 set(ENERGYMON_UTIL ${PROJECT_SOURCE_DIR}/common/energymon-util.c)
 set(ENERGYMON_TIME_UTIL ${PROJECT_SOURCE_DIR}/common/energymon-time-util.c;${PROJECT_SOURCE_DIR}/common/ptime/ptime.c)
 
-if(UNIX AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  # Determine if we should link with librt for libraries that use "clock_gettime"
-  include(CheckFunctionExists)
-  CHECK_FUNCTION_EXISTS(clock_gettime HAVE_CLOCK_GETTIME)
-  if(NOT HAVE_CLOCK_GETTIME)
-    find_library(LIBRT NAMES rt)
-  endif()
-endif()
-
 if(UNIX)
   set(LIBM m)
 endif()

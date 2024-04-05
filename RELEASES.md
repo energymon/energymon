@@ -15,6 +15,10 @@
 
 * wattsup-libftdi: support for the original `libftdi` (will require `libftdi1`)
 
+### Removed
+
+* Support for `glibc < 2.17` (released in 2012)
+
 
 ## [v0.6.0] - 2023-05-02
 

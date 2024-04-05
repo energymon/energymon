@@ -66,10 +66,6 @@ if(CMAKE_THREAD_LIBS_INIT)
   list(APPEND PKG_CONFIG_PRIVATE_LIBS_POWER "${CMAKE_THREAD_LIBS_INIT}")
 endif()
 
-if(LIBRT)
-  list(APPEND PKG_CONFIG_PRIVATE_LIBS_POWER "-lrt")
-endif()
-
 if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
    ENERGYMON_BUILD_LIB STREQUAL SNAME_POWER OR
    ENERGYMON_BUILD_LIB STREQUAL LNAME_POWER)
@@ -82,7 +78,7 @@ if(ENERGYMON_BUILD_LIB STREQUAL "ALL" OR
                         ENERGYMON_GET_FUNCTION "energymon_get_ibmpowernv_power"
                         ENERGYMON_GET_C_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${LNAME_POWER}/energymon-get.c)
   target_compile_definitions(${LNAME_POWER} PRIVATE ENERGYMON_IBMPOWERNV_USE_POWER)
-  target_link_libraries(${LNAME_POWER} PRIVATE Sensors::Sensors Threads::Threads ${LIBRT})
+  target_link_libraries(${LNAME_POWER} PRIVATE Sensors::Sensors Threads::Threads)
   add_energymon_pkg_config(${LNAME_POWER} "${DESCRIPTION_POWER}" "" "${PKG_CONFIG_PRIVATE_LIBS_POWER}")
   energymon_export_dependency(Threads)
   energymon_export_dependency(Sensors)
@@ -91,7 +87,7 @@ endif()
 
 if(ENERGYMON_BUILD_DEFAULT STREQUAL SNAME_POWER OR ENERGYMON_BUILD_DEFAULT STREQUAL LNAME_POWER)
   add_energymon_default_library(SOURCES ${SOURCES_POWER})
-  target_link_libraries(energymon-default PRIVATE Sensors::Sensors Threads::Threads ${LIBRT})
+  target_link_libraries(energymon-default PRIVATE Sensors::Sensors Threads::Threads)
   target_compile_definitions(energymon-default PRIVATE ENERGYMON_IBMPOWERNV_USE_POWER)
   add_energymon_pkg_config(energymon-default "${DESCRIPTION_POWER}" "" "${PKG_CONFIG_PRIVATE_LIBS_POWER}")
   energymon_export_dependency(Threads)
