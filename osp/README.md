@@ -1,7 +1,8 @@
 # ODROID Smart Power Energy Monitor
 
-These implementations of the `energymon` interface read from an ODROID Smart
-Power USB device.
+These implementations of the `energymon` interface read from an [ODROID Smart Power](https://wiki.odroid.com/old_product/accessory/odroidsmartpower) USB device.
+
+> NOTE: If you're using a newer generation [ODROID Smart Power 3](https://wiki.odroid.com/accessory/power_supply_battery/smartpower3) device, use the `osp3` implementation instead.
 
 Two different library implementations are available.
 The first reads energy data directly from the device.
@@ -16,7 +17,8 @@ However, it has less runtime overhead than the polling implementation.
 You need an ODROID Smart Power device with a USB connection.
 
 This implementation depends on [hidapi](https://github.com/signal11/hidapi/).
-On Ubuntu 14.04 LTS and newer, just install `libhidapi-dev`.
+On Debian-based Linux (including Ubuntu 14.04 LTS and newer), install the `libhidapi-dev` package.
+On macOS, use Homebrew to install `hidapi`.
 
 ### Linux Privileges
 
@@ -25,12 +27,12 @@ To use an ODROID Smart Power without needing sudo/root at runtime, set appropria
 For example, you can give access to a specific group, e.g. `plugdev`, by creating/modifying a `udev` config file, e.g. `/etc/udev/rules.d/10-local.rules`.
 Depending on whether you are using the `libusb` or `hidraw` implementations of `hidapi`, use one of the following rules (though having both shouldn't hurt):
 
-```sh
+```
 # ODROID Smart Power - HIDAPI/libusb
 SUBSYSTEM=="usb", ATTRS{idVendor}=="04d8", ATTRS{idProduct}=="003f", GROUP="plugdev"
 
 # ODROID Smart Power - HIDAPI/hidraw
-KERNEL=="hidraw*", ATTRS{busnum}=="1", ATTRS{idVendor}=="04d8", ATTRS{idProduct}=="003f", GROUP="plugdev"
+KERNEL=="hidraw*", ATTRS{idVendor}=="04d8", ATTRS{idProduct}=="003f", GROUP="plugdev"
 ```
 
 The device probably needs to be disconnected and reconnected, or the system rebooted, for the change to take effect (the device must be remounted by the kernel with the new permissions).
