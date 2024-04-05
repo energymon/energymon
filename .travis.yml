@@ -60,24 +60,21 @@ addons:
     # update: true
 
 install:
+  # osp3 dependency
+  - git clone https://github.com/energymon/osp3.git deps/osp3
+  - cmake -S deps/osp3 -B deps/osp3/build -DCMAKE_INSTALL_PREFIX=$(pwd)/opt/osp3/
+  - cmake --build deps/osp3/build --target install
   # raplcap dependency
-  - git clone https://github.com/powercap/raplcap.git
-  - cd raplcap
-  - mkdir _build
-  - cd _build
-  - cmake -DCMAKE_INSTALL_PREFIX=_install ..
-  - if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_CPU_ARCH" == "amd64" ]]; then cmake --build . --target install; fi
-  - cd ../..
+  - git clone https://github.com/powercap/raplcap.git deps/raplcap
+  - cmake -S deps/raplcap -B deps/raplcap/_build -DCMAKE_INSTALL_PREFIX=$(pwd)/opt/raplcap/
+  - if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_CPU_ARCH" == "amd64" ]]; then cmake --build deps/raplcap/_build --target install; fi
 
 script:
-  - mkdir _build
-  - cd _build
     # Test build with stricter flags
   - export CFLAGS="-D_FORTIFY_SOURCE=2 -fstack-protector -g3 -pedantic -Wall -Wextra -Wbad-function-cast -Wcast-align
       -Wcast-qual -Wdisabled-optimization -Wendif-labels -Wfloat-conversion -Wfloat-equal -Wformat=2 -Wformat-nonliteral
       -Winline -Wmissing-declarations -Wmissing-noreturn -Wmissing-prototypes -Wnested-externs -Wpointer-arith -Wshadow
       -Wsign-conversion -Wstrict-prototypes -Wstack-protector -Wundef -Wwrite-strings
       -Werror"
-  - PKG_CONFIG_PATH="../raplcap/_build/_install/lib/pkgconfig" cmake .. -DCMAKE_C_FLAGS="$CFLAGS"
-  - cmake .. -DCMAKE_C_FLAGS="$CFLAGS"
-  - cmake --build . -j
+  - cmake -S . -B _build -DCMAKE_PREFIX_PATH="$(pwd)/opt/osp3;$(pwd)/opt/raplcap" -DCMAKE_C_FLAGS="$CFLAGS"
+  - cmake --build _build -j
