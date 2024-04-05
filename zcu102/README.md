@@ -15,11 +15,3 @@ You must be using a ZCU102 board running PetaLinux.
 ## Usage
 
 No special setup is required.
-
-## Linking
-
-Add the following to your link flags:
-
-```
--lenergymon-zcu102 -lpthread
-```

@@ -20,11 +20,3 @@ The id must be between 0 and 255 as only the low-order 8 bits of the integer
 are significant, per the function documentation.
 The default values are overridden by setting the environment variables
 `ENERGYMON_SHMEM_DIR` and `ENERGYMON_SHMEM_ID`, respectively.
-
-## Linking
-
-To link with the library:
-
-```
--lenergymon-shmem
-```

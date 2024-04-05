@@ -65,15 +65,3 @@ To override, set the environment variable `ENERGYMON_WATTSUP_DEV_FILE` to the co
 
 The `wattsup-libusb` implementation detaches the WattsUp device from the kernel (thus unmounting it from the /dev filesystem in Linux during runtime), then reattaches it when giving up the device during teardown (but only if it was found to be attached during initialization).
 The `wattsup-libftdi` implementation also detaches the kernel driver, but only (and unconditionally) reattaches it during teardown if `libftdi >= 1.5`; otherwise you can reattach the device to the kernel using the `energymon-wattsup-attach-kernel` binary (requires `libusb-1.0`).
-
-## Linking
-
-To link with the appropriate library and its dependencies, use `pkg-config` to get the linker flags:
-
-```sh
-pkg-config --libs --static energymon-wattsup
-pkg-config --libs --static energymon-wattsup-libusb
-pkg-config --libs --static energymon-wattsup-libftdi
-```
-
-The `--static` flag is unnecessary when using dynamically linked libraries.

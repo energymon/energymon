@@ -41,14 +41,3 @@ To configure the power source, set the environment variable `ENERGYMON_OSP3_POWE
 
 OSP3 devices can be configured to refresh anywhere between every 5 ms and 1 sec, depending on the configured baud.
 The `osp3` implementation will automatically handle different update intervals.
-
-
-## Linking
-
-To link with the library and its dependencies, use `pkg-config` to get the linker flags:
-
-```sh
-pkg-config --libs --static energymon-osp3
-```
-
-The `--static` flag is unnecessary when using dynamically linked libraries.

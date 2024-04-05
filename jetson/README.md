@@ -34,13 +34,3 @@ To override the default behavior described above and read from different rails, 
 See [JetsonPowerRails](./JetsonPowerRails.md) for allowable values on each platform.
 A comma-delimited list is supported to aggregate power readings from multiple rails, but use caution to avoid specifying overlapping hardware sources, otherwise power/energy will be counted more than once.
 Refer to your platform's Product Design Guide to check power subsystem allocations.
-
-## Linking
-
-To link with the appropriate library and its dependencies, use `pkg-config` to get the linker flags:
-
-```sh
-pkg-config --libs --static energymon-jetson
-```
-
-The `--static` flag is unnecessary when using dynamically linked libraries.

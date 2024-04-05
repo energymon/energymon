@@ -161,6 +161,10 @@ make uninstall
 
 ## Linking
 
+Library names have the format `energymon-foo`, where `foo` is a short name from the bulleted list above.
+For example, the `dummy` library is named `energymon-dummy`.
+The following instructions use the `default` library for simplicity and portability, but substitute names as needed.
+
 ### CMake
 
 Projects that use `CMake` can find the `EnergyMon` package and link against imported targets, which automatically applies properties like header search paths and transitive dependencies:

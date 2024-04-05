@@ -23,17 +23,3 @@ echo 1 > /sys/bus/i2c/drivers/INA231/3-0041/enable
 echo 1 > /sys/bus/i2c/drivers/INA231/3-0044/enable
 echo 1 > /sys/bus/i2c/drivers/INA231/3-0045/enable
 ```
-
-## Linking
-
-To link with the `sysfs` implementation:
-
-```
--lenergymon-odroid -lpthread
-```
-
-To link with the `ioctl` implementation:
-
-```
--lenergymon-odroid-ioctl -lpthread
-```

@@ -38,11 +38,3 @@ export ENERGYMON_CRAY_PM_COUNTERS=cpu_energy,memory_energy
 ```
 
 The implementation will sum the values from each file specified into a total energy value during reading.
-
-## Linking
-
-To link with the library:
-
-```
--lenergymon-cray-pm
-```

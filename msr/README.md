@@ -64,11 +64,3 @@ read from, e.g.:
 ```sh
 export ENERGYMON_MSRS=0,4,8,12
 ```
-
-## Linking
-
-To link with the library:
-
-```
--lenergymon-msr
-```

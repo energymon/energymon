@@ -36,14 +36,3 @@ KERNEL=="hidraw*", ATTRS{idVendor}=="04d8", ATTRS{idProduct}=="003f", GROUP="plu
 ```
 
 The device probably needs to be disconnected and reconnected, or the system rebooted, for the change to take effect (the device must be remounted by the kernel with the new permissions).
-
-## Linking
-
-To link with the appropriate library and its dependencies, use `pkg-config` to get the linker flags:
-
-```sh
-pkg-config --libs --static energymon-osp
-pkg-config --libs --static energymon-osp-polling
-```
-
-The `--static` flag is unnecessary when using dynamically linked libraries.

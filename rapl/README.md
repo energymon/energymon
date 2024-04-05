@@ -28,11 +28,3 @@ On on kernels older than 5.3:
 ```sh
 sudo modprobe intel_rapl
 ```
-
-## Linking
-
-To link with the library:
-
-```
--lenergymon-rapl
-```

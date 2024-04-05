@@ -22,12 +22,3 @@ To use a different zone, set the `ENERGYMON_IPG_ZONE` environment variable:
 * `CORE` or `IA`
 * `DRAM`
 * `PSYS` or `PLATFORM`
-
-
-## Linking
-
-To link with the library:
-
-```
-pkg-config --libs --static energymon-ipg
-```

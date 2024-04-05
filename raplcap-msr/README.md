@@ -33,12 +33,3 @@ E.g., on a quad-socket system, to use only instances (sockets) 0 and 2 (and igno
 ```sh
 export ENERGYMON_RAPLCAP_MSR_INSTANCES=0,2
 ```
-
-
-## Linking
-
-To link with the library:
-
-```
-pkg-config --libs --static energymon-raplcap-msr
-```
