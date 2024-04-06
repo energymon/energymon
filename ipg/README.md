@@ -2,6 +2,9 @@
 
 This implementation of the `energymon` interface uses [Intel&reg; Power Gadget](https://www.intel.com/content/www/us/en/developer/articles/tool/power-gadget.html).
 
+> NOTE: Intel ended support for Power Gadget in October 2023 and no longer makes it available for download.
+> Starting in EnergyMon v0.7.0, the `energymon-ipg` library is considered deprecated and may be removed in a future release.
+
 
 ## Prerequisites
 

@@ -13,6 +13,7 @@
 
 ### Deprecated
 
+* ipg: Since Intel dropped support for Power Gadget in October 2023, `energymon-ipg` may be removed in a future EnergyMon release.
 * wattsup-libftdi: support for the original `libftdi` (will require `libftdi1`)
 
 ### Removed
