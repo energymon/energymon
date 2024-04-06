@@ -25,7 +25,6 @@ find_package(OSP3)
 if(NOT OSP3_FOUND)
   # fail gracefully
   message(WARNING "${LNAME}: Missing libosp3 - skipping this project")
-  message(WARNING "${LNAME_POWER}: Missing libosp3 - skipping this project")
   return()
 endif()
 
