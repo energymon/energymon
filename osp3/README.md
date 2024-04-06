@@ -12,21 +12,6 @@ You need an ODROID Smart Power 3 device with a USB connection.
 This implementation depends on [osp3](https://github.com/energymon/osp3/).
 
 
-### Linux Privileges
-
-To use an ODROID Smart Power without needing sudo/root at runtime, set appropriate [udev](https://en.wikipedia.org/wiki/Udev) privileges.
-
-You can give access to a specific group, e.g. `plugdev`, by creating/modifying a `udev` config file like `/etc/udev/rules.d/99-osp3.rules`.
-For example, add the following rules:
-
-```
-# OROID Smart Power 3
-SUBSYSTEMS=="usb", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", GROUP="plugdev"
-```
-
-For the new permissions to take effect, the device must be remounted by the kernel - either disconnect and reconnect the device or reboot the system.
-
-
 ## Usage
 
 By default, the `osp3` implementation looks for an ODROID Smart Power 3 device at `/dev/ttyUSB0` on Linux and `/dev/tty.usbserial-210` on macOS.
