@@ -15,8 +15,8 @@ include(GNUInstallDirs)
 set(ENERGYMON_UTIL ${PROJECT_SOURCE_DIR}/common/energymon-util.c)
 set(ENERGYMON_TIME_UTIL ${PROJECT_SOURCE_DIR}/common/energymon-time-util.c;${PROJECT_SOURCE_DIR}/common/ptime/ptime.c)
 
-if(UNIX)
-  set(LIBM m)
+if(UNIX AND NOT APPLE)
+  find_library(LIBM m)
 endif()
 
 
