@@ -176,8 +176,8 @@ int energymon_init_osp3(energymon* em) {
   if (state == NULL) {
     return -1;
   }
-  if ((state->dev = osp3_open_device(path, baud)) == NULL) {
-    perror("energymon_init_osp3: osp3_open_device");
+  if ((state->dev = osp3_open_path(path, baud)) == NULL) {
+    perror("energymon_init_osp3: osp3_open_path");
     free(state);
     return -1;
   }
