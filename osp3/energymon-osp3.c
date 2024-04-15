@@ -108,6 +108,7 @@ static void* osp3_poll_device(void* args) {
     // Continue anyway...
     perror("osp3_poll_device: osp3_flush");
   }
+  int first = 1;
   while (state->poll) {
     // TODO: verify time reported in a line vs the elapsed time we measure?
     char line[OSP3_LINE_LEN_MAX + 1] = { 0 };
@@ -117,6 +118,15 @@ static void* osp3_poll_device(void* args) {
                        ENERGYMON_OSP3_TIMEOUT_MS_DEFAULT) < 0) {
       if (errno != ETIME) {
         perror("osp3_poll_device: osp3_read");
+        continue;
+      }
+    }
+    // It's common for the first line to be incomplete - if so, silently drop it.
+    if (first) {
+      first = 0;
+      // For the edge case where `line_written == OSP3_LOG_PROTOCOL_SIZE - 1`, prefer the risk of dropping a good line
+      // over parsing failures below (but only for this first line).
+      if (line_written < OSP3_LOG_PROTOCOL_SIZE) {
         continue;
       }
     }
