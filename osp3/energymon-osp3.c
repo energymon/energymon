@@ -24,11 +24,7 @@ int energymon_get_default(energymon* em) {
 #endif
 
 #ifndef ENERGYMON_OSP3_PATH_DEFAULT
-#ifdef __APPLE__
-#define ENERGYMON_OSP3_PATH_DEFAULT "/dev/tty.usbserial-210"
-#else
 #define ENERGYMON_OSP3_PATH_DEFAULT "/dev/ttyUSB0"
-#endif
 #endif
 
 #ifndef ENERGYMON_OSP3_TIMEOUT_MS_DEFAULT
