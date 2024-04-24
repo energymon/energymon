@@ -329,9 +329,17 @@ int energymon_init_osp(energymon* em) {
   em->state = state;
 
   // get the HID device handle
-  state->device = hid_open(OSP_VENDOR_ID, OSP_PRODUCT_ID, NULL);
-  if (state->device == NULL) {
-    return em_osp_init_fail(em, "energymon_init_osp: hid_open", ENODEV);
+  const char* path = getenv(ENERGYMON_OSP_DEV_FILE_ENV_VAR);
+  if (path == NULL) {
+    state->device = hid_open(OSP_VENDOR_ID, OSP_PRODUCT_ID, NULL);
+    if (state->device == NULL) {
+      return em_osp_init_fail(em, "energymon_init_osp: hid_open", ENODEV);
+    }
+  } else {
+    state->device = hid_open_path(path);
+    if (state->device == NULL) {
+      return em_osp_init_fail(em, "energymon_init_osp: hid_open_path", errno == 0 ? ENODEV : errno);
+    }
   }
 
   // set nonblocking

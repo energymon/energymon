@@ -4,6 +4,7 @@
 
 ### Added
 
+* osp, osp-polling: `ENERGYMON_OSP_DEV_FILE` environment variable to specify a device path
 * osp3: new implementation for ODROID Smart Power 3 devices
 * wattsup-dev: macOS support
 

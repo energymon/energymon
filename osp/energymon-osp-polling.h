@@ -14,6 +14,11 @@ extern "C" {
 #include <stddef.h>
 #include "energymon.h"
 
+// Environment variable for specifying the device file to read from.
+#ifndef ENERGYMON_OSP_DEV_FILE_ENV_VAR
+#define ENERGYMON_OSP_DEV_FILE_ENV_VAR "ENERGYMON_OSP_DEV_FILE"
+#endif
+
 int energymon_init_osp_polling(energymon* em);
 
 uint64_t energymon_read_total_osp_polling(const energymon* em);
