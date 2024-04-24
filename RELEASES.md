@@ -21,6 +21,10 @@
 
 * Support for `glibc < 2.17` (released in 2012)
 
+### Fixed
+
+* osp-polling: log messages using non-polling function names
+
 
 ## [v0.6.0] - 2023-05-02
 

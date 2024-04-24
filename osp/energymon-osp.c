@@ -304,8 +304,10 @@ static int em_osp_init_fail(energymon* em, const char* src, int alt_errno) {
 }
 
 #ifdef ENERGYMON_OSP_USE_POLLING
+#define ENERGYMON_INIT_OSP "energymon_init_osp_polling"
 int energymon_init_osp_polling(energymon* em) {
 #else
+#define ENERGYMON_INIT_OSP "energymon_init_osp"
 int energymon_init_osp(energymon* em) {
 #endif
   if (em == NULL || em->state != NULL) {
@@ -323,7 +325,7 @@ int energymon_init_osp(energymon* em) {
   // initialize HID API, unless told not to
   if (getenv(ENERGYMON_OSP_HID_SKIP_LIFECYCLE) == NULL && hid_init()) {
     free(state);
-    return em_osp_init_fail(NULL, "energymon_init_osp: hid_init", EIO);
+    return em_osp_init_fail(NULL, ENERGYMON_INIT_OSP": hid_init", EIO);
   }
 
   em->state = state;
@@ -333,23 +335,23 @@ int energymon_init_osp(energymon* em) {
   if (path == NULL) {
     state->device = hid_open(OSP_VENDOR_ID, OSP_PRODUCT_ID, NULL);
     if (state->device == NULL) {
-      return em_osp_init_fail(em, "energymon_init_osp: hid_open", ENODEV);
+      return em_osp_init_fail(em, ENERGYMON_INIT_OSP": hid_open", ENODEV);
     }
   } else {
     state->device = hid_open_path(path);
     if (state->device == NULL) {
-      return em_osp_init_fail(em, "energymon_init_osp: hid_open_path", errno == 0 ? ENODEV : errno);
+      return em_osp_init_fail(em, ENERGYMON_INIT_OSP": hid_open_path", errno == 0 ? ENODEV : errno);
     }
   }
 
   // set nonblocking
   if (hid_set_nonblocking(state->device, 1)) {
-    return em_osp_init_fail(em, "energymon_init_osp: hid_set_nonblocking", EIO);
+    return em_osp_init_fail(em, ENERGYMON_INIT_OSP": hid_set_nonblocking", EIO);
   }
 
   // get the status
   if (em_osp_request_status(state, NULL)) {
-    return em_osp_init_fail(em, "energymon_init_osp: em_osp_request_status", EIO);
+    return em_osp_init_fail(em, ENERGYMON_INIT_OSP": em_osp_request_status", EIO);
   }
 
   is_on = (state->buf[2] == OSP_STATUS_ON);
@@ -365,11 +367,11 @@ int energymon_init_osp(energymon* em) {
     } else {
       // turn on the device
       if (em_osp_request_onoff(state, NULL)) {
-        return em_osp_init_fail(em, "energymon_init_osp: em_osp_request_onoff", EIO);
+        return em_osp_init_fail(em, ENERGYMON_INIT_OSP": em_osp_request_onoff", EIO);
       }
       // get the status again
       if (em_osp_request_status(state, NULL)) {
-        return em_osp_init_fail(em, "energymon_init_osp: em_osp_request_status (after ON)", EIO);
+        return em_osp_init_fail(em, ENERGYMON_INIT_OSP": em_osp_request_status (after ON)", EIO);
       }
       is_started = (state->buf[1] == OSP_STATUS_STARTED);
     }
@@ -377,7 +379,7 @@ int energymon_init_osp(energymon* em) {
   if (!is_started) {
     // start the device
     if (em_osp_request_startstop(state, NULL)) {
-      return em_osp_init_fail(em, "energymon_init_osp: em_osp_request_startstop", EIO);
+      return em_osp_init_fail(em, ENERGYMON_INIT_OSP": em_osp_request_startstop", EIO);
     }
   }
 
@@ -386,7 +388,7 @@ int energymon_init_osp(energymon* em) {
   state->poll = 1;
   errno = pthread_create(&state->thread, NULL, osp_poll_device, state);
   if (errno) {
-    return em_osp_init_fail(em, "energymon_init_osp: pthread_create", errno);
+    return em_osp_init_fail(em, ENERGYMON_INIT_OSP": pthread_create", errno);
   }
 #endif
 
