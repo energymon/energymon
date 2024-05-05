@@ -51,7 +51,7 @@ typedef struct energymon_osp3 {
 // Bigger than anything an OSP3 should produce.
 #define OSP3_LINE_LEN_MAX 256
 
-static uint64_t log_entry_to_uj(const osp3_log_entry* log_entry, unsigned int ms_last, energymon_osp3_power_source src) {
+static uint64_t log_entry_to_uj(const osp3_log_entry* log_entry, unsigned long ms_last, energymon_osp3_power_source src) {
   uint64_t mw;
   switch (src) {
   case CHANNEL0:
@@ -75,27 +75,38 @@ static uint64_t log_entry_to_uj(const osp3_log_entry* log_entry, unsigned int ms
   return mw * (log_entry->ms - ms_last);
 }
 
-static unsigned int log_entry_to_interval_us(const osp3_log_entry* log_entry, unsigned int ms_last) {
-  assert(log_entry->ms >= ms_last);
-  unsigned int ms = log_entry->ms - ms_last;
+static void log_entry_to_interval_us(const osp3_log_entry* log_entry, unsigned long ms_last, uint64_t* interval_us) {
+  if (ms_last == 0) {
+    // First read.
+    return;
+  }
+  if (log_entry->ms <= ms_last) {
+    fprintf(stderr, "osp3_poll_device: new timestamp (%lu ms) <= old timestamp (%lu ms): possible rollover?\n",
+            log_entry->ms, ms_last);
+    return;
+  }
+  unsigned long diff = log_entry->ms - ms_last;
+  unsigned int ms;
   // Round to nearest known supported value.
-  // TODO: This is very much a heuristic - is there a better way?
-  if (ms <= 8) {
+  // This is very much a heuristic...
+  if (diff <= 8) {
     ms = 5;
-  } else if (ms <= 25) {
+  } else if (diff <= 25) {
     ms = 10;
-  } else if (ms <= 75) {
+  } else if (diff <= 75) {
     ms = 50;
-  } else if (ms <= 250) {
+  } else if (diff <= 250) {
     ms = 100;
-  } else if (ms <= 750) {
+  } else if (diff <= 750) {
     ms = 500;
-  } else if (ms <= 1500) {
+  } else if (diff <= 1500) {
     ms = 1000;
   } else {
-    ms = ENERGYMON_OSP3_INTERVAL_US_DEFAULT / 1000;
+    fprintf(stderr, "osp3_poll_device: unexpectedly high timestamp diff: %lu - %lu = %lu ms\n",
+            log_entry->ms, ms_last, diff);
+    return;
   }
-  return ms * 1000;
+  *interval_us = ms * 1000;
 }
 
 static void* osp3_poll_device(void* args) {
@@ -103,14 +114,13 @@ static void* osp3_poll_device(void* args) {
   osp3_log_entry log_entry;
   uint8_t cs8_2s;
   uint8_t cs8_xor;
-  unsigned int ms_last = 0;
+  unsigned long ms_last = 0;
   if (osp3_flush(state->dev) < 0) {
     // Continue anyway...
     perror("osp3_poll_device: osp3_flush");
   }
   int first = 1;
   while (state->poll) {
-    // TODO: verify time reported in a line vs the elapsed time we measure?
     char line[OSP3_LINE_LEN_MAX + 1] = { 0 };
     size_t line_written = 0;
     errno = 0;
@@ -141,7 +151,7 @@ static void* osp3_poll_device(void* args) {
     } else {
       // This could be wrong if we miss a log entry, but it's as good as we can do...
       state->total_uj += log_entry_to_uj(&log_entry, ms_last, state->src);
-      state->interval_us = log_entry_to_interval_us(&log_entry, ms_last);
+      log_entry_to_interval_us(&log_entry, ms_last, &state->interval_us);
       ms_last = log_entry.ms;
     }
   }
