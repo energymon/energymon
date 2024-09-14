@@ -24,6 +24,7 @@
 ### Fixed
 
 * osp-polling: log messages using non-polling function names
+* CMake: uninstall script: CMP0153 developer warning about using `exec_program`.
 
 
 ## [v0.6.0] - 2023-05-02
